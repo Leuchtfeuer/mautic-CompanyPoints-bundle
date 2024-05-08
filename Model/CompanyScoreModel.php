@@ -42,8 +42,8 @@ class CompanyScoreModel extends CompanyModel
         $leads = $this->getLeadsByCompany($company);
 
         if (empty($leads)) {
-            $company->setFields(['score_calculated' => $score]);
-            $this->getRepository()->saveEntity($company);
+            $this->setFieldValues($company, ['score_calculated' => $score]);
+            $this->saveEntity($company);
 
             return $score;
         }
@@ -62,8 +62,12 @@ class CompanyScoreModel extends CompanyModel
             $resultScore = $score / $totalLeadsValid;
         }
 
-        $company->setFields(['score_calculated' => $resultScore]);
-        $this->getRepository()->saveEntity($company);
+        if (fmod($resultScore, 1)) {
+            $resultScore = floor($resultScore) + 1;
+        }
+
+        $this->setFieldValues($company, ['score_calculated' => $resultScore]);
+        $this->saveEntity($company);
 
         return $score;
     }

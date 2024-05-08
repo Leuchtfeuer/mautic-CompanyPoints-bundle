@@ -27,6 +27,7 @@ class RecalculateCompanyScoreCommandTest extends MauticMysqlTestCase
 
     private function activePlugin(bool $isPublished = true): void
     {
+        $this->client->request('GET', '/s/plugins/reload');
         $nameBundle  = 'LeuchtfeuerCompanyPointsBundle';
         $integration = $this->em->getRepository(Integration::class)->findOneBy(['name' => LeuchtfeuerCompanyPointsIntegration::INTEGRATION_NAME]);
         if (empty($integration)) {
@@ -94,43 +95,43 @@ class RecalculateCompanyScoreCommandTest extends MauticMysqlTestCase
     private function checkCompanyIWithScoreAndTwoPoints(Company $company): void
     {
         $companyRefresh = $this->em->getRepository(Company::class)->find($company->getId());
-        $this->assertEquals(15, $companyRefresh->getFields()['score_calculated']);
+        $this->assertEquals(15, $companyRefresh->getField('score_calculated')['value']);
     }
 
     private function checkCompanyIIWithScoreAndOnePoint(Company $company): void
     {
         $companyRefresh = $this->em->getRepository(Company::class)->find($company->getId());
-        $this->assertEquals(30, $companyRefresh->getFields()['score_calculated']);
+        $this->assertEquals(30, $companyRefresh->getField('score_calculated')['value']);
     }
 
     private function checkCompanyIIINoScoreNoPoints(Company $company): void
     {
         $companyRefresh = $this->em->getRepository(Company::class)->find($company->getId());
-        $this->assertEquals(0, $companyRefresh->getFields()['score_calculated']);
+        $this->assertEquals(0, $companyRefresh->getField('score_calculated')['value']);
     }
 
     private function checkCompanyIVWithScoreAndNoPoints(Company $company): void
     {
         $companyRefresh = $this->em->getRepository(Company::class)->find($company->getId());
-        $this->assertEquals(30, $companyRefresh->getFields()['score_calculated']);
+        $this->assertEquals(30, $companyRefresh->getField('score_calculated')['value']);
     }
 
     private function checkCompanyVNoScoreTwoPoints(Company $company): void
     {
         $companyRefresh = $this->em->getRepository(Company::class)->find($company->getId());
-        $this->assertEquals(15, $companyRefresh->getFields()['score_calculated']);
+        $this->assertEquals(15, $companyRefresh->getField('score_calculated')['value']);
     }
 
     private function checkCompanyVINoScoreOnePointAndOtherNoPoint(Company $company): void
     {
         $companyRefresh = $this->em->getRepository(Company::class)->find($company->getId());
-        $this->assertEquals(10, $companyRefresh->getFields()['score_calculated']);
+        $this->assertEquals(10, $companyRefresh->getField('score_calculated')['value']);
     }
 
     private function checkCompanyVIINoScoreNoPoints(Company $company): void
     {
         $companyRefresh = $this->em->getRepository(Company::class)->find($company->getId());
-        $this->assertEquals(0, $companyRefresh->getFields()['score_calculated']);
+        $this->assertEquals(0, $companyRefresh->getField('score_calculated')['value']);
     }
 
     private function createStructure(): void
