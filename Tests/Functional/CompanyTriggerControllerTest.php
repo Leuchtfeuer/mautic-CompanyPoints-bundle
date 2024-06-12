@@ -84,16 +84,22 @@ class CompanyTriggerControllerTest extends MauticMysqlTestCase
         $companytriggerEvent->setName('Event company tags one');
         $companytriggerEvent->setDescription('Description event company tags one');
         $companytriggerEvent->setType('companytags.updatetags');
+        $companytriggerEvent->setOrder(1);
         $companytriggerEvent->setProperties([
-            'add_tags'    => [$companyTags[0]->getId(),$companyTags[1]->getId()],
+            'add_tags'    => [$companyTags[0]->getTag(),$companyTags[1]->getTag()],
             'remove_tags' => [],
         ]);
         $this->em->persist($companytriggerEvent);
+        $companyTrigger->addTriggerEvent('companytags.updatetags1',$companytriggerEvent);
+        $this->em->persist($companyTrigger);
         $this->em->flush();
-        $this->client->request('GET', '/s/company/points/triggers/edit/'.$id);
+        $crawlerEdit = $this->client->request('GET', '/s/company/points/triggers/edit/'.$id);
+//        $div = $crawlerEdit->filter('div#triggerEvents');
+//        dd($id,$div->html());
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
         $this->assertStringContainsString('Event company tags one', $this->client->getResponse()->getContent());
-//        $this->assertStringContainsString('Description event company tags one', $this->client->getResponse()->getContent());
+        $this->assertStringContainsString('Description event company tags one', $this->client->getResponse()->getContent());
+
     }
 
     private function createCompanyTags()

@@ -111,7 +111,7 @@ class TriggerEventController extends CommonFormController
             $blank        = $entity->convertToArray();
             $triggerEvent = array_merge($blank, $triggerEvent);
 
-            $template = (empty($triggerEvent['settings']['template'])) ? '@MauticPoint/Event/generic.html.twig'
+            $template = (empty($triggerEvent['settings']['template'])) ? '@LeuchtfeuerCompanyPoints/Event/generic.html.twig'
                 : $triggerEvent['settings']['template'];
 
             $passthroughVars['eventId']   = $keyId;
@@ -130,7 +130,7 @@ class TriggerEventController extends CommonFormController
         }
 
         return $this->ajaxAction($request, [
-            'contentTemplate' => '@MauticPoint/Event/form.html.twig',
+            'contentTemplate' => '@LeuchtfeuerCompanyPoints/Event/form.html.twig',
             'viewParameters'  => $viewParams,
             'passthroughVars' => $passthroughVars,
         ]);

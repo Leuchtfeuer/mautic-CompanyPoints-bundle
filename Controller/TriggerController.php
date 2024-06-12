@@ -347,7 +347,7 @@ class TriggerController extends FormController
 
                 if ($valid = $this->isFormValid($form)) {
                     // make sure that at least one field is selected
-                    if ('point.trigger' == 'point' && empty($addEvents)) {
+                    if ('companypoint.trigger' == 'point' && empty($addEvents)) {
                         // set the error
                         $form->addError(new FormError(
                             $this->translator->trans('mautic.core.value.required', [], 'validators')

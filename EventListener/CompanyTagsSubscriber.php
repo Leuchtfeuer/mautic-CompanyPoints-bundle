@@ -39,9 +39,7 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-//            LeuchtfeuerCompanyPointsEvents::COMPANY_POINT_ON_BUILD   => ['onPointBuild', 0],
             LeuchtfeuerCompanyPointsEvents::COMPANY_TRIGGER_ON_BUILD => ['onTriggerBuild', 0],
-//            LeuchtfeuerCompanyPointsEvents::COMPANY_TRIGGER_ON_EVENT_EXECUTE => ['onTriggerExecute', 0],
             LeuchtfeuerCompanyTagsEvents::COMPANY_POS_UPDATE => ['onPointExecute', 0],
             LeuchtfeuerCompanyTagsEvents::COMPANY_POS_SAVE => ['onPointExecute', 0],
             LeuchtfeuerCompanyPointsEvents::COMPANY_POST_RECALCULATE => ['onPointExecute', 0],
@@ -53,12 +51,8 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
         $action = [
             'group' => 'mautic.companytags.actions',
             'label' => 'mautic.companytag.companytags.events.changetags',
-//            'callback' => [\Mautic\EmailBundle\Helper\PointEventHelper::class, 'validateEmail'],
             'formType' => ModifyCompanyTagsType::class,
-
-//            'label'       => 'mautic.companytag.companytags.events.changetags',
             'description' => 'mautic.ompanytag.companytags.events.changetags_descr',
-//            'formType'    => ModifyCompanyTagsType::class,
             'eventName'   => LeuchtfeuerCompanyPointsEvents::COMPANY_TRIGGER_ON_BUILD,
         ];
         $event->addAction(self::TRIGGER_KEY, $action);
@@ -71,39 +65,12 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
             'label'           => 'mautic.companytag.companytags.events.changetags',
             'eventName' => LeuchtfeuerCompanyPointsEvents::COMPANY_TRIGGER_ON_EVENT_EXECUTE,
             'formType'        => ModifyCompanyTagsType::class,
-//            'formTypeOptions' => ['update_select' => 'pointtriggerevent_properties_email'],
             'formTheme'       => '@MauticEmail/FormTheme/EmailSendList/emailsend_list_row.html.twig',
         ];
         $event->addEvent(self::TRIGGER_KEY, $newEvent);
 
-//        $event->addAction('companytags.change', $action);
-
-//        $action = [
-//            'group'    => 'mautic.email.actions',
-//            'label'    => 'mautic.email.point.action.send',
-//            'callback' => [\Mautic\EmailBundle\Helper\PointEventHelper::class, 'validateEmail'],
-//            'formType' => EmailOpenType::class,
-//        ];
-//
-//        $event->addAction('email.send', $action);
     }
-//    public function onTriggerExecute(CompanyTriggerExecutedEvent $event)
-//    {
-//        if (self::TRIGGER_KEY !== $event->getTriggerEvent()->getType()) {
-//            return;
-//        }
-//
-//        $properties = $event->getTriggerEvent()->getProperties();
-//        $addTags    = $properties['add_tags'] ?: [];
-//        $removeTags = $properties['remove_tags'] ?: [];
-//        $lead = $event->getLead();
-//        $company = $lead->getCompany();
-//        dd($company);
-////        $this->companyTagModel->updateCompanyTags($event->getCompany(), $addTags, $removeTags);
-////        if ($this->leadModel->modifyTags($event->getLead(), $addTags, $removeTags)) {
-////            $event->setSucceded();
-////        }
-//    }
+
 
     public function onPointExecute(CompanyTagsEvent $event)
     {
@@ -125,6 +92,9 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
 
             $trigger = $eventTrigger->getTrigger();
             $company = $event->getCompany();
+            if( !isset($company->getField('score_calculated')['value'])){
+                $company->getField('score_calculated')['value'] = 0;
+            }
 
             if ($trigger->getPoints() >= $company->getField('score_calculated')['value']) {
                 continue;
@@ -152,33 +122,8 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
             );
         }
 
-
-
-//        $this->companyTriggerLog->
-
-
-
     }
 
-//    public function onPointBuild(PointBuilderEvent $event): void
-//    {
-//        $action = [
-//            'group'    => 'mautic.email.actions',
-//            'label'    => 'mautic.email.point.action.open',
-//            'callback' => [\Mautic\EmailBundle\Helper\PointEventHelper::class, 'validateEmail'],
-//            'formType' => EmailOpenType::class,
-//        ];
-//
-//        $event->addAction('email.open', $action);
-//
-//        $action = [
-//            'group'    => 'mautic.email.actions',
-//            'label'    => 'mautic.email.point.action.send',
-//            'callback' => [\Mautic\EmailBundle\Helper\PointEventHelper::class, 'validateEmail'],
-//            'formType' => EmailOpenType::class,
-//        ];
-//
-//        $event->addAction('email.send', $action);
-//    }
+
 
 }
