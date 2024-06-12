@@ -17,4 +17,8 @@ return function (ContainerConfigurator $configurator): void {
 
     $services->load('MauticPlugin\\LeuchtfeuerCompanyPointsBundle\\', '../')
         ->exclude('../{'.implode(',', array_merge(MauticCoreExtension::DEFAULT_EXCLUDES, $excludes)).'}');
+    $services->load('MauticPlugin\\LeuchtfeuerCompanyPointsBundle\\Entity\\', '../Entity/*Repository.php')
+        ->tag(Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\ServiceRepositoryCompilerPass::REPOSITORY_SERVICE_TAG);
+    $services->alias('mautic.companypoint.model.trigger', MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel::class);
+    $services->alias('mautic.companypoint.model.triggerevent', MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerEventModel::class);
 };

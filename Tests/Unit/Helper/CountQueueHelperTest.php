@@ -51,5 +51,4 @@ class CountQueueHelperTest extends \PHPUnit\Framework\TestCase
         $helper->resetOffset();
         $this->assertEquals(0, $helper->getOffset());
     }
-
 }
