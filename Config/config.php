@@ -9,7 +9,7 @@ return [
         'main' => [
             'leuchfeuercompany.menu.main' => [
                 'id'        => 'mautic_company_points_main_menu',
-                'iconClass' => 'ri-building-4-fill',
+                'iconClass' => 'ri-calculator-fill',
                 'priority'  => 1,
                 'checks'    => [
                     'integration' => [
