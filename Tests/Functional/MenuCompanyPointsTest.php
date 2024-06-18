@@ -21,7 +21,6 @@ class MenuCompanyPointsTest extends MauticMysqlTestCase
     {
         $crawler = $this->client->request('GET', '/s/companies');
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
-        //        $this->assertStringContainsString('Company Points', $crawler->html());
     }
 
     private function removeDir(string $dir): void

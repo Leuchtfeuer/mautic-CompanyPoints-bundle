@@ -65,17 +65,12 @@ class CompanyTriggerControllerTest extends MauticMysqlTestCase
         $fieldValues['companypointtrigger']['points']      = 10;
         $fieldValues['companypointtrigger']['color']       = '000000';
         $fieldValues['companypointtrigger']['isPublished'] = true;
-        //        $fieldValues['companypointtrigger']['event'] = 'mautic.point.trigger_executed';
         $form->setValues($fieldValues);
         $crawler = $this->client->submit($form);
         $editUrl = $crawler->filter('form[name=companypointtrigger]')->attr('action');
         $id      = explode('/', $editUrl);
         $id      = end($id);
-        //        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
-        //        $this->assertStringContainsString('has been created!', $crawler->html());
-        //        $this->client->request('GET', '/s/company/points/triggers');
-        //        $this->assertStringContainsString('Test Trigger', $this->client->getResponse()->getContent());
-        //        $this->assertStringContainsString('Test Description', $this->client->getResponse()->getContent());
+
         $companyTags         = $this->createCompanyTags();
         $companyTrigger      = $this->em->getRepository(CompanyTrigger::class)->find($id);
         $companytriggerEvent = new CompanyTriggerEvent();
@@ -93,8 +88,7 @@ class CompanyTriggerControllerTest extends MauticMysqlTestCase
         $this->em->persist($companyTrigger);
         $this->em->flush();
         $crawlerEdit = $this->client->request('GET', '/s/company/points/triggers/edit/'.$id);
-        //        $div = $crawlerEdit->filter('div#triggerEvents');
-        //        dd($id,$div->html());
+
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
         $this->assertStringContainsString('Event company tags one', $this->client->getResponse()->getContent());
         $this->assertStringContainsString('Description event company tags one', $this->client->getResponse()->getContent());

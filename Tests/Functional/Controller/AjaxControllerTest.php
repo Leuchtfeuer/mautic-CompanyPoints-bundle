@@ -102,7 +102,6 @@ $contentNew
 HTML;
         $crawler = new Crawler($html);
         $token   = $crawler->filter('input[id=companypointtriggerevent__token]')->attr('value');
-        //        dd($crawler->filter('input[id=companypointtriggerevent__token]')->attr('value'));
         $this->assertStringContainsString('Modify Company Tags', $this->client->getResponse()->getContent());
         $this->assertStringContainsString('Add Company Tags', $this->client->getResponse()->getContent());
         $headers = $this->createAjaxHeaders();
