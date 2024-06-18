@@ -5,7 +5,8 @@ namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Mautic\CoreBundle\Entity\CommonRepository;
-//use Mautic\PointBundle\Entity\GroupContactScore;
+
+// use Mautic\PointBundle\Entity\GroupContactScore;
 
 /**
  * @extends CommonRepository<CompanyTriggerEvent>
@@ -39,43 +40,43 @@ class CompanyTriggerEventRepository extends CommonRepository
         return $q->getQuery()->getArrayResult();
     }
 
-//    /**
-//     * @param ArrayCollection<int,GroupContactScore> $groupScores
-//     *
-//     * @return mixed[]
-//     */
-//    public function getPublishedByGroupScore(Collection $groupScores)
-//    {
-//        if ($groupScores->isEmpty()) {
-//            return [];
-//        }
-//
-//        $q = $this->createQueryBuilder('a')
-//            ->select('partial a.{id, type, name, properties}, partial r.{id, name, points, color}, partial pl.{id, name}')
-//            ->leftJoin('a.trigger', 'r')
-//            ->leftJoin('r.group', 'pl')
-//            ->orderBy('a.order');
-//
-//        // make sure the published up and down dates are good
-//        $expr = $this->getPublishedByDateExpression($q, 'r');
-//
-//        $groupsExpr = $q->expr()->orX();
-//        /** @var GroupContactScore $score */
-//        foreach ($groupScores as $score) {
-//            $groupsExpr->add(
-//                $q->expr()->andX(
-//                    $q->expr()->eq('pl.id', $score->getGroup()->getId()),
-//                    $q->expr()->lte('r.points', $score->getScore())
-//                )
-//            );
-//        }
-//
-//        $q->where($expr);
-//        $q->andWhere($groupsExpr);
-//        $q->andWhere('r.group IS NOT NULL');
-//
-//        return $q->getQuery()->getArrayResult();
-//    }
+    //    /**
+    //     * @param ArrayCollection<int,GroupContactScore> $groupScores
+    //     *
+    //     * @return mixed[]
+    //     */
+    //    public function getPublishedByGroupScore(Collection $groupScores)
+    //    {
+    //        if ($groupScores->isEmpty()) {
+    //            return [];
+    //        }
+    //
+    //        $q = $this->createQueryBuilder('a')
+    //            ->select('partial a.{id, type, name, properties}, partial r.{id, name, points, color}, partial pl.{id, name}')
+    //            ->leftJoin('a.trigger', 'r')
+    //            ->leftJoin('r.group', 'pl')
+    //            ->orderBy('a.order');
+    //
+    //        // make sure the published up and down dates are good
+    //        $expr = $this->getPublishedByDateExpression($q, 'r');
+    //
+    //        $groupsExpr = $q->expr()->orX();
+    //        /** @var GroupContactScore $score */
+    //        foreach ($groupScores as $score) {
+    //            $groupsExpr->add(
+    //                $q->expr()->andX(
+    //                    $q->expr()->eq('pl.id', $score->getGroup()->getId()),
+    //                    $q->expr()->lte('r.points', $score->getScore())
+    //                )
+    //            );
+    //        }
+    //
+    //        $q->where($expr);
+    //        $q->andWhere($groupsExpr);
+    //        $q->andWhere('r.group IS NOT NULL');
+    //
+    //        return $q->getQuery()->getArrayResult();
+    //    }
 
     /**
      * Get array of published actions based on type.
@@ -92,7 +93,7 @@ class CompanyTriggerEventRepository extends CommonRepository
             ->orderBy('e.order');
 
         // make sure the published up and down dates are good
-        $expr = $this->getPublishedByDateExpression($q,'t');
+        $expr = $this->getPublishedByDateExpression($q, 't');
         $expr->add(
             $q->expr()->eq('e.type', ':type')
         );
@@ -102,21 +103,19 @@ class CompanyTriggerEventRepository extends CommonRepository
         return $q->getQuery()->getResult();
     }
 
-
-
     /**
-     * @param int $leadId
+     * @param int $companyId
      */
-    public function getLeadTriggeredEvents($leadId): array
+    public function getLeadTriggeredEvents($companyId): array
     {
         $q = $this->_em->getConnection()->createQueryBuilder()
             ->select('e.*')
-            ->from(MAUTIC_TABLE_PREFIX.'company_point_lead_event_log', 'x')
+            ->from(MAUTIC_TABLE_PREFIX.'company_point_company_event_log', 'x')
             ->innerJoin('x', MAUTIC_TABLE_PREFIX.'company_point_trigger_events', 'e', 'x.event_id = e.id')
             ->innerJoin('e', MAUTIC_TABLE_PREFIX.'company_point_triggers', 't', 'e.trigger_id = t.id');
 
         // make sure the published up and down dates are good
-        $q->where($q->expr()->eq('x.lead_id', (int) $leadId));
+        $q->where($q->expr()->eq('x.company_id', (int) $companyId));
 
         $results = $q->executeQuery()->fetchAllAssociative();
 
@@ -132,11 +131,11 @@ class CompanyTriggerEventRepository extends CommonRepository
     /**
      * @param int $eventId
      */
-    public function getLeadsForEvent($eventId): array
+    public function getCompaniesForEvent($eventId): array
     {
         $results = $this->_em->getConnection()->createQueryBuilder()
-            ->select('e.lead_id')
-            ->from(MAUTIC_TABLE_PREFIX.'company_point_lead_event_log', 'e')
+            ->select('e.company_id')
+            ->from(MAUTIC_TABLE_PREFIX.'company_point_company_event_log', 'e')
             ->where('e.event_id = '.(int) $eventId)
             ->executeQuery()
             ->fetchAllAssociative();
@@ -144,7 +143,7 @@ class CompanyTriggerEventRepository extends CommonRepository
         $return = [];
 
         foreach ($results as $r) {
-            $return[] = $r['lead_id'];
+            $return[] = $r['company_id'];
         }
 
         return $return;

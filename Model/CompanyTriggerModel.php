@@ -8,34 +8,33 @@ use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\DateTimeHelper;
 use Mautic\CoreBundle\Helper\IpLookupHelper;
 use Mautic\CoreBundle\Helper\UserHelper;
+use Mautic\CoreBundle\Model\FormModel as CommonFormModel;
 use Mautic\CoreBundle\Security\Permissions\CorePermissions;
 use Mautic\CoreBundle\Translation\Translator;
 use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Entity\LeadRepository;
 use Mautic\LeadBundle\Model\LeadModel;
+// use Mautic\PointBundle\Entity\GroupContactScore;
+// use Mautic\PointBundle\Entity\LeadTriggerLog;
+// use Mautic\PointBundle\Entity\Trigger;
+// use Mautic\PointBundle\Entity\TriggerEvent;
+// use Mautic\PointBundle\Form\Type\TriggerType;
+// use Mautic\PointBundle\Model\TriggerEventModel;
+// use Mautic\PointBundle\PointEvents;
 use Mautic\LeadBundle\Tracker\ContactTracker;
-//use Mautic\PointBundle\Entity\GroupContactScore;
-//use Mautic\PointBundle\Entity\LeadTriggerLog;
-//use Mautic\PointBundle\Entity\Trigger;
-//use Mautic\PointBundle\Entity\TriggerEvent;
-//use Mautic\PointBundle\Form\Type\TriggerType;
-//use Mautic\PointBundle\Model\TriggerEventModel;
-//use Mautic\PointBundle\PointEvents;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerLog;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event as Events;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyTriggerBuilderEvent;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Form\Type\CompanyTriggerType;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents as CompanyPointEvents;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\EventDispatcher\Event;
-use Mautic\CoreBundle\Model\FormModel as CommonFormModel;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Form\Type\CompanyTriggerType;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents as CompanyPointEvents;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyTriggerBuilderEvent;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event as Events;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\LeadCompanyTriggerLog;
 
 class CompanyTriggerModel extends CommonFormModel
 {
@@ -113,7 +112,7 @@ class CompanyTriggerModel extends CommonFormModel
 
     /**
      * @param CompanyTrigger $entity
-     * @param bool    $unlock
+     * @param bool           $unlock
      */
     public function saveEntity($entity, $unlock = true): void
     {
@@ -122,12 +121,12 @@ class CompanyTriggerModel extends CommonFormModel
         parent::saveEntity($entity, $unlock);
 
         // should we trigger for existing leads?
-        if ($entity->getTriggerExistingLeads() && $entity->isPublished()) {
+        if ($entity->isPublished()) {
             $events      = $entity->getEvents();
             $repo        = $this->getEventRepository();
             $persist     = [];
             $ipAddress   = $this->ipLookupHelper->getIpAddress();
-//            $pointGroup  = $entity->getGroup();
+            //            $pointGroup  = $entity->getGroup();
 
             /** @var LeadRepository $leadRepository */
             $leadRepository = $this->em->getRepository(Lead::class);
@@ -145,49 +144,50 @@ class CompanyTriggerModel extends CommonFormModel
                     ],
                 ];
 
-//                if (!$pointGroup) {
-//                    $args['filter']['force'][] = [
-//                        'column' => 'l.points',
-//                        'expr'   => 'gte',
-//                        'value'  => $entity->getPoints(),
-//                    ];
-//                } else {
-//                $args['qb'] = $leadRepository->getEntitiesDbalQueryBuilder()
-//                    ->leftJoin('l', MAUTIC_TABLE_PREFIX.GroupContactScore::TABLE_NAME, 'pls', 'l.id = pls.contact_id');
-//                $args['filter']['force'][] = [
-//                    'column' => 'pls.score',
-//                    'expr'   => 'gte',
-//                    'value'  => $entity->getPoints(),
-//                ];
-//                $args['filter']['force'][] = [
-//                    'column' => 'pls.group_id',
-//                    'expr'   => 'eq',
-//                    'value'  => $entity->getGroup()->getId(),
-//                ];
-//                }
+                //                if (!$pointGroup) {
+                //                    $args['filter']['force'][] = [
+                //                        'column' => 'l.points',
+                //                        'expr'   => 'gte',
+                //                        'value'  => $entity->getPoints(),
+                //                    ];
+                //                } else {
+                //                $args['qb'] = $leadRepository->getEntitiesDbalQueryBuilder()
+                //                    ->leftJoin('l', MAUTIC_TABLE_PREFIX.GroupContactScore::TABLE_NAME, 'pls', 'l.id = pls.contact_id');
+                //                $args['filter']['force'][] = [
+                //                    'column' => 'pls.score',
+                //                    'expr'   => 'gte',
+                //                    'value'  => $entity->getPoints(),
+                //                ];
+                //                $args['filter']['force'][] = [
+                //                    'column' => 'pls.group_id',
+                //                    'expr'   => 'eq',
+                //                    'value'  => $entity->getGroup()->getId(),
+                //                ];
+                //                }
 
                 if (!$isNew) {
                     // get a list of leads that has already had this event applied
-                    $leadIds = $repo->getLeadsForEvent($event->getId());
-                    if (!empty($leadIds)) {
+                    //                    $leadIds = $repo->getLeadsForEvent($event->getId());
+                    $companyIds = $repo->getCompaniesForEvent($event->getId());
+                    if (!empty($companyIds)) {
                         $args['filter']['force'][] = [
                             'column' => 'l.id',
                             'expr'   => 'notIn',
-                            'value'  => $leadIds,
+                            'value'  => $companyIds,
                         ];
                     }
                 }
 
                 // get a list of leads that are before the trigger's date_added and trigger if not already done so
-                $leads = $this->leadModel->getEntities($args);
+                $companies = $this->leadModel->getEntities($args);
 
                 /** @var Lead $l */
-                foreach ($leads as $l) {
+                foreach ($companies as $l) {
                     if ($this->triggerEvent($event->convertToArray(), $l, true)) {
                         $log = new CompanyTriggerLog();
                         $log->setIpAddress($ipAddress);
                         $log->setEvent($event);
-                        $log->setLead($l);
+                        $log->setCompany($l);
                         $log->setDateFired(new \DateTime());
                         $event->addLog($log);
                         $persist[] = $event;
@@ -293,7 +293,7 @@ class CompanyTriggerModel extends CommonFormModel
         if (empty(self::$events)) {
             // build them
             self::$events = [];
-//            $event        = new Events\CompanyTriggerBuilderEvent($this->translator);
+            //            $event        = new Events\CompanyTriggerBuilderEvent($this->translator);
             $event        = new CompanyTriggerBuilderEvent($this->translator);
             $this->dispatcher->dispatch($event, CompanyPointEvents::COMPANY_TRIGGER_ON_BUILD);
             self::$events = $event->getEvents();
@@ -412,7 +412,7 @@ class CompanyTriggerModel extends CommonFormModel
         $points = $lead->getPoints();
 
         // find all published triggers that is applicable to this points
-//        /** @var \Mautic\PointBundle\Entity\TriggerEventRepository $repo */
+        //        /** @var \Mautic\PointBundle\Entity\TriggerEventRepository $repo */
         /** @var \MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEventRepository $repo */
         $repo         = $this->getEventRepository();
         $events       = $repo->getPublishedByPointTotal($points);
@@ -471,7 +471,7 @@ class CompanyTriggerModel extends CommonFormModel
         return '';
     }
 
-    public function saveLog($company,  $event): void
+    public function saveLog($company, $event): void
     {
         $companyEventLog = new CompanyTriggerLog();
         $companyEventLog->setCompany($company);

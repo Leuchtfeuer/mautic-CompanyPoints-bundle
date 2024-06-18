@@ -10,9 +10,9 @@ use Mautic\CoreBundle\Form\Type\PublishDownDateType;
 use Mautic\CoreBundle\Form\Type\PublishUpDateType;
 use Mautic\CoreBundle\Form\Type\YesNoButtonGroupType;
 use Mautic\CoreBundle\Security\Permissions\CorePermissions;
-//use Mautic\PointBundle\Entity\Trigger;
+// use Mautic\PointBundle\Entity\Trigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
-//use Mautic\PointBundle\Form\Type\GroupListType;
+// use Mautic\PointBundle\Form\Type\GroupListType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
@@ -33,7 +33,6 @@ class CompanyTriggerType extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-
         $builder->addEventSubscriber(new CleanFormSubscriber(['description' => 'html']));
         $builder->addEventSubscriber(new FormExitSubscriber('point', $options));
 
@@ -99,24 +98,24 @@ class CompanyTriggerType extends AbstractType
             ]
         );
 
-//        $builder->add(
-//            'group',
-//            GroupListType::class,
-//            [
-//                'attr'       => [
-//                    'class'   => 'form-control',
-//                    'tooltip' => 'mautic.point.group.form.group_descr',
-//                ],
-//            ]
-//        );
+        //        $builder->add(
+        //            'group',
+        //            GroupListType::class,
+        //            [
+        //                'attr'       => [
+        //                    'class'   => 'form-control',
+        //                    'tooltip' => 'mautic.point.group.form.group_descr',
+        //                ],
+        //            ]
+        //        );
 
-        $builder->add(
-            'triggerExistingLeads',
-            YesNoButtonGroupType::class,
-            [
-                'label' => 'mautic.companypoint.trigger.form.existingleads',
-            ]
-        );
+        //        $builder->add(
+        //            'triggerExistingLeads',
+        //            YesNoButtonGroupType::class,
+        //            [
+        //                'label' => 'mautic.companypoint.trigger.form.existingleads',
+        //            ]
+        //        );
 
         if (!empty($options['data']) && $options['data']->getId()) {
             $readonly = !$this->security->isGranted('companypoint:triggers:publish');

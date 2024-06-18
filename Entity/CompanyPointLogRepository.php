@@ -12,13 +12,13 @@ class CompanyPointLogRepository extends CommonRepository
     /**
      * Updates lead ID (e.g. after a lead merge).
      */
-    public function updateLead($fromLeadId, $toLeadId): void
+    public function updateLead($fromCompanyId, $toCompanyId): void
     {
         // First check to ensure the $toLead doesn't already exist
         $results = $this->_em->getConnection()->createQueryBuilder()
             ->select('pl.point_id')
             ->from(MAUTIC_TABLE_PREFIX.'company_point_company_action_log', 'pl')
-            ->where('pl.lead_id = '.$toLeadId)
+            ->where('pl.company_id = '.$toCompanyId)
             ->executeQuery()
             ->fetchAllAssociative();
 
@@ -29,8 +29,8 @@ class CompanyPointLogRepository extends CommonRepository
 
         $q = $this->_em->getConnection()->createQueryBuilder();
         $q->update(MAUTIC_TABLE_PREFIX.'company_point_company_action_log')
-            ->set('lead_id', (int) $toLeadId)
-            ->where('lead_id = '.(int) $fromLeadId);
+            ->set('company_id', (int) $toCompanyId)
+            ->where('company_id = '.(int) $fromCompanyId);
 
         if (!empty($actions)) {
             $q->andWhere(
@@ -40,7 +40,7 @@ class CompanyPointLogRepository extends CommonRepository
             // Delete remaining leads as the new lead already belongs
             $this->_em->getConnection()->createQueryBuilder()
                 ->delete(MAUTIC_TABLE_PREFIX.'company_point_company_action_log')
-                ->where('lead_id = '.(int) $fromLeadId)
+                ->where('company_id = '.(int) $fromCompanyId)
                 ->executeStatement();
         } else {
             $q->executeStatement();

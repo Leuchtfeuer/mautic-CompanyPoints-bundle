@@ -16,7 +16,7 @@ class CompanyTriggerRepository extends CommonRepository
             ->select($this->getTableAlias().', cat')
             ->from(CompanyTrigger::class, $this->getTableAlias())
             ->leftJoin($this->getTableAlias().'.category', 'cat');
-//            ->leftJoin($this->getTableAlias().'.group', 'pl');
+        //            ->leftJoin($this->getTableAlias().'.group', 'pl');
 
         $args['qb'] = $q;
 

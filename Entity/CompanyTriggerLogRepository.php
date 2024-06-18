@@ -2,9 +2,7 @@
 
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity;
 
-use Doctrine\Persistence\ManagerRegistry;
 use Mautic\CoreBundle\Entity\CommonRepository;
-use Mautic\CoreBundle\Helper\IpLookupHelper;
 
 /**
  * @extends CommonRepository<CompanyTriggerLogRepository>
@@ -14,13 +12,13 @@ class CompanyTriggerLogRepository extends CommonRepository
     /**
      * Updates lead ID (e.g. after a lead merge).
      */
-    public function updateLead($fromLeadId, $toLeadId): void
+    public function updateLead($fromCompanyId, $toCompanyId): void
     {
         // First check to ensure the $toLead doesn't already exist
         $results = $this->_em->getConnection()->createQueryBuilder()
             ->select('pl.event_id')
             ->from(MAUTIC_TABLE_PREFIX.'company_point_company_event_log', 'pl')
-            ->where('pl.lead_id = '.$toLeadId)
+            ->where('pl.company_id = '.$toCompanyId)
             ->executeQuery()
             ->fetchAllAssociative();
 
@@ -30,9 +28,9 @@ class CompanyTriggerLogRepository extends CommonRepository
         }
 
         $q = $this->_em->getConnection()->createQueryBuilder();
-        $q->update(MAUTIC_TABLE_PREFIX.'company_point_lead_event_log')
-            ->set('lead_id', (int) $toLeadId)
-            ->where('lead_id = '.(int) $fromLeadId);
+        $q->update(MAUTIC_TABLE_PREFIX.'company_point_company_event_log')
+            ->set('company_id', (int) $toCompanyId)
+            ->where('company_id = '.(int) $fromCompanyId);
 
         if (!empty($events)) {
             $q->andWhere(
@@ -41,8 +39,8 @@ class CompanyTriggerLogRepository extends CommonRepository
 
             // Delete remaining leads as the new lead already belongs
             $this->_em->getConnection()->createQueryBuilder()
-                ->delete(MAUTIC_TABLE_PREFIX.'company_point_lead_event_log')
-                ->where('lead_id = '.(int) $fromLeadId)
+                ->delete(MAUTIC_TABLE_PREFIX.'company_point_company_lead_event_log')
+                ->where('company_id = '.(int) $fromCompanyId)
                 ->executeStatement();
         } else {
             $q->executeStatement();

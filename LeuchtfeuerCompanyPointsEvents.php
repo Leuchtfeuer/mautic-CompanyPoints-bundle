@@ -122,5 +122,4 @@ final class LeuchtfeuerCompanyPointsEvents
     public const COMPANY_TRIGGER_ON_LEAD_SEGMENTS_CHANGE = 'mautic.company_trigger_on_lead_segments_change';
 
     public const COMPANY_POST_RECALCULATE = 'mautic.company_post_recalculate';
-
 }

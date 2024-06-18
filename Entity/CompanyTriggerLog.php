@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 use Mautic\CoreBundle\Entity\IpAddress;
 use Mautic\LeadBundle\Entity\Company;
+
 class CompanyTriggerLog
 {
     public const TABLE_NAME = 'company_point_company_event_log';
@@ -42,7 +43,7 @@ class CompanyTriggerLog
             ->inversedBy('log')
             ->build();
 
-//        $builder->addLead(false, 'CASCADE', true);
+        //        $builder->addLead(false, 'CASCADE', true);
         $builder->createManyToOne('company', Company::class)
             ->isPrimaryKey()
             ->addJoinColumn('company_id', 'id', false, false, 'CASCADE')
@@ -96,9 +97,6 @@ class CompanyTriggerLog
         return $this->company;
     }
 
-    /**
-     * @param mixed $lead
-     */
     public function setCompany($company): void
     {
         $this->company = $company;

@@ -5,12 +5,12 @@ return [
     'description' => 'Massively enhanced Company-based Scoring',
     'version'     => '1.0.0',
     'author'      => 'Leuchtfeuer Digital Marketing GmbH',
-    'menu' => [
+    'menu'        => [
         'main' => [
             'leuchfeuercompany.menu.main' => [
                 'id'        => 'mautic_company_points_main_menu',
-//                'route'     => 'mautic_company_points_index',
-//                'access'    => 'tagManager:tagManager:view',
+                //                'route'     => 'mautic_company_points_index',
+                //                'access'    => 'tagManager:tagManager:view',
                 'iconClass' => 'ri-focus-2-fill',
                 'priority'  => 1,
                 'checks'    => [
@@ -23,20 +23,20 @@ return [
             ],
             'leuchfeuercompany.menu.managetrigger' => [
                 'id'        => 'mautic_company_points_index',
-//            'items' => [
-//                'mautic.company.points' => [
-                    'route'     => 'mautic_company_pointtrigger_index',
-//                    'access'    => ['lead:leads:viewown', 'lead:leads:viewother'],
-                    'parent'    => 'leuchfeuercompany.menu.main',
-                    'checks'    => [
-                        'integration' => [
-                            'LeuchtfeuerCompanyPoints' => [
-                                'enabled' => true,
-                            ],
+                //            'items' => [
+                //                'mautic.company.points' => [
+                'route'     => 'mautic_company_pointtrigger_index',
+                //                    'access'    => ['lead:leads:viewown', 'lead:leads:viewother'],
+                'parent'    => 'leuchfeuercompany.menu.main',
+                'checks'    => [
+                    'integration' => [
+                        'LeuchtfeuerCompanyPoints' => [
+                            'enabled' => true,
                         ],
                     ],
-//                    'priority'  => 50,
-//                ],
+                ],
+                //                    'priority'  => 50,
+                //                ],
             ],
         ],
     ],

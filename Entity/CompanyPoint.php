@@ -11,8 +11,6 @@ use Mautic\CoreBundle\Entity\FormEntity;
 use Mautic\CoreBundle\Helper\IntHelper;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyPointLog;
-use Mautic\LeadBundle\Entity\Company;
 
 class CompanyPoint extends FormEntity
 {
@@ -71,7 +69,7 @@ class CompanyPoint extends FormEntity
      **/
     private $category;
 
-//    private ?Group $group = null;
+    //    private ?Group $group = null;
 
     public function __clone()
     {
@@ -117,9 +115,9 @@ class CompanyPoint extends FormEntity
 
         $builder->addCategory();
 
-//        $builder->createManyToOne('group', Group::class)
-//            ->addJoinColumn('group_id', 'id', true, false, 'CASCADE')
-//            ->build();
+        //        $builder->createManyToOne('group', Group::class)
+        //            ->addJoinColumn('group_id', 'id', true, false, 'CASCADE')
+        //            ->build();
     }
 
     public static function loadValidatorMetadata(ClassMetadata $metadata): void
@@ -385,13 +383,13 @@ class CompanyPoint extends FormEntity
         return $this->repeatable;
     }
 
-//    public function getGroup(): ?Group
-//    {
-//        return $this->group;
-//    }
-//
-//    public function setGroup(?Group $group): void
-//    {
-//        $this->group = $group;
-//    }
+    //    public function getGroup(): ?Group
+    //    {
+    //        return $this->group;
+    //    }
+    //
+    //    public function setGroup(?Group $group): void
+    //    {
+    //        $this->group = $group;
+    //    }
 }

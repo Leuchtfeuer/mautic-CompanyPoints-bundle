@@ -44,10 +44,10 @@ class CompanyTriggerEvent
      */
     private $trigger;
 
-//    /**
-//     * @var ArrayCollection<int,\Mautic\PointBundle\Entity\LeadTriggerLog>
-//     */
-//    private $log;
+    //    /**
+    //     * @var ArrayCollection<int,\Mautic\PointBundle\Entity\LeadTriggerLog>
+    //     */
+    //    private $log;
 
     /**
      * @var array
@@ -56,7 +56,7 @@ class CompanyTriggerEvent
 
     public function __construct()
     {
-//        $this->log = new ArrayCollection();
+        //        $this->log = new ArrayCollection();
     }
 
     public static function loadMetadata(ORM\ClassMetadata $metadata): void
@@ -84,12 +84,12 @@ class CompanyTriggerEvent
             ->addJoinColumn('trigger_id', 'id', false, false, 'CASCADE')
             ->build();
 
-//        $builder->createOneToMany('log', 'LeadTriggerLog')
-//            ->mappedBy('event')
-//            ->cascadePersist()
-//            ->cascadeRemove()
-//            ->fetchExtraLazy()
-//            ->build();
+        //        $builder->createOneToMany('log', 'LeadTriggerLog')
+        //            ->mappedBy('event')
+        //            ->cascadePersist()
+        //            ->cascadeRemove()
+        //            ->fetchExtraLazy()
+        //            ->build();
     }
 
     /**
@@ -264,26 +264,26 @@ class CompanyTriggerEvent
         return $this->name;
     }
 
-//    /**
-//     * @return self
-//     */
-//    public function addLog(LeadTriggerLog $log)
-//    {
-//        $this->log[] = $log;
-//
-//        return $this;
-//    }
+    //    /**
+    //     * @return self
+    //     */
+    //    public function addLog(LeadTriggerLog $log)
+    //    {
+    //        $this->log[] = $log;
+    //
+    //        return $this;
+    //    }
 
-//    public function removeLog(LeadTriggerLog $log): void
-//    {
-//        $this->log->removeElement($log);
-//    }
-//
-//    /**
-//     * @return \Doctrine\Common\Collections\Collection
-//     */
-//    public function getLog()
-//    {
-//        return $this->log;
-//    }
+    //    public function removeLog(LeadTriggerLog $log): void
+    //    {
+    //        $this->log->removeElement($log);
+    //    }
+    //
+    //    /**
+    //     * @return \Doctrine\Common\Collections\Collection
+    //     */
+    //    public function getLog()
+    //    {
+    //        return $this->log;
+    //    }
 }

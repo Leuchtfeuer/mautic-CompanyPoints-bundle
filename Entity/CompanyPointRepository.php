@@ -16,7 +16,7 @@ class CompanyPointRepository extends CommonRepository
             ->select($this->getTableAlias().', cat')
             ->from(CompanyPoint::class, $this->getTableAlias())
             ->leftJoin($this->getTableAlias().'.category', 'cat');
-//            ->leftJoin($this->getTableAlias().'.group', 'pl');
+        //            ->leftJoin($this->getTableAlias().'.group', 'pl');
 
         $args['qb'] = $q;
 
@@ -52,9 +52,9 @@ class CompanyPointRepository extends CommonRepository
 
     /**
      * @param string $type
-     * @param int    $leadId
+     * @param int    $companyId
      */
-    public function getCompletedLeadActions($type, $leadId): array
+    public function getCompletedLeadActions($type, $companyId): array
     {
         $q = $this->_em->getConnection()->createQueryBuilder()
             ->select('p.*')
@@ -65,7 +65,7 @@ class CompanyPointRepository extends CommonRepository
         $q->where(
             $q->expr()->and(
                 $q->expr()->eq('p.type', ':type'),
-                $q->expr()->eq('x.lead_id', (int) $leadId)
+                $q->expr()->eq('x.company_id', (int) $companyId)
             )
         )
             ->setParameter('type', $type);
@@ -82,9 +82,9 @@ class CompanyPointRepository extends CommonRepository
     }
 
     /**
-     * @param int $leadId
+     * @param int $companyId
      */
-    public function getCompletedLeadActionsByLeadId($leadId): array
+    public function getCompletedLeadActionsByLeadId($companyId): array
     {
         $q = $this->_em->getConnection()->createQueryBuilder()
             ->select('p.*')
@@ -94,7 +94,7 @@ class CompanyPointRepository extends CommonRepository
         // make sure the published up and down dates are good
         $q->where(
             $q->expr()->and(
-                $q->expr()->eq('x.lead_id', (int) $leadId)
+                $q->expr()->eq('x.company_id', (int) $companyId)
             )
         );
 

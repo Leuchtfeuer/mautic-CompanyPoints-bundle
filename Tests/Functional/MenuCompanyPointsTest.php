@@ -19,18 +19,18 @@ class MenuCompanyPointsTest extends MauticMysqlTestCase
 
     public function testMenu(): void
     {
-
         $crawler = $this->client->request('GET', '/s/companies');
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
-//        $this->assertStringContainsString('Company Points', $crawler->html());
+        //        $this->assertStringContainsString('Company Points', $crawler->html());
     }
 
-    private function removeDir(string $dir): void {
-        $it = new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS);
+    private function removeDir(string $dir): void
+    {
+        $it    = new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS);
         $files = new \RecursiveIteratorIterator($it,
             \RecursiveIteratorIterator::CHILD_FIRST);
-        foreach($files as $file) {
-            if ($file->isDir()){
+        foreach ($files as $file) {
+            if ($file->isDir()) {
                 rmdir($file->getPathname());
             } else {
                 unlink($file->getPathname());
@@ -54,5 +54,4 @@ class MenuCompanyPointsTest extends MauticMysqlTestCase
         $this->em->persist($integration);
         $this->em->flush();
     }
-
 }

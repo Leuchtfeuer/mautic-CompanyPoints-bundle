@@ -15,7 +15,6 @@ class CompanyPointLog
      **/
     private $company_points;
 
-
     private $company;
 
     /**
@@ -94,9 +93,6 @@ class CompanyPointLog
         return $this->company;
     }
 
-    /**
-     * @param mixed $lead
-     */
     public function setLead($company): void
     {
         $this->company = $company;
@@ -110,9 +106,6 @@ class CompanyPointLog
         return $this->company_points;
     }
 
-    /**
-     * @param mixed $point
-     */
     public function setPoint($company_points): void
     {
         $this->company_points = $company_points;

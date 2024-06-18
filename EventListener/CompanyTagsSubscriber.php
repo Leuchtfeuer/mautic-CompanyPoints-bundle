@@ -3,30 +3,22 @@
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\EventListener;
 
 use Mautic\CoreBundle\Helper\IpLookupHelper;
-use Mautic\EmailBundle\Form\Type\EmailSendType;
 use Mautic\LeadBundle\Model\CompanyModel;
-use Mautic\PointBundle\PointEvents;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyPoint;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerLog;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyPointBuilderEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyTriggerBuilderEvent;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerEventModel;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
+use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Event\CompanyTagsEvent;
+use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Form\Type\ModifyCompanyTagsType;
+use MauticPlugin\LeuchtfeuerCompanyTagsBundle\LeuchtfeuerCompanyTagsEvents;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Model\CompanyTagModel;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Form\Type\CompanyTriggerType;
-use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Form\Type\ModifyCompanyTagsType;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyTriggerExecutedEvent;
-use MauticPlugin\LeuchtfeuerCompanyTagsBundle\LeuchtfeuerCompanyTagsEvents;
-use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Event\CompanyTagsEvent;
-//use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
+
+// use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 
 class CompanyTagsSubscriber implements EventSubscriberInterface
 {
-
-    CONST TRIGGER_KEY = 'companytags.updatetags';
+    public const TRIGGER_KEY = 'companytags.updatetags';
 
     public function __construct(
         private CompanyTagModel $companyTagModel,
@@ -40,8 +32,8 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
     {
         return [
             LeuchtfeuerCompanyPointsEvents::COMPANY_TRIGGER_ON_BUILD => ['onTriggerBuild', 0],
-            LeuchtfeuerCompanyTagsEvents::COMPANY_POS_UPDATE => ['onPointExecute', 0],
-            LeuchtfeuerCompanyTagsEvents::COMPANY_POS_SAVE => ['onPointExecute', 0],
+            LeuchtfeuerCompanyTagsEvents::COMPANY_POS_UPDATE         => ['onPointExecute', 0],
+            LeuchtfeuerCompanyTagsEvents::COMPANY_POS_SAVE           => ['onPointExecute', 0],
             LeuchtfeuerCompanyPointsEvents::COMPANY_POST_RECALCULATE => ['onPointExecute', 0],
         ];
     }
@@ -49,9 +41,9 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
     public function onPointBuild(CompanyPointBuilderEvent $event): void
     {
         $action = [
-            'group' => 'mautic.companytags.actions',
-            'label' => 'mautic.companytag.companytags.events.changetags',
-            'formType' => ModifyCompanyTagsType::class,
+            'group'       => 'mautic.companytags.actions',
+            'label'       => 'mautic.companytag.companytags.events.changetags',
+            'formType'    => ModifyCompanyTagsType::class,
             'description' => 'mautic.ompanytag.companytags.events.changetags_descr',
             'eventName'   => LeuchtfeuerCompanyPointsEvents::COMPANY_TRIGGER_ON_BUILD,
         ];
@@ -63,36 +55,32 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
         $newEvent = [
             'group'           => 'mautic.email.point.trigger',
             'label'           => 'mautic.companytag.companytags.events.changetags',
-            'eventName' => LeuchtfeuerCompanyPointsEvents::COMPANY_TRIGGER_ON_EVENT_EXECUTE,
+            'eventName'       => LeuchtfeuerCompanyPointsEvents::COMPANY_TRIGGER_ON_EVENT_EXECUTE,
             'formType'        => ModifyCompanyTagsType::class,
             'formTheme'       => '@MauticEmail/FormTheme/EmailSendList/emailsend_list_row.html.twig',
         ];
         $event->addEvent(self::TRIGGER_KEY, $newEvent);
-
     }
-
 
     public function onPointExecute(CompanyTagsEvent $event)
     {
-
         $eventTriggers = $this->companyTriggerModel->getEventRepository()->getPublishedByType(self::TRIGGER_KEY);
         if (empty($eventTriggers)) {
             return;
         }
-        $eventLogged = $this->companyTriggerModel->getEventTriggerLogRepository()->findBy(['company' => $event->getCompany()]);
+        $eventLogged    = $this->companyTriggerModel->getEventTriggerLogRepository()->findBy(['company' => $event->getCompany()]);
         $eventLoggedIds = [];
         foreach ($eventLogged as $eventLog) {
             $eventLoggedIds[] = $eventLog->getEvent()->getId();
         }
         foreach ($eventTriggers as $eventTrigger) {
-
             if (in_array($eventTrigger->getId(), $eventLoggedIds)) {
                 continue;
             }
 
             $trigger = $eventTrigger->getTrigger();
             $company = $event->getCompany();
-            if( !isset($company->getField('score_calculated')['value'])){
+            if (!isset($company->getField('score_calculated')['value'])) {
                 $company->getField('score_calculated')['value'] = 0;
             }
 
@@ -100,10 +88,10 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
                 continue;
             }
 
-            $companiesToAdd = [];
+            $companiesToAdd    = [];
             $companiesToRemove = [];
             if (!empty($eventTrigger->getProperties()['add_tags'])) {
-                $companiesToAdd = $this->companyTagModel->getRepository()->findBy(['tag'=> $eventTrigger->getProperties()['add_tags']]);
+                $companiesToAdd   = $this->companyTagModel->getRepository()->findBy(['tag'=> $eventTrigger->getProperties()['add_tags']]);
                 $tagsAlreadyExist = $this->companyTagModel->getTagsByCompany($company);
                 foreach ($companiesToAdd as $key => $companyToAdd) {
                     if (in_array($companyToAdd, $tagsAlreadyExist)) {
@@ -121,9 +109,5 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
                 $eventTrigger
             );
         }
-
     }
-
-
-
 }

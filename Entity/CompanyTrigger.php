@@ -1,4 +1,5 @@
 <?php
+
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
@@ -6,7 +7,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Mautic\ApiBundle\Serializer\Driver\ApiMetadataDriver;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 use Mautic\CoreBundle\Entity\FormEntity;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerRepository;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
@@ -50,7 +50,7 @@ class CompanyTrigger extends FormEntity
     /**
      * @var bool
      */
-    private $triggerExistingLeads = false;
+    //    private $triggerExistingLeads = false;
 
     /**
      * @var \Mautic\CategoryBundle\Entity\Category|null
@@ -62,7 +62,7 @@ class CompanyTrigger extends FormEntity
      */
     private $events;
 
-//    private ?Group $group = null;
+    //    private ?Group $group = null;
 
     public function __clone()
     {
@@ -93,9 +93,9 @@ class CompanyTrigger extends FormEntity
             ->length(7)
             ->build();
 
-        $builder->createField('triggerExistingLeads', 'boolean')
-            ->columnName('trigger_existing_leads')
-            ->build();
+        //        $builder->createField('triggerExistingLeads', 'boolean')
+        //            ->columnName('trigger_existing_leads')
+        //            ->build();
 
         $builder->addCategory();
 
@@ -107,9 +107,9 @@ class CompanyTrigger extends FormEntity
             ->fetchExtraLazy()
             ->build();
 
-//        $builder->createManyToOne('group', Group::class)
-//            ->addJoinColumn('group_id', 'id', true, false, 'CASCADE')
-//            ->build();
+        //        $builder->createManyToOne('group', Group::class)
+        //            ->addJoinColumn('group_id', 'id', true, false, 'CASCADE')
+        //            ->build();
     }
 
     public static function loadValidatorMetadata(ClassMetadata $metadata): void
@@ -140,7 +140,7 @@ class CompanyTrigger extends FormEntity
                     'points',
                     'color',
                     'events',
-                    'triggerExistingLeads',
+                    //                    'triggerExistingLeads',
                 ]
             )
             ->build();
@@ -148,7 +148,7 @@ class CompanyTrigger extends FormEntity
 
     /**
      * @param string $prop
-     * @param mixed $val
+     * @param mixed  $val
      */
     protected function isChanged($prop, $val)
     {
@@ -336,21 +336,21 @@ class CompanyTrigger extends FormEntity
         $this->color = $color;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getTriggerExistingLeads()
-    {
-        return $this->triggerExistingLeads;
-    }
+    //    /**
+    //     * @return mixed
+    //     */
+    //    public function getTriggerExistingLeads()
+    //    {
+    //        return $this->triggerExistingLeads;
+    //    }
 
-    /**
-     * @param mixed $triggerExistingLeads
-     */
-    public function setTriggerExistingLeads($triggerExistingLeads): void
-    {
-        $this->triggerExistingLeads = $triggerExistingLeads;
-    }
+    //    /**
+    //     * @param mixed $triggerExistingLeads
+    //     */
+    //    public function setTriggerExistingLeads($triggerExistingLeads): void
+    //    {
+    //        $this->triggerExistingLeads = $triggerExistingLeads;
+    //    }
 
     /**
      * @return mixed
@@ -368,13 +368,13 @@ class CompanyTrigger extends FormEntity
         $this->category = $category;
     }
 
-//    public function getGroup(): ?Group
-//    {
-//        return $this->group;
-//    }
-//
-//    public function setGroup(Group $group): void
-//    {
-//        $this->group = $group;
-//    }
+    //    public function getGroup(): ?Group
+    //    {
+    //        return $this->group;
+    //    }
+    //
+    //    public function setGroup(Group $group): void
+    //    {
+    //        $this->group = $group;
+    //    }
 }

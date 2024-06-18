@@ -3,14 +3,14 @@
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model;
 
 use Mautic\CoreBundle\Model\FormModel as CommonFormModel;
-//use Mautic\PointBundle\Entity\TriggerEvent;
-//use Mautic\PointBundle\Entity\TriggerEventRepository;
-//use Mautic\PointBundle\Form\Type\TriggerEventType;
-use Symfony\Component\Form\FormFactoryInterface;
-use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+// use Mautic\PointBundle\Entity\TriggerEvent;
+// use Mautic\PointBundle\Entity\TriggerEventRepository;
+// use Mautic\PointBundle\Form\Type\TriggerEventType;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEventRepository;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Form\Type\CompanyTriggerEventType;
+use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
 class CompanyTriggerEventModel extends CommonFormModel
 {
@@ -32,6 +32,7 @@ class CompanyTriggerEventModel extends CommonFormModel
         if (null === $id) {
             return new CompanyTriggerEvent();
         }
+
         return parent::getEntity($id);
     }
 

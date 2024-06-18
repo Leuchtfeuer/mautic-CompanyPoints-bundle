@@ -21,7 +21,6 @@ class TriggerController extends FormController
      */
     public function indexAction(Request $request, PageHelperFactoryInterface $pageHelperFactory, $page = 1)
     {
-
         // set some permissions
         $permissions = $this->security->isGranted([
             'companypoint:triggers:view',
@@ -54,9 +53,9 @@ class TriggerController extends FormController
                 'orderByDir' => $orderByDir,
             ]
         );
-//        dd($triggers);
+        //        dd($triggers);
         $request->getSession()->set('mautic.companypoint.trigger.filter', $search);
-//        dump($triggers);
+        //        dump($triggers);
         $count = count($triggers);
 
         if ($count && $count < ($start + 1)) {
@@ -86,7 +85,7 @@ class TriggerController extends FormController
                 'permissions' => $permissions,
                 'tmpl'        => $request->isXmlHttpRequest() ? $request->get('tmpl', 'index') : 'index',
             ],
-//            'contentTemplate' => 'MauticPlugin\LeuchtfeuerCompanyPointsBundle\Controller\TriggerController::indexAction',
+            //            'contentTemplate' => 'MauticPlugin\LeuchtfeuerCompanyPointsBundle\Controller\TriggerController::indexAction',
             'contentTemplate' => '@LeuchtfeuerCompanyPoints/Trigger/list.html.twig',
             'passthroughVars' => [
                 'activeLink'    => '#mautic_company_pointtrigger_index',
@@ -434,7 +433,7 @@ class TriggerController extends FormController
                 'form'          => $form->createView(),
                 'sessionId'     => $objectId,
             ],
-//            'contentTemplate' => '@MauticPoint/Trigger/form.html.twig',
+            //            'contentTemplate' => '@MauticPoint/Trigger/form.html.twig',
             'contentTemplate' => '@LeuchtfeuerCompanyPoints/Trigger/form.html.twig',
             'passthroughVars' => [
                 'activeLink'    => '#mautic_company_pointtrigger_index',
