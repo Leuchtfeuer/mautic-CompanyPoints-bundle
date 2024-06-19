@@ -4,8 +4,6 @@ Mautic.companypointOnLoad = function (container) {
         Mautic.activateSearchAutocomplete('list-search', 'companypoint');
     }
 };
-console.log('companypoint.js223 44 55 loaded');
-
 
 Mautic.companypointTriggerOnLoad = function (container) {
     if (mQuery(container + ' #list-search').length) {
