@@ -18,16 +18,10 @@ return [
                         ],
                     ],
                 ],
-            ],
-            'leuchfeuercompany.menu.managetrigger' => [
-                'id'        => 'mautic_company_points_index',
-                'route'     => 'mautic_company_pointtrigger_index',
-                'parent'    => 'leuchfeuercompany.menu.main',
-                'checks'    => [
-                    'integration' => [
-                        'LeuchtfeuerCompanyPoints' => [
-                            'enabled' => true,
-                        ],
+                'children'  => [
+                    'leuchfeuercompany.menu.managetrigger' => [
+                        'route'  => 'mautic_company_pointtrigger_index',
+                        'access' => 'companypoint:triggers:view',
                     ],
                 ],
             ],
