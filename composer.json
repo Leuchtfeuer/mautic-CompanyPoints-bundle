@@ -15,7 +15,7 @@
     "integration"
   ],
   "extra": {
-      "install-directory-name": "LeuchtfeuerCompanyPointsBundle",
+      "install-directory-name": "LeuchtfeuerCompanyPointsBundle"
   },
   "minimum-stability": "dev",
   "require": {
