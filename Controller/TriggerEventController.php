@@ -148,6 +148,7 @@ class TriggerEventController extends CommonFormController
         $session      = $request->getSession();
         $method       = $request->getMethod();
         $triggerEvent = $request->request->get('companypointtriggerevent') ?? [];
+
         $triggerId    = 'POST' === $method ? ($triggerEvent['triggerId'] ?? '') : $request->query->get('triggerId');
         $events       = $session->get('mautic.companypoint.'.$triggerId.'.triggerevents.modified', []);
         $success      = 0;

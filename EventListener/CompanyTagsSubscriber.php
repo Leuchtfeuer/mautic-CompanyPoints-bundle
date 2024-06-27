@@ -53,7 +53,7 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
     public function onTriggerBuild(CompanyTriggerBuilderEvent $event): void
     {
         $newEvent = [
-            'group'           => 'mautic.email.point.trigger',
+            'group'           => 'mautic.companypoints.companytags.group.actions',
             'label'           => 'mautic.companytag.companytags.events.changetags',
             'eventName'       => LeuchtfeuerCompanyPointsEvents::COMPANY_TRIGGER_ON_EVENT_EXECUTE,
             'formType'        => ModifyCompanyTagsType::class,
@@ -74,7 +74,6 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
             $eventLoggedIds[] = $eventLog->getEvent()->getId();
         }
         foreach ($eventTriggers as $eventTrigger) {
-
             if (in_array($eventTrigger->getId(), $eventLoggedIds)) {
                 continue;
             }

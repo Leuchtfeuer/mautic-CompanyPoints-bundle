@@ -35,7 +35,6 @@ use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\EventDispatcher\Event;
-use Mautic\FormBundle\Event\SubmissionEvent;
 
 class CompanyTriggerModel extends CommonFormModel
 {

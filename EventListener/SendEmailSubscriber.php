@@ -2,24 +2,18 @@
 
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\EventListener;
 
-use Mautic\CoreBundle\Helper\IpLookupHelper;
 use Mautic\EmailBundle\Helper\MailHelper;
 use Mautic\EmailBundle\Model\EmailModel;
-use Mautic\FormBundle\FormEvents;
-use Mautic\LeadBundle\Model\CompanyModel;
 use Mautic\UserBundle\Model\UserModel;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyTriggerBuilderEvent;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Form\Type\CompanySubmitActionEmailType;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Event\CompanyTagsEvent;
-use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Form\Type\ModifyCompanyTagsType;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\LeuchtfeuerCompanyTagsEvents;
-use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Model\CompanyTagModel;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyTriggerBuilderEvent;
-use Mautic\FormBundle\Form\Type\SubmitActionEmailType;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Form\Type\CompanySubmitActionEmailType;
-//use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Form\Type\FormSubmitActionUserEmailType;
-use Mautic\EmailBundle\Form\Type\FormSubmitActionUserEmailType;
+
+// use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Form\Type\FormSubmitActionUserEmailType;
 
 class SendEmailSubscriber implements EventSubscriberInterface
 {
@@ -30,8 +24,7 @@ class SendEmailSubscriber implements EventSubscriberInterface
         private MailHelper $mailHelper,
         private UserModel $userModel,
         private EmailModel $emailModel
-    )
-    {
+    ) {
     }
 
     public static function getSubscribedEvents()
@@ -47,14 +40,14 @@ class SendEmailSubscriber implements EventSubscriberInterface
     public function onTriggerBuild(CompanyTriggerBuilderEvent $event): void
     {
         $newEvent = [
-            'group'       => 'mautic.companytags.actions',
-            'label'       => 'mautic.companytag.companytags.events.sendemail',
-            'formType'    => CompanySubmitActionEmailType::class,
+            'group'              => 'mautic.companypoints.sendemail.group.actions',
+            'label'              => 'mautic.companypoints.sendemail.group.actions.sendemail',
+            'formType'           => CompanySubmitActionEmailType::class,
             'formTypeCleanMasks' => [
                 'message' => 'raw',
             ],
             'formTheme'          => '@MauticForm/FormTheme/FormAction/_formaction_properties_row.html.twig',
-            'eventName'         => LeuchtfeuerCompanyPointsEvents::COMPANY_TRIGGER_ON_EVENT_EXECUTE,
+            'eventName'          => LeuchtfeuerCompanyPointsEvents::COMPANY_TRIGGER_ON_EVENT_EXECUTE,
         ];
 
         $event->addEvent(self::TRIGGER_KEY, $newEvent);
@@ -72,7 +65,6 @@ class SendEmailSubscriber implements EventSubscriberInterface
             $eventLoggedIds[] = $eventLog->getEvent()->getId();
         }
         foreach ($eventTriggers as $eventTrigger) {
-
             if (in_array($eventTrigger->getId(), $eventLoggedIds)) {
                 continue;
             }
@@ -88,41 +80,40 @@ class SendEmailSubscriber implements EventSubscriberInterface
             }
 
             $properties = $eventTrigger->getProperties();
-            if(
+            if (
                 empty($properties['user_id'])
                 && empty($properties['to'])
-                &&
-                    (
+                    && (
                         empty($properties['email_to_owner'])
-                    || ( !empty($properties['email_to_owner']) && empty($event->getCompany()->getOwner()) )
+                    || (!empty($properties['email_to_owner']) && empty($event->getCompany()->getOwner()))
                     )
-            ){
+            ) {
                 continue;
             }
 
             $users = $this->userModel->getRepository()->findBy(['id'=>$properties['user_id']]);
-            foreach ($users as $user){
+            foreach ($users as $user) {
                 $email = $this->emailModel->getRepository()->find($properties['templates']);
                 $this->mailHelper->setEmail($email);
-                if(!empty($user->getEmail())){
+                if (!empty($user->getEmail())) {
                     $this->mailHelper->addTo($user->getEmail());
                 }
-                if(!empty($properties['to'])){
+                if (!empty($properties['to'])) {
                     $this->mailHelper->addTo($properties['to']);
                 }
-                if(!empty($properties['email_to_owner']) && !empty($event->getCompany()->getOwner())){
+                if (!empty($properties['email_to_owner']) && !empty($event->getCompany()->getOwner())) {
                     $owner = $event->getCompany()->getOwner();
                     $this->mailHelper->addTo($owner->getEmail());
                 }
-                if(!empty($properties['cc'])){
+                if (!empty($properties['cc'])) {
                     $this->mailHelper->addCc($properties['cc']);
                 }
-                if(!empty($properties['bcc'])){
+                if (!empty($properties['bcc'])) {
                     $this->mailHelper->addBcc($properties['bcc']);
                 }
 
                 $this->mailHelper->setBody($properties['message']);
-                if(!empty($properties['subject'])){
+                if (!empty($properties['subject'])) {
                     $this->mailHelper->setSubject($properties['subject']);
                 }
                 $this->mailHelper->send();
@@ -132,10 +123,6 @@ class SendEmailSubscriber implements EventSubscriberInterface
                 $event->getCompany(),
                 $eventTrigger
             );
-
         }
-
-
-
     }
 }

@@ -8,14 +8,11 @@ use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\EmailBundle\Form\Type\EmailListType;
 use Mautic\FormBundle\Form\Type\FormFieldTrait;
 use Mautic\UserBundle\Form\Type\UserListType;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\Form\FormView;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class CompanySubmitActionEmailType extends AbstractType
@@ -45,14 +42,14 @@ class CompanySubmitActionEmailType extends AbstractType
                 'data'       => $data,
             ]
         );
-//        dump($options);
+        //        dump($options);
         if (!isset($options['data']['message'])) {
-//            $fields  = $this->getFormFields($options['attr']['data-formid']);
+            //            $fields  = $this->getFormFields($options['attr']['data-formid']);
             $message = 'Error: No message found.';
 
-//            foreach ($fields as $token => $label) {
-//                $message .= "<strong>$label</strong>: $token<br />";
-//            }
+        //            foreach ($fields as $token => $label) {
+        //                $message .= "<strong>$label</strong>: $token<br />";
+        //            }
         } else {
             $message = $options['data']['message'];
         }
@@ -63,12 +60,12 @@ class CompanySubmitActionEmailType extends AbstractType
             [
                 'label'      => 'mautic.form.action.sendemail.message',
                 'label_attr' => ['class' => 'control-label'],
-//                'attr'       => ['class' => 'form-control editor editor-basic'],
+                //                'attr'       => ['class' => 'form-control editor editor-basic'],
                 'attr'       => [
                     'tooltip'              => 'mautic.email.form.body.help',
                     'class'                => 'form-control editor  editor-builder-tokens builder-html editor-email',
-//                    'data-token-callback'  => 'email:getBuilderTokens',
-//                    'data-token-activator' => '{',
+                    //                    'data-token-callback'  => 'email:getBuilderTokens',
+                    //                    'data-token-activator' => '{',
                     'rows'                 => '15',
                 ],
                 'required'   => false,
@@ -97,28 +94,28 @@ class CompanySubmitActionEmailType extends AbstractType
             ]
         );
 
-//        $default = $options['data']['copy_lead'] ?? false;
-//        $builder->add(
-//            'copy_lead',
-//            YesNoButtonGroupType::class,
-//            [
-//                'label' => 'mautic.form.action.sendemail.copytolead',
-//                'data'  => $default,
-//            ]
-//        );
+        //        $default = $options['data']['copy_lead'] ?? false;
+        //        $builder->add(
+        //            'copy_lead',
+        //            YesNoButtonGroupType::class,
+        //            [
+        //                'label' => 'mautic.form.action.sendemail.copytolead',
+        //                'data'  => $default,
+        //            ]
+        //        );
 
-//        $default = $options['data']['set_replyto'] ?? true;
-//        $builder->add(
-//            'set_replyto',
-//            YesNoButtonGroupType::class,
-//            [
-//                'label' => 'mautic.form.action.sendemail.setreplyto',
-//                'data'  => $default,
-//                'attr'  => [
-//                    'tooltip' => 'mautic.form.action.sendemail.setreplyto_tooltip',
-//                ],
-//            ]
-//        );
+        //        $default = $options['data']['set_replyto'] ?? true;
+        //        $builder->add(
+        //            'set_replyto',
+        //            YesNoButtonGroupType::class,
+        //            [
+        //                'label' => 'mautic.form.action.sendemail.setreplyto',
+        //                'data'  => $default,
+        //                'attr'  => [
+        //                    'tooltip' => 'mautic.form.action.sendemail.setreplyto_tooltip',
+        //                ],
+        //            ]
+        //        );
 
         $default = $options['data']['email_to_owner'] ?? false;
         $builder->add(
@@ -153,9 +150,8 @@ class CompanySubmitActionEmailType extends AbstractType
         return 'form_company_submitaction_sendemail';
     }
 
-//    public function buildView(FormView $view, FormInterface $form, array $options): void
-//    {
-//        $view->vars['formFields'] = $this->getFormFields($options['attr']['data-formid']);
-//    }
-
+    //    public function buildView(FormView $view, FormInterface $form, array $options): void
+    //    {
+    //        $view->vars['formFields'] = $this->getFormFields($options['attr']['data-formid']);
+    //    }
 }
