@@ -3,15 +3,17 @@
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Functional;
 
 use Mautic\CoreBundle\Test\MauticMysqlTestCase;
+use Mautic\LeadBundle\Entity\Company;
 use Mautic\PluginBundle\Entity\Integration;
 use Mautic\PluginBundle\Entity\Plugin;
+use Mautic\UserBundle\Entity\User;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerLog;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\LeuchtfeuerCompanyPointsIntegration;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Entity\CompanyTags;
 
-class CompanyTriggerControllerTest extends MauticMysqlTestCase
+class CompanyTriggerControllerSendEmailEventTest extends MauticMysqlTestCase
 {
     public function setUp(): void
     {
@@ -21,39 +23,7 @@ class CompanyTriggerControllerTest extends MauticMysqlTestCase
         $this->setUpSymfony($this->configParams);
     }
 
-    public function testIndexAction(): void
-    {
-        $this->client->request('GET', '/s/company/points/triggers');
-        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
-    }
-
-    public function testNewAction(): void
-    {
-        $this->client->request('GET', '/s/company/points/triggers/new');
-        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
-    }
-
-    public function testEditAction(): void
-    {
-        $crawler = $this->client->request('GET', '/s/company/points/triggers/new');
-        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
-        $form                                              = $crawler->filter('form[name=companypointtrigger]')->form();
-        $fieldValues                                       = $form->getPhpValues();
-        $fieldValues['companypointtrigger']['name']        = 'Test Trigger';
-        $fieldValues['companypointtrigger']['description'] = 'Test Description';
-        $fieldValues['companypointtrigger']['points']      = 10;
-        $fieldValues['companypointtrigger']['color']       = '000000';
-        $fieldValues['companypointtrigger']['isPublished'] = true;
-        $form->setValues($fieldValues);
-        $crawler = $this->client->submit($form);
-        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
-        $this->assertStringContainsString('has been created!', $crawler->html());
-        $this->client->request('GET', '/s/company/points/triggers');
-        $this->assertStringContainsString('Test Trigger', $this->client->getResponse()->getContent());
-        $this->assertStringContainsString('Test Description', $this->client->getResponse()->getContent());
-    }
-
-    public function testNewActionWithEvent(): void
+    public function testCreateActionWithEventSendEmail()
     {
         $crawlerEvent = $this->client->request('GET', '/s/company/points/triggers/events/new?type=companytags.updatetags&tmpl=event&triggerId=mautic_bc');
 
@@ -74,20 +44,36 @@ class CompanyTriggerControllerTest extends MauticMysqlTestCase
 
         $companyTags         = $this->createCompanyTags();
         $companyTrigger      = $this->em->getRepository(CompanyTrigger::class)->find($id);
+        $emailTemplate       = new \Mautic\EmailBundle\Entity\Email();
+        $emailTemplate->setName('Test Email Template');
+        $emailTemplate->setSubject('Test Subject');
+        $emailTemplate->setContent('Test Content');
+        $emailTemplate->setCreatedBy($this->em->getRepository(User::class)->find(1));
+        $this->em->persist($emailTemplate);
+        $this->em->flush();
         $companytriggerEvent = new CompanyTriggerEvent();
         $companytriggerEvent->setTrigger($companyTrigger);
         $companytriggerEvent->setName('Event company tags one');
         $companytriggerEvent->setDescription('Description event company tags one');
-        $companytriggerEvent->setType('companytags.updatetags');
+        $companytriggerEvent->setType('companytags.sendemails');
         $companytriggerEvent->setOrder(1);
         $companytriggerEvent->setProperties([
-            'add_tags'    => [$companyTags[0]->getTag(), $companyTags[1]->getTag()],
-            'remove_tags' => [],
+            'subject' => 'Test Subject',
+            'message' => 'Test Message',
+            'user_id' => [
+                1, 2,
+            ],
+            'email_to_owner' => true,
+            'to'             => 'test@test.com',
+            'bcc'            => 'test@test.com',
+            'cc'             => 'test@test.com',
+            'templates'      => $emailTemplate->getId(),
         ]);
         $this->em->persist($companytriggerEvent);
-        $companyTrigger->addTriggerEvent('companytags.updatetags1', $companytriggerEvent);
+        $companyTrigger->addTriggerEvent('companytags.sendemails', $companytriggerEvent);
         $this->em->persist($companyTrigger);
         $this->em->flush();
+
         $crawlerEdit = $this->client->request('GET', '/s/company/points/triggers/edit/'.$id);
 
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
@@ -95,7 +81,7 @@ class CompanyTriggerControllerTest extends MauticMysqlTestCase
         $this->assertStringContainsString('Description event company tags one', $this->client->getResponse()->getContent());
     }
 
-    public function testCompanyTriggerTriggerAfterCreateANewCompany()
+    public function testNewActionWithEventSendEmailAndAddNewCompanyAndRunATrigger(): void
     {
         $crawlerEvent = $this->client->request('GET', '/s/company/points/triggers/events/new?type=companytags.updatetags&tmpl=event&triggerId=mautic_bc');
 
@@ -116,20 +102,36 @@ class CompanyTriggerControllerTest extends MauticMysqlTestCase
 
         $companyTags         = $this->createCompanyTags();
         $companyTrigger      = $this->em->getRepository(CompanyTrigger::class)->find($id);
+        $emailTemplate       = new \Mautic\EmailBundle\Entity\Email();
+        $emailTemplate->setName('Test Email Template');
+        $emailTemplate->setSubject('Test Subject');
+        $emailTemplate->setContent('Test Content');
+        $emailTemplate->setCreatedBy($this->em->getRepository(User::class)->find(1));
+        $this->em->persist($emailTemplate);
+        $this->em->flush();
         $companytriggerEvent = new CompanyTriggerEvent();
         $companytriggerEvent->setTrigger($companyTrigger);
         $companytriggerEvent->setName('Event company tags one');
         $companytriggerEvent->setDescription('Description event company tags one');
-        $companytriggerEvent->setType('companytags.updatetags');
+        $companytriggerEvent->setType('companytags.sendemails');
         $companytriggerEvent->setOrder(1);
         $companytriggerEvent->setProperties([
-            'add_tags'    => [$companyTags[0]->getTag(), $companyTags[1]->getTag()],
-            'remove_tags' => [],
+            'subject' => 'Test Subject',
+            'message' => 'Test Message',
+            'user_id' => [
+                1, 2,
+            ],
+            'email_to_owner' => true,
+            'to'             => 'test@test.com',
+            'bcc'            => 'test@test.com',
+            'cc'             => 'test@test.com',
+            'templates'      => $emailTemplate->getId(),
         ]);
         $this->em->persist($companytriggerEvent);
-        $companyTrigger->addTriggerEvent('companytags.updatetags1', $companytriggerEvent);
+        $companyTrigger->addTriggerEvent('companytags.sendemails', $companytriggerEvent);
         $this->em->persist($companyTrigger);
         $this->em->flush();
+
         $crawlerEdit = $this->client->request('GET', '/s/company/points/triggers/edit/'.$id);
 
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
@@ -137,6 +139,7 @@ class CompanyTriggerControllerTest extends MauticMysqlTestCase
         $this->assertStringContainsString('Description event company tags one', $this->client->getResponse()->getContent());
         $companyTriggerLogModel      = $this->em->getRepository(CompanyTriggerLog::class)->findAll();
         $this->assertEmpty($companyTriggerLogModel);
+        $company = $this->createCompany();
         $crawler = $this->client->request('GET', '/s/companies/new/');
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
         $form                                     = $crawler->filter('form[name=company]')->form();
@@ -148,10 +151,27 @@ class CompanyTriggerControllerTest extends MauticMysqlTestCase
         $companyTriggerLogModel      = $this->em->getRepository(CompanyTriggerLog::class)->findAll();
         $this->assertNotEmpty($companyTriggerLogModel);
         $this->assertEquals(1, count($companyTriggerLogModel));
-        $this->assertEquals('Test New Company', $companyTriggerLogModel[0]->getCompany()->getCompanyname());
-        $this->assertEquals('companytags.updatetags', $companyTriggerLogModel[0]->getEvent()->getType());
+        $this->assertEquals('Test Trigger', $companyTriggerLogModel[0]->getEvent()->getTrigger()->getName());
+        $this->assertEquals('Test Description', $companyTriggerLogModel[0]->getEvent()->getTrigger()->getDescription());
+        $this->assertEquals(10, $companyTriggerLogModel[0]->getEvent()->getTrigger()->getPoints());
         $this->assertEquals('Event company tags one', $companyTriggerLogModel[0]->getEvent()->getName());
         $this->assertEquals('Description event company tags one', $companyTriggerLogModel[0]->getEvent()->getDescription());
+        $this->assertEquals('companytags.sendemails', $companyTriggerLogModel[0]->getEvent()->getType());
+        $this->assertEquals('Test Subject', $companyTriggerLogModel[0]->getEvent()->getProperties()['subject']);
+        $this->assertEquals('Test Message', $companyTriggerLogModel[0]->getEvent()->getProperties()['message']);
+        $this->assertEquals([1, 2], $companyTriggerLogModel[0]->getEvent()->getProperties()['user_id']);
+        $this->assertEquals(true, $companyTriggerLogModel[0]->getEvent()->getProperties()['email_to_owner']);
+    }
+
+    private function createCompany()
+    {
+        $company = new Company();
+        $company->setName('Test Company');
+        $company->setOwner($this->em->getRepository(User::class)->find(1));
+        $this->em->persist($company);
+        $this->em->flush();
+
+        return $company;
     }
 
     private function createCompanyTags()
