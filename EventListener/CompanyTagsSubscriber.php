@@ -74,6 +74,7 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
             $eventLoggedIds[] = $eventLog->getEvent()->getId();
         }
         foreach ($eventTriggers as $eventTrigger) {
+
             if (in_array($eventTrigger->getId(), $eventLoggedIds)) {
                 continue;
             }
