@@ -7,10 +7,10 @@ return [
     'author'      => 'Leuchtfeuer Digital Marketing GmbH',
     'menu'        => [
         'main' => [
-            'leuchfeuercompany.menu.main' => [
-                'id'        => 'mautic_company_points_main_menu',
-                'iconClass' => 'fa-calculator',
-                'priority'  => 1,
+            'leuchfeuercompany.menu.managetrigger' => [
+                'id'        => 'mautic_company_pointtrigger_index',
+                'parent'    => 'mautic.companies.menu.index',
+                'priority'  => 10,
                 'checks'    => [
                     'integration' => [
                         'LeuchtfeuerCompanyPoints' => [
@@ -18,12 +18,12 @@ return [
                         ],
                     ],
                 ],
-                'children'  => [
-                    'leuchfeuercompany.menu.managetrigger' => [
-                        'route'  => 'mautic_company_pointtrigger_index',
-                        'access' => 'companypoint:triggers:view',
-                    ],
-                ],
+            ],
+            'mautic.companies.menu.sub.index' => [
+                'parent'    => 'mautic.companies.menu.index',
+                'route'     => 'mautic_company_index',
+                'access'    => ['lead:leads:viewother'],
+                'priority'  => 100,
             ],
         ],
     ],
