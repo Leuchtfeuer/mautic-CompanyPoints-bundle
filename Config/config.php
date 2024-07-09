@@ -5,28 +5,6 @@ return [
     'description' => 'Massively enhanced Company-based Scoring',
     'version'     => '1.0.0',
     'author'      => 'Leuchtfeuer Digital Marketing GmbH',
-    'menu'        => [
-        'main' => [
-            'leuchfeuercompany.menu.main' => [
-                'id'        => 'mautic_company_points_main_menu',
-                'iconClass' => 'fa-calculator',
-                'priority'  => 1,
-                'checks'    => [
-                    'integration' => [
-                        'LeuchtfeuerCompanyPoints' => [
-                            'enabled' => true,
-                        ],
-                    ],
-                ],
-                'children'  => [
-                    'leuchfeuercompany.menu.managetrigger' => [
-                        'route'  => 'mautic_company_pointtrigger_index',
-                        'access' => 'companypoint:triggers:view',
-                    ],
-                ],
-            ],
-        ],
-    ],
     'routes'      => [
         'main' => [
             'mautic_company_points_index' => [
@@ -44,6 +22,30 @@ return [
             'mautic_company_pointtrigger_action' => [
                 'path'       => '/company/points/triggers/{objectAction}/{objectId}',
                 'controller' => 'MauticPlugin\LeuchtfeuerCompanyPointsBundle\Controller\TriggerController::executeAction',
+            ],
+        ],
+    ],
+    'menu'        => [
+        'main' => [
+            'leuchfeuercompany.menu.managetrigger' => [
+//                'id'        => 'mautic_company_pointtrigger_index',
+                'parent'    => 'mautic.companies.menu.index',
+                'route'     => 'mautic_company_pointtrigger_index',
+                'priority'  => 10,
+                'checks'    => [
+                    'integration' => [
+                        'LeuchtfeuerCompanyPoints' => [
+                            'enabled' => true,
+                        ],
+                    ],
+                ],
+            ],
+            'mautic.companies.menu.sub.index' => [
+                'id'        => 'mautic.companies.menu.index',
+                'parent'    => 'mautic.companies.menu.index',
+                'route'     => 'mautic_company_index',
+                'access'    => ['lead:leads:viewother'],
+                'priority'  => 100,
             ],
         ],
     ],
