@@ -1,17 +1,17 @@
 # Plugin: Company Points by Leuchtfeuer
 
-##Overview
+## Overview
 
 This plugin brings massively enhanced Company-based Scoring to Mautic, including events triggered by those Points.
 
 It is part of the "ABM" suite of plugins that extends Mautic capabilities for working with Companies.
 
-##Requirements
+## Requirements
 - Mautic 5.x (minimum 5.1)
 - PHP 8.1 or higher
 - Company Tags and Company Segments Plugins
 
-##Installation
+## Installation
 ### Composer
 This plugin can be installed through composer.
 
