@@ -1,0 +1,42 @@
+name: ciUnitTests
+on:
+  pull_request:
+    branches:
+      - 'main'
+
+jobs:
+  integration:
+    name: CI Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup PHP Environment
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.1
+      - name: Install composer requirements.
+        run: |
+          composer config repositories.0 vcs https://github.com/mautic/FOSOAuthServerBundle.git
+          composer config repositories.1 vcs https://github.com/Leuchtfeuer/mautic-CompanyTags-bundle.git
+          composer config repositories.2 vcs https://github.com/Leuchtfeuer/mautic-CompanySegments-bundle.git
+          composer config repositories.3 vcs https://github.com/mautic/SpBundle.git
+          composer config repositories.4 vcs https://github.com/mautic/SymfonyBridgeBundle.git
+          composer require --dev phpunit/phpunit
+          composer require leuchtfeuer/mautic-companysegments-bundle leuchtfeuer/mautic-companytags-bundle
+          composer install
+      - name: Run PHPUnit
+        run: ./vendor/bin/phpunit --testsuite unit --coverage-cobertura=coverage.xml
+      - name: Code Coverage
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: coverage.xml
+          badge: true
+          format: 'markdown'
+          output: 'both'
+      - name: Write to Job Summary
+        run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
+
+
+
+
