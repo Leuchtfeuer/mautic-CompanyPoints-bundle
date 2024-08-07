@@ -17,11 +17,6 @@ jobs:
           php-version: 8.1
       - name: Install composer requirements.
         run: |
-          composer config repositories.0 vcs https://github.com/mautic/FOSOAuthServerBundle.git
-          composer config repositories.1 vcs https://github.com/Leuchtfeuer/mautic-CompanyTags-bundle.git
-          composer config repositories.2 vcs https://github.com/Leuchtfeuer/mautic-CompanySegments-bundle.git
-          composer config repositories.3 vcs https://github.com/mautic/SpBundle.git
-          composer config repositories.4 vcs https://github.com/mautic/SymfonyBridgeBundle.git
           composer require --dev phpunit/phpunit
           composer require leuchtfeuer/mautic-companysegments-bundle leuchtfeuer/mautic-companytags-bundle
           composer install
