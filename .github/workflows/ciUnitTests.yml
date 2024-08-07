@@ -22,15 +22,7 @@ jobs:
           composer install
       - name: Run PHPUnit
         run: ./vendor/bin/phpunit --testsuite unit --coverage-cobertura=coverage.xml
-      - name: Code Coverage
-        uses: irongut/CodeCoverageSummary@v1.3.0
-        with:
-          filename: coverage.xml
-          badge: true
-          format: 'markdown'
-          output: 'both'
-      - name: Write to Job Summary
-        run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
+
 
 
 
