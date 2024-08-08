@@ -38,14 +38,6 @@
     {
       "type": "git",
       "url": "https://github.com/mautic/SymfonyBridgeBundle.git"
-    },
-    {
-      "type": "vcs",
-      "url": "https://github.com/Leuchtfeuer/mautic-CompanyTags-bundle.git"
-    },
-    {
-      "type": "vcs",
-      "url": "https://github.com/Leuchtfeuer/mautic-CompanySegments-bundle.git"
     }
   ],
   "config": {
