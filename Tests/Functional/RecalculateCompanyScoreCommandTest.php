@@ -95,7 +95,7 @@ class RecalculateCompanyScoreCommandTest extends MauticMysqlTestCase
     private function checkCompanyIWithScoreAndTwoPoints(Company $company): void
     {
         $companyRefresh = $this->em->getRepository(Company::class)->find($company->getId());
-        $this->assertEquals(15, $companyRefresh->getField('score_calculated')['value']);
+        $this->assertEquals(20, $companyRefresh->getField('score_calculated')['value']);
     }
 
     private function checkCompanyIIWithScoreAndOnePoint(Company $company): void

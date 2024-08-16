@@ -47,19 +47,20 @@ class CompanyScoreModel extends CompanyModel
 
             return $companyScore;
         }
-        $score = 0;
+
+        $leadPoints = 0;
         $totalLeadsValid = 0;
         foreach ($leads as $lead) {
             if (empty($lead->getPoints())) {
                 continue;
             }
-            $score += $lead->getPoints();
+            $leadPoints += $lead->getPoints();
             ++$totalLeadsValid;
         }
 
-        $resultScore = $score;
+        $resultScore = $leadPoints;
         if (!empty($totalLeadsValid)) {
-            $resultScore = $score / $totalLeadsValid;
+            $resultScore = $leadPoints / $totalLeadsValid;
         }
 
         if (fmod($resultScore, 1)) {
@@ -71,7 +72,7 @@ class CompanyScoreModel extends CompanyModel
         $this->setFieldValues($company, ['score_calculated' => $resultScore]);
         $this->saveEntity($company);
 
-        return $score;
+        return $resultScore;
     }
 
     /**
