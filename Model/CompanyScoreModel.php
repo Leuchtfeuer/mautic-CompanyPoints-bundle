@@ -38,16 +38,16 @@ class CompanyScoreModel extends CompanyModel
 
     public function recalculateCompanyScores(Company $company): ?int
     {
-        $score = $company->getScore();
+        $companyScore = $company->getScore();
         $leads = $this->getLeadsByCompany($company);
 
         if (empty($leads)) {
-            $this->setFieldValues($company, ['score_calculated' => $score]);
+            $this->setFieldValues($company, ['score_calculated' => $companyScore]);
             $this->saveEntity($company);
 
-            return $score;
+            return $companyScore;
         }
-
+        $score = 0;
         $totalLeadsValid = 0;
         foreach ($leads as $lead) {
             if (empty($lead->getPoints())) {
@@ -65,6 +65,8 @@ class CompanyScoreModel extends CompanyModel
         if (fmod($resultScore, 1)) {
             $resultScore = floor($resultScore) + 1;
         }
+
+        $resultScore += $companyScore;
 
         $this->setFieldValues($company, ['score_calculated' => $resultScore]);
         $this->saveEntity($company);
