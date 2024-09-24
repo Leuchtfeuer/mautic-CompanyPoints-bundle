@@ -10,6 +10,7 @@ use Mautic\CoreBundle\Translation\Translator;
 use Mautic\EmailBundle\Helper\EmailValidator;
 use Mautic\LeadBundle\Deduplicate\CompanyDeduper;
 use Mautic\LeadBundle\Entity\Company;
+use Mautic\LeadBundle\Field\FieldList;
 use Mautic\LeadBundle\Model\CompanyModel;
 use Mautic\LeadBundle\Model\FieldModel;
 use Mautic\LeadBundle\Model\LeadModel;
@@ -31,9 +32,10 @@ class CompanyScoreModel extends CompanyModel
         UserHelper $userHelper,
         LoggerInterface $mauticLogger,
         CoreParametersHelper $coreParametersHelper,
+        private FieldList $fieldList,
         protected LeadModel $leadModel
     ) {
-        parent::__construct($leadFieldModel, $emailValidator, $companyDeduper, $em, $security, $dispatcher, $router, $translator, $userHelper, $mauticLogger, $coreParametersHelper);
+        parent::__construct($leadFieldModel, $emailValidator, $companyDeduper, $em, $security, $dispatcher, $router, $translator, $userHelper, $mauticLogger, $coreParametersHelper, $fieldList);
     }
 
     public function recalculateCompanyScores(Company $company): ?int
