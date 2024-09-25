@@ -60,6 +60,7 @@ and
 ## Known Issues
 * Console command only works ever second time
 * Misplaced "edit" icons for Trigger events (this is a Mautic issue, cannot be fixed here)
+* Error message when installing the plugin ( Mautic core was changed exactly in the place where the plugin extends it )
 
 ## Future Ideas
 * Additional Triggered Event `Send Email To User`
