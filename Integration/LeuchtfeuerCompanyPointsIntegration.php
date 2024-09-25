@@ -12,7 +12,7 @@ class LeuchtfeuerCompanyPointsIntegration extends BasicIntegration implements Ba
 {
     use ConfigurationTrait;
 
-    public const INTEGRATION_NAME = 'leuchtfeuercompanypoints';
+    public const INTEGRATION_NAME = 'LeuchtfeuerCompanyPoints';
     public const DISPLAY_NAME     = 'Company Points by Leuchtfeuer';
 
     public function getName(): string
