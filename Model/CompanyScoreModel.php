@@ -10,6 +10,7 @@ use Mautic\CoreBundle\Translation\Translator;
 use Mautic\EmailBundle\Helper\EmailValidator;
 use Mautic\LeadBundle\Deduplicate\CompanyDeduper;
 use Mautic\LeadBundle\Entity\Company;
+use Mautic\LeadBundle\Field\FieldList;
 use Mautic\LeadBundle\Model\CompanyModel;
 use Mautic\LeadBundle\Model\FieldModel;
 use Mautic\LeadBundle\Model\LeadModel;
@@ -31,45 +32,49 @@ class CompanyScoreModel extends CompanyModel
         UserHelper $userHelper,
         LoggerInterface $mauticLogger,
         CoreParametersHelper $coreParametersHelper,
+        private FieldList $fieldList,
         protected LeadModel $leadModel
     ) {
-        parent::__construct($leadFieldModel, $emailValidator, $companyDeduper, $em, $security, $dispatcher, $router, $translator, $userHelper, $mauticLogger, $coreParametersHelper);
+        parent::__construct($leadFieldModel, $emailValidator, $companyDeduper, $em, $security, $dispatcher, $router, $translator, $userHelper, $mauticLogger, $coreParametersHelper, $fieldList);
     }
 
     public function recalculateCompanyScores(Company $company): ?int
     {
-        $score = $company->getScore();
+        $companyScore = $company->getScore();
         $leads = $this->getLeadsByCompany($company);
 
         if (empty($leads)) {
-            $this->setFieldValues($company, ['score_calculated' => $score]);
+            $this->setFieldValues($company, ['score_calculated' => $companyScore]);
             $this->saveEntity($company);
 
-            return $score;
+            return $companyScore;
         }
 
+        $leadPoints = 0;
         $totalLeadsValid = 0;
         foreach ($leads as $lead) {
             if (empty($lead->getPoints())) {
                 continue;
             }
-            $score += $lead->getPoints();
+            $leadPoints += $lead->getPoints();
             ++$totalLeadsValid;
         }
 
-        $resultScore = $score;
+        $resultScore = $leadPoints;
         if (!empty($totalLeadsValid)) {
-            $resultScore = $score / $totalLeadsValid;
+            $resultScore = $leadPoints / $totalLeadsValid;
         }
 
         if (fmod($resultScore, 1)) {
             $resultScore = floor($resultScore) + 1;
         }
 
+        $resultScore += $companyScore;
+
         $this->setFieldValues($company, ['score_calculated' => $resultScore]);
         $this->saveEntity($company);
 
-        return $score;
+        return $resultScore;
     }
 
     /**
