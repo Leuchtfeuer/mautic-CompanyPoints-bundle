@@ -62,17 +62,17 @@ class SendEmailSubscriber implements EventSubscriberInterface
     {
 
         $eventTriggers = $this->companyTriggerModel->getEventRepository()->getPublishedByType(self::TRIGGER_KEY);
+
         if (empty($eventTriggers)) {
             return;
         }
+
         $eventLogged = $this->companyTriggerModel->getEventTriggerLogRepository()->findBy(['company' => $event->getCompany()]);
         $eventLoggedIds = [];
         foreach ($eventLogged as $eventLog) {
             $eventLoggedIds[] = $eventLog->getEvent()->getId();
         }
-
         foreach ($eventTriggers as $eventTrigger) {
-
             if (in_array($eventTrigger->getId(), $eventLoggedIds)) {
                 continue;
             }
@@ -82,13 +82,11 @@ class SendEmailSubscriber implements EventSubscriberInterface
             if (!isset($company->getField('score_calculated')['value'])) {
                 $company->getField('score_calculated')['value'] = 0;
             }
-
             if ($trigger->getPoints() >= $company->getField('score_calculated')['value']) {
                 continue;
             }
 
             $properties = $eventTrigger->getProperties();
-
             if (
                 empty($properties['user_id'])
                 && empty($properties['to'])
@@ -99,7 +97,6 @@ class SendEmailSubscriber implements EventSubscriberInterface
             ) {
                 continue;
             }
-
             $users = $this->userModel->getRepository()->findBy(['id' => $properties['user_id']]);
             foreach ($users as $user) {
                 $email = $this->emailModel->getRepository()->find($properties['email']);
@@ -121,6 +118,7 @@ class SendEmailSubscriber implements EventSubscriberInterface
                 if (!empty($properties['bcc'])) {
                     $this->mailHelper->addBcc($properties['bcc']);
                 }
+
                 $tokens = $this->getTokens($event->getCompany());
                 $this->mailHelper->setTokens($tokens);
                 $this->mailHelper->send();
@@ -142,12 +140,15 @@ class SendEmailSubscriber implements EventSubscriberInterface
         return [
             '{contactfield=companyname}' => $company->getName(),
             '{contactfield=companycountry}' => $company->getCountry(),
+            '{contactfield=companyemail}' => $company->getEmail(),
             '{contactfield=industry_tags}' => $fields['professional']['companyindustry']['value']??'',
+            '{contactfield=companyindustry}' => $fields['professional']['companyindustry']['value']??'',
             '{companynumber_of_employees}' => $fields['professional']['companynumber_of_employees']['value']??'',
-            '{contactfield=companynumber_of_employees}' => $fields['professional']['companyannual_revenue']['value']??'',
-            '{companyfield=points_calculated}' => $fields['core']['score_calculated']['value']??'',
+            '{contactfield=companynumber_of_employees}' => $fields['professional']['companynumber_of_employees']['value']??'',
+            '{contactfield=companyannual_revenue}' => $fields['professional']['companyannual_revenue']['value']??'',
             '{companyfield=list_tag_names}' => $companyTagsString,
             '{companyfield=list_segment_names}' => $companySegmentsString,
+            '{companyfield=score_calculated}' => $fields['professional']['score_calculated']['value']??'',
         ];
     }
 
