@@ -53,9 +53,7 @@ class TriggerController extends FormController
                 'orderByDir' => $orderByDir,
             ]
         );
-        //        dd($triggers);
         $request->getSession()->set('mautic.companypoint.trigger.filter', $search);
-        //        dump($triggers);
         $count = count($triggers);
 
         if ($count && $count < ($start + 1)) {
@@ -85,7 +83,6 @@ class TriggerController extends FormController
                 'permissions' => $permissions,
                 'tmpl'        => $request->isXmlHttpRequest() ? $request->get('tmpl', 'index') : 'index',
             ],
-            //            'contentTemplate' => 'MauticPlugin\LeuchtfeuerCompanyPointsBundle\Controller\TriggerController::indexAction',
             'contentTemplate' => '@LeuchtfeuerCompanyPoints/Trigger/list.html.twig',
             'passthroughVars' => [
                 'activeLink'    => '#mautic_company_pointtrigger_index',
@@ -100,7 +97,7 @@ class TriggerController extends FormController
      *
      * @param int $objectId
      *
-     * @return array|JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     * @return JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
      */
     public function viewAction(Request $request, $objectId)
     {
@@ -178,7 +175,7 @@ class TriggerController extends FormController
 
         $session      = $request->getSession();
         $pointTrigger = $request->request->get('companypointtrigger') ?? [];
-        $sessionId    = $pointTrigger['sessionId'] ?? 'mautic_'.sha1(uniqid(random_int(1, PHP_INT_MAX), true));
+        $sessionId    = $pointTrigger['sessionId'] ?? 'mautic_'.sha1(uniqid((string)random_int(1, PHP_INT_MAX), true));
 
         if (!$this->security->isGranted('companypoint:triggers:create')) {
             return $this->accessDenied();
@@ -205,7 +202,7 @@ class TriggerController extends FormController
                     $events = array_diff_key($addEvents, array_flip($deletedEvents));
 
                     // make sure that at least one action is selected
-                    if ('companypoint.trigger' == 'point' && empty($events)) {
+                    if (empty($events)) {
                         // set the error
                         $form->addError(new FormError(
                             $this->translator->trans('mautic.core.value.required', [], 'validators')
@@ -289,8 +286,9 @@ class TriggerController extends FormController
      */
     public function editAction(Request $request, $objectId, $ignorePost = false)
     {
-        /** @var TriggerModel $model */
+        /** @var CompanyTriggerModel $model */
         $model      = $this->getModel('companypoint.trigger');
+        assert($model instanceof CompanyTriggerModel);
         $entity     = $model->getEntity($objectId);
         $session    = $request->getSession();
         $cleanSlate = true;

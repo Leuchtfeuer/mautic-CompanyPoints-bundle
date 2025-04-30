@@ -3,9 +3,6 @@
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model;
 
 use Mautic\CoreBundle\Model\FormModel as CommonFormModel;
-// use Mautic\PointBundle\Entity\TriggerEvent;
-// use Mautic\PointBundle\Entity\TriggerEventRepository;
-// use Mautic\PointBundle\Form\Type\TriggerEventType;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEventRepository;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Form\Type\CompanyTriggerEventType;

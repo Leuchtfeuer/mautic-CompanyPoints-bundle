@@ -28,7 +28,6 @@ return [
     'menu'        => [
         'main' => [
             'leuchfeuercompany.menu.managetrigger' => [
-//                'id'        => 'mautic_company_pointtrigger_index',
                 'parent'    => 'mautic.companies.menu.index',
                 'route'     => 'mautic_company_pointtrigger_index',
                 'priority'  => 10,

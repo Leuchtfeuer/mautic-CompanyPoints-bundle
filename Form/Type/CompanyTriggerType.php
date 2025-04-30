@@ -98,25 +98,6 @@ class CompanyTriggerType extends AbstractType
             ]
         );
 
-        //        $builder->add(
-        //            'group',
-        //            GroupListType::class,
-        //            [
-        //                'attr'       => [
-        //                    'class'   => 'form-control',
-        //                    'tooltip' => 'mautic.point.group.form.group_descr',
-        //                ],
-        //            ]
-        //        );
-
-        //        $builder->add(
-        //            'triggerExistingLeads',
-        //            YesNoButtonGroupType::class,
-        //            [
-        //                'label' => 'mautic.companypoint.trigger.form.existingleads',
-        //            ]
-        //        );
-
         if (!empty($options['data']) && $options['data']->getId()) {
             $readonly = !$this->security->isGranted('companypoint:triggers:publish');
             $data     = $options['data']->isPublished(false);

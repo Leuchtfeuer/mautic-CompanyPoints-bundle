@@ -1,0 +1,25 @@
+{% block _formaction_properties_row %}
+  <div class="row">
+      <div class="col-sm-8">{{ form_row(form.subject) }}</div>
+      <div class="col-sm-4">
+          {{ form_row(form.immediately) }}
+          {{ form_row(form.set_replyto) }}
+      </div>
+  </div>
+  <div class="row">
+      <div class="col-sm-4">
+          {{ form_row(form.email_to_owner) }}
+      </div>
+  </div>
+  {{ form_row(form.email) }}
+    <div class="row mb-5">
+        <div class="col-xs-12">
+            {{ form_row(form.newEmailButton) }}
+            {{ form_row(form.editEmailButton) }}
+            {{ form_row(form.previewEmailButton) }}
+        </div>
+    </div>
+  {{ form_row(form.to) }}
+  {{ form_row(form.cc) }}
+  {{ form_row(form.bcc) }}
+{% endblock %}

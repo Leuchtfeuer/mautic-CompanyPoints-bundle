@@ -3,7 +3,6 @@
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event;
 
 use Mautic\LeadBundle\Entity\Lead;
-// use Mautic\PointBundle\Entity\TriggerEvent as TriggerEventEntity;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent as CompanyTriggerEventEntity;
 use Symfony\Contracts\EventDispatcher\Event;
 

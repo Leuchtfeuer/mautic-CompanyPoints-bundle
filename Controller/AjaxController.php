@@ -4,8 +4,6 @@ namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Controller;
 
 use Mautic\CoreBundle\Controller\AjaxController as CommonAjaxController;
 use Mautic\CoreBundle\Helper\InputHelper;
-// use Mautic\PointBundle\Form\Type\GenericPointSettingsType;
-// use Mautic\PointBundle\Form\Type\PointActionType;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 
