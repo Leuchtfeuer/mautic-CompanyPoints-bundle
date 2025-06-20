@@ -54,22 +54,16 @@ class CompanyTriggerControllerTest extends MauticMysqlTestCase
 
     public function testNewActionWithEvent(): void
     {
-        $crawlerEvent = $this->client->request('GET', '/s/company/points/triggers/events/new?type=companytags.updatetags&tmpl=event&triggerId=mautic_bc');
+        $companyTrigger      = new CompanyTrigger();
+        $companyTrigger->setName('Test Trigger');
+        $companyTrigger->setDescription('Test Description');
+        $companyTrigger->setPoints(10);
+        $companyTrigger->setColor('000000');
+        $companyTrigger->setIsPublished(true);
+        $this->em->persist($companyTrigger);
+        $this->em->flush();
 
-        $crawler = $this->client->request('GET', '/s/company/points/triggers/new');
-        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
-        $form                                              = $crawler->filter('form[name=companypointtrigger]')->form();
-        $fieldValues                                       = $form->getPhpValues();
-        $fieldValues['companypointtrigger']['name']        = 'Test Trigger';
-        $fieldValues['companypointtrigger']['description'] = 'Test Description';
-        $fieldValues['companypointtrigger']['points']      = 10;
-        $fieldValues['companypointtrigger']['color']       = '000000';
-        $fieldValues['companypointtrigger']['isPublished'] = true;
-        $form->setValues($fieldValues);
-        $crawler = $this->client->submit($form);
-        $editUrl = $crawler->filter('form[name=companypointtrigger]')->attr('action');
-        $id      = explode('/', $editUrl);
-        $id      = end($id);
+        $id = $companyTrigger->getId();
 
         $companyTags         = $this->createCompanyTags();
         $companyTrigger      = $this->em->getRepository(CompanyTrigger::class)->find($id);
