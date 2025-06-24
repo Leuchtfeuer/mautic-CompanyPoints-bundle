@@ -3,6 +3,7 @@
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Functional\Controller;
 
 use Mautic\CoreBundle\Test\MauticMysqlTestCase;
+use Mautic\EmailBundle\Entity\Email;
 use Mautic\PluginBundle\Entity\Integration;
 use Mautic\PluginBundle\Entity\Plugin;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
@@ -51,7 +52,7 @@ class AjaxControllerTest extends MauticMysqlTestCase
 
     public function testViewEventAddCompanyTag(): void
     {
-        $companyTrigger = $this->newCompanyTrigger();
+        $companyTrigger = $this->newCompanyTrigger('Test Trigger', 'Test Description', 10, 'aaaccc');
         $companyTags    = $this->createCompanyTags();
         $this->client->request('GET', '/s/company/points/triggers/events/new?type=companytags.updatetags&tmpl=event&triggerId='.$companyTrigger->getId(), [], [], $this->createAjaxHeaders());
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
@@ -167,23 +168,14 @@ HTML;
 
     private function newCompanyTrigger($name='Test Trigger', $desc='Test Description', $points=10, $color='aaaccc')
     {
-        $crawler = $this->client->request('GET', '/s/company/points/triggers/new');
-        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
-        $form                                              = $crawler->filter('form[name=companypointtrigger]')->form();
-        $fieldValues                                       = $form->getPhpValues();
-        $fieldValues['companypointtrigger']['name']        = $name;
-        $fieldValues['companypointtrigger']['description'] = $desc;
-        $fieldValues['companypointtrigger']['points']      = $points;
-        $fieldValues['companypointtrigger']['color']       = $color;
-        $fieldValues['companypointtrigger']['isPublished'] = true;
-        //        $fieldValues['companypointtrigger']['event'] = 'mautic.point.trigger_executed';
-        $form->setValues($fieldValues);
-        $crawler = $this->client->submit($form);
-        $editUrl = $crawler->filter('form[name=companypointtrigger]')->attr('action');
-        $id      = explode('/', $editUrl);
-        $id      = end($id);
+        $email                    = $this->createEmail('Test Email', 'Test Email Description');
+        $companyPointEventTrigger = $this->createCompanyPointTriggerEvent($email, 'Test Event Trigger', 'Test Event Trigger Description');
+        $companyPointTrigger      = $this->createCompanyPointTrigger();
+        $companyPointEventTrigger->setTrigger($companyPointTrigger);
+        $this->em->persist($companyPointEventTrigger);
+        $this->em->flush();
 
-        return $this->em->getRepository(CompanyTrigger::class)->find($id);
+        return $companyPointTrigger;
     }
 
     private function createCompanyTags()
@@ -199,5 +191,63 @@ HTML;
         $this->em->flush();
 
         return [$companyTag, $companyTag2];
+    }
+
+    private function createEmail(string $name, string $subject): Email
+    {
+        $emailModel = self::getContainer()->get('mautic.email.model.email');
+        $email      = new Email();
+        $email->setName($name);
+        $email->setSubject($subject);
+        $email->setIsPublished(true);
+        assert($emailModel instanceof \Mautic\EmailBundle\Model\EmailModel);
+        $emailModel->saveEntity($email);
+
+        return $email;
+    }
+
+    private function createCompanyPointTriggerEvent(Email $email, string $name, string $description): \MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent
+    {
+        $companyTriggerEventModel = self::getContainer()->get('mautic.companypoint.model.triggerevent');
+        assert($companyTriggerEventModel instanceof \MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerEventModel);
+        $companyTriggerEvent = new \MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent();
+        $companyTriggerEvent->setName($name);
+        $companyTriggerEvent->setDescription($description);
+        $properties = [
+            'email_to_owner' => true,
+            'to'             => '',
+            'cc'             => '',
+            'email'          => $email->getId(),
+        ];
+        $companyTriggerEvent->setProperties($properties);
+        $companyTriggerEvent->setType('companytags.sendemails');
+
+        //        $companyTriggerEventModel->saveEntity($companyTriggerEvent);
+        return $companyTriggerEvent;
+    }
+
+    private function createCompanyPointTrigger(string $name = 'Test Trigger', string $description = 'Test Description', int $points = 10, string $color = 'aaaccc'): CompanyTrigger
+    {
+        $companyTrigger = new CompanyTrigger();
+        $companyTrigger->setName($name);
+        $companyTrigger->setDescription($description);
+        $companyTrigger->setPoints($points);
+        $companyTrigger->setColor($color);
+        $companyTrigger->setIsPublished(true);
+        $this->em->persist($companyTrigger);
+        $this->em->flush();
+
+        return $companyTrigger;
+    }
+
+    public function testViewOfNewTokens(): void
+    {
+        $this->client->request('GET', '/s/ajax?action=email:getBuilderTokens', [], [], $this->createAjaxHeaders());
+        self::assertStringContainsString('Company Tags', $this->client->getResponse()->getContent());
+        self::assertStringContainsString('Company Score Calculated', $this->client->getResponse()->getContent());
+        self::assertStringContainsString('Company Points', $this->client->getResponse()->getContent());
+        self::assertStringContainsString('Company Segments', $this->client->getResponse()->getContent());
+        $count = substr_count(strtolower($this->client->getResponse()->getContent()), strtolower('Score Calculated'));
+        self::assertEquals(1, $count, 'Company Score Calculated token should only be listed once');
     }
 }

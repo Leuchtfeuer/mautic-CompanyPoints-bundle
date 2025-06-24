@@ -9,6 +9,7 @@ use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerEventModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -17,8 +18,8 @@ class TriggerController extends FormController
     /**
      * @param int $page
      *
-     * @return JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
-     */
+     * @return array<mixed>|RedirectResponse|JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     * */
     public function indexAction(Request $request, PageHelperFactoryInterface $pageHelperFactory, $page = 1)
     {
         // set some permissions
@@ -30,7 +31,11 @@ class TriggerController extends FormController
             'companypoint:triggers:publish',
         ], 'RETURN_ARRAY');
 
-        if (!$permissions['companypoint:triggers:view']) {
+        if (
+            !is_array($permissions)
+            || (
+                is_array($permissions) && !$permissions['companypoint:triggers:view']
+            )) {
             return $this->accessDenied();
         }
 
@@ -97,12 +102,10 @@ class TriggerController extends FormController
      *
      * @param int $objectId
      *
-     * @return JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     * @return array<mixed>|RedirectResponse|JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
      */
     public function viewAction(Request $request, $objectId)
     {
-        $entity = $this->getModel('companypoint.trigger')->getEntity($objectId);
-
         // set the page we came from
         $page = $request->getSession()->get('mautic.companypoint.trigger.page', 1);
 
@@ -113,6 +116,8 @@ class TriggerController extends FormController
             'companypoint:triggers:delete',
             'companypoint:triggers:publish',
         ], 'RETURN_ARRAY');
+
+        $entity = $this->getModel('companypoint.trigger')->getEntity($objectId);
 
         if (null === $entity) {
             // set the return URL
@@ -134,9 +139,15 @@ class TriggerController extends FormController
                     ],
                 ],
             ]);
-        } elseif (!$permissions['companypoint:triggers:view']) {
+        } elseif (
+            !is_array($permissions)
+            || (
+                is_array($permissions) && !$permissions['companypoint:triggers:view']
+            )
+        ) {
             return $this->accessDenied();
         }
+        assert($entity instanceof CompanyTrigger);
 
         return $this->delegateView([
             'viewParameters' => [
@@ -161,7 +172,7 @@ class TriggerController extends FormController
      *
      * @param CompanyTrigger $entity
      *
-     * @return JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     * @return array<mixed>|RedirectResponse|JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
      */
     public function newAction(Request $request, $entity = null)
     {
@@ -175,7 +186,7 @@ class TriggerController extends FormController
 
         $session      = $request->getSession();
         $pointTrigger = $request->request->get('companypointtrigger') ?? [];
-        $sessionId    = $pointTrigger['sessionId'] ?? 'mautic_'.sha1(uniqid((string)random_int(1, PHP_INT_MAX), true));
+        $sessionId    = $pointTrigger['sessionId'] ?? 'mautic_'.sha1(uniqid((string) random_int(1, PHP_INT_MAX), true));
 
         if (!$this->security->isGranted('companypoint:triggers:create')) {
             return $this->accessDenied();
@@ -187,6 +198,12 @@ class TriggerController extends FormController
         // set added/updated events
         $addEvents     = $session->get('mautic.companypoint.'.$sessionId.'.triggerevents.modified', []);
         $deletedEvents = $session->get('mautic.companypoint.'.$sessionId.'.triggerevents.deleted', []);
+        if (!is_array($addEvents)) {
+            $addEvents = [];
+        }
+        if (!is_array($deletedEvents)) {
+            $deletedEvents = [];
+        }
 
         $action = $this->generateUrl('mautic_company_pointtrigger_action', ['objectAction' => 'new']);
 
@@ -403,23 +420,18 @@ class TriggerController extends FormController
             // lock the entity
             $model->lockEntity($entity);
         }
-
-        if ($cleanSlate) {
-            // clean slate
-            $this->clearSessionComponents($request, $objectId);
-
-            // load existing events into session
-            $triggerEvents   = [];
-            $existingActions = $entity->getEvents()->toArray();
-            foreach ($existingActions as $a) {
-                $id     = $a->getId();
-                $action = $a->convertToArray();
-                unset($action['form']);
-                $triggerEvents[$id] = $action;
-            }
-            $session->set('mautic.companypoint.'.$objectId.'.triggerevents.modified', $triggerEvents);
-            $deletedEvents = [];
+        $this->clearSessionComponents($request, $objectId);
+        // load existing events into session
+        $triggerEvents   = [];
+        $existingActions = $entity->getEvents()->toArray();
+        foreach ($existingActions as $a) {
+            $id     = $a->getId();
+            $action = $a->convertToArray();
+            unset($action['form']);
+            $triggerEvents[$id] = $action;
         }
+        $session->set('mautic.companypoint.'.$objectId.'.triggerevents.modified', $triggerEvents);
+        $deletedEvents = [];
 
         return $this->delegateView([
             'viewParameters' => [
@@ -449,7 +461,7 @@ class TriggerController extends FormController
      *
      * @param int $objectId
      *
-     * @return array|JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     * @return array|JsonResponse|RedirectResponse|Response
      */
     public function cloneAction(Request $request, $objectId)
     {

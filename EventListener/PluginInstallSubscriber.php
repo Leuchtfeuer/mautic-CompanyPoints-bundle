@@ -2,17 +2,17 @@
 
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\EventListener;
 
-use Mautic\LeadBundle\Model\FieldModel;
 use Mautic\LeadBundle\Entity\LeadField;
+use Mautic\LeadBundle\Model\FieldModel;
 use Mautic\PluginBundle\Event\PluginInstallEvent;
 use Mautic\PluginBundle\PluginEvents;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class PluginInstallSubscriber implements EventSubscriberInterface
 {
     public const FIELD_DATA = [
-        'alias' => 'score_calculated',
+        'alias' => 'companyscore_calculated',
         'name'  => 'Score Calculated',
         'type'  => 'number',
     ];
@@ -30,7 +30,6 @@ class PluginInstallSubscriber implements EventSubscriberInterface
 
     public function onPluginInstall(PluginInstallEvent $event): void
     {
-
         if (!$event->checkContext('Company Points by Leuchtfeuer')) {
             return;
         }

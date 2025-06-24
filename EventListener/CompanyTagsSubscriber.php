@@ -2,8 +2,6 @@
 
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\EventListener;
 
-use Mautic\CoreBundle\Helper\IpLookupHelper;
-use Mautic\LeadBundle\Model\CompanyModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyPointBuilderEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyTriggerBuilderEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents;
@@ -14,8 +12,6 @@ use MauticPlugin\LeuchtfeuerCompanyTagsBundle\LeuchtfeuerCompanyTagsEvents;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Model\CompanyTagModel;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-// use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
-
 class CompanyTagsSubscriber implements EventSubscriberInterface
 {
     public const TRIGGER_KEY = 'companytags.updatetags';
@@ -23,8 +19,6 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
     public function __construct(
         private CompanyTagModel $companyTagModel,
         private CompanyTriggerModel $companyTriggerModel,
-        private CompanyModel $companyModel,
-        private IpLookupHelper $ipLookupHelper,
     ) {
     }
 
@@ -62,7 +56,7 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
         $event->addEvent(self::TRIGGER_KEY, $newEvent);
     }
 
-    public function onPointExecute(CompanyTagsEvent $event)
+    public function onPointExecute(CompanyTagsEvent $event): void
     {
         $eventTriggers = $this->companyTriggerModel->getEventRepository()->getPublishedByType(self::TRIGGER_KEY);
         if (empty($eventTriggers)) {
@@ -80,11 +74,11 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
 
             $trigger = $eventTrigger->getTrigger();
             $company = $event->getCompany();
-            if (!isset($company->getField('score_calculated')['value'])) {
-                $company->getField('score_calculated')['value'] = 0;
+            if (!isset($company->getField('companyscore_calculated')['value'])) {
+                $company->getField('companyscore_calculated')['value'] = 0;
             }
 
-            if ($trigger->getPoints() >= $company->getField('score_calculated')['value']) {
+            if ($trigger->getPoints() >= $company->getField('companyscore_calculated')['value']) {
                 continue;
             }
 

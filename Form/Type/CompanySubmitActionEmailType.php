@@ -1,6 +1,5 @@
 <?php
 
-
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Form\Type;
 
 use Mautic\ChannelBundle\Entity\MessageQueue;
@@ -26,24 +25,22 @@ class CompanySubmitActionEmailType extends AbstractType
     use ToBcBccFieldsTrait;
 
     public function __construct(
-        private TranslatorInterface    $translator,
+        private TranslatorInterface $translator,
         protected CoreParametersHelper $coreParametersHelper,
         private RouterInterface $router
-    )
-    {
+    ) {
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-
         $builder->add(
             'user_id',
             UserListType::class,
             [
-                'label' => 'mautic.email.form.users',
+                'label'      => 'mautic.email.form.users',
                 'label_attr' => ['class' => 'control-label'],
-                'attr' => [
-                    'class' => 'form-control',
+                'attr'       => [
+                    'class'   => 'form-control',
                     'tooltip' => 'mautic.core.help.autocomplete',
                 ],
                 'required' => false,
@@ -56,7 +53,7 @@ class CompanySubmitActionEmailType extends AbstractType
             YesNoButtonGroupType::class,
             [
                 'label' => 'mautic.companypoints.sendemail.emailtoowner',
-                'data' => $default,
+                'data'  => $default,
             ]
         );
 
@@ -66,15 +63,15 @@ class CompanySubmitActionEmailType extends AbstractType
             'email',
             EmailListType::class,
             [
-                'label' => 'mautic.companypoints.sendemail.email.template',
+                'label'      => 'mautic.companypoints.sendemail.email.template',
                 'label_attr' => ['class' => 'control-label'],
-                'attr' => [
-                    'class' => 'form-control',
-                    'tooltip' => 'mautic.email.choose.emails_descr',
+                'attr'       => [
+                    'class'    => 'form-control',
+                    'tooltip'  => 'mautic.email.choose.emails_descr',
                     'onchange' => 'Mautic.disabledEmailAction(window, this)',
                 ],
-                'multiple' => false,
-                'required' => true,
+                'multiple'    => false,
+                'required'    => true,
                 'constraints' => [
                     new NotBlank(
                         ['message' => 'mautic.email.chooseemail.notblank']
@@ -188,10 +185,7 @@ class CompanySubmitActionEmailType extends AbstractType
                     'required'   => false,
                 ]
             );
-
         }
-
-
     }
 
     public function getBlockPrefix(): string
@@ -206,5 +200,4 @@ class CompanySubmitActionEmailType extends AbstractType
     {
         $resolver->setDefined(['update_select']);
     }
-
 }

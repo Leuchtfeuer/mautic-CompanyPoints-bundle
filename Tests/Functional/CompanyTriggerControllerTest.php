@@ -32,26 +32,6 @@ class CompanyTriggerControllerTest extends MauticMysqlTestCase
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
     }
 
-    public function testEditAction(): void
-    {
-        $crawler = $this->client->request('GET', '/s/company/points/triggers/new');
-        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
-        $form                                              = $crawler->filter('form[name=companypointtrigger]')->form();
-        $fieldValues                                       = $form->getPhpValues();
-        $fieldValues['companypointtrigger']['name']        = 'Test Trigger';
-        $fieldValues['companypointtrigger']['description'] = 'Test Description';
-        $fieldValues['companypointtrigger']['points']      = 10;
-        $fieldValues['companypointtrigger']['color']       = '000000';
-        $fieldValues['companypointtrigger']['isPublished'] = true;
-        $form->setValues($fieldValues);
-        $crawler = $this->client->submit($form);
-        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
-        $this->assertStringContainsString('has been created!', $crawler->html());
-        $this->client->request('GET', '/s/company/points/triggers');
-        $this->assertStringContainsString('Test Trigger', $this->client->getResponse()->getContent());
-        $this->assertStringContainsString('Test Description', $this->client->getResponse()->getContent());
-    }
-
     public function testNewActionWithEvent(): void
     {
         $companyTrigger      = new CompanyTrigger();

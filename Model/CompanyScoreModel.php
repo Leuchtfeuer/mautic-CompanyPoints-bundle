@@ -32,7 +32,7 @@ class CompanyScoreModel extends CompanyModel
         UserHelper $userHelper,
         LoggerInterface $mauticLogger,
         CoreParametersHelper $coreParametersHelper,
-        private FieldList $fieldList,
+        FieldList $fieldList,
         protected LeadModel $leadModel
     ) {
         parent::__construct($leadFieldModel, $emailValidator, $companyDeduper, $em, $security, $dispatcher, $router, $translator, $userHelper, $mauticLogger, $coreParametersHelper, $fieldList);
@@ -41,16 +41,16 @@ class CompanyScoreModel extends CompanyModel
     public function recalculateCompanyScores(Company $company): ?int
     {
         $companyScore = $company->getScore();
-        $leads = $this->getLeadsByCompany($company);
+        $leads        = $this->getLeadsByCompany($company);
 
         if (empty($leads)) {
-            $this->setFieldValues($company, ['score_calculated' => $companyScore]);
+            $this->setFieldValues($company, ['companyscore_calculated' => $companyScore]);
             $this->saveEntity($company);
 
             return $companyScore;
         }
 
-        $leadPoints = 0;
+        $leadPoints      = 0;
         $totalLeadsValid = 0;
         foreach ($leads as $lead) {
             if (empty($lead->getPoints())) {
@@ -71,7 +71,7 @@ class CompanyScoreModel extends CompanyModel
 
         $resultScore += $companyScore;
 
-        $this->setFieldValues($company, ['score_calculated' => $resultScore]);
+        $this->setFieldValues($company, ['companyscore_calculated' => $resultScore]);
         $this->saveEntity($company);
 
         return $resultScore;
