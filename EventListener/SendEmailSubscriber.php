@@ -101,7 +101,7 @@ class SendEmailSubscriber implements EventSubscriberInterface
     public function onEmailBuild(EmailBuilderEvent $event): void
     {
         $tokens = [
-            '{contactfield=companies.companyscore_calculated}'           => $this->translator->trans('mautic.companypoints.companytags.token.label.companyscore_calculated'),
+            '{contactfield=companies.companyscore_calculated}' => $this->translator->trans('mautic.companypoints.companytags.token.label.companyscore_calculated'),
             '{companylist=tags}'                               => $this->translator->trans('mautic.companypoints.companytags.token.label.companytags'),
             '{companylist=segments}'                           => $this->translator->trans('mautic.companypoints.companytags.token.label.companysegments'),
             '{contactfield=companies.points}'                  => $this->translator->trans('mautic.companypoints.companytags.token.label.companyscore'),
