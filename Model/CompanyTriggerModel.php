@@ -524,18 +524,17 @@ class CompanyTriggerModel extends CommonFormModel
         $tokensFields = [];
         foreach ($fullFields as $key => $field) {
             $tempKey = $key;
-            if ($key === 'companyscore_calculated') {
+            if ('companyscore_calculated' === $key) {
                 $tempKey = 'companies.companyscore_calculated';
             }
-            $keyToken = '{contactfield='.$tempKey.'}';
+            $keyToken                = '{contactfield='.$tempKey.'}';
             $tokensFields[$keyToken] = '';
             if (isset($field['value']) && !empty($field['value'])) {
                 $tokensFields[$keyToken] = $field['value'];
-                if ($key === 'companyscore_calculated') {
+                if ('companyscore_calculated' === $key) {
                     $tokensFields['{contactfield='.$key.'}'] = $field['value'];
                 }
             }
-
         }
 
         $companyTagsString     = $this->getCompanyTagsString($company);
