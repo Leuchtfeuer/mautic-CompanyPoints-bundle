@@ -2,11 +2,13 @@
   "name": "leuchtfeuer/mautic-companypoints-bundle",
   "description": "Massively enhanced Company-based Scoring",
   "type": "mautic-plugin",
-  "license": "GPL-3.0",
+  "license": "GPL-3.0-or-later",
   "authors": [
       {
           "name": "Leuchtfeuer Digital Marketing GmbH",
-          "email": "mautic-plugins@Leuchtfeuer.com"
+          "email": "mautic-plugins@Leuchtfeuer.com",
+          "homepage": "https://Leuchtfeuer.com/mautic/",
+          "role": "Developer"
       }
   ],
   "keywords": [
@@ -19,6 +21,7 @@
   },
   "minimum-stability": "dev",
   "require": {
+      "php": "^8.0",
       "mautic/core-lib": "^5.0"
   },
   "autoload": {
