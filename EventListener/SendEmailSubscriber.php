@@ -95,6 +95,10 @@ class SendEmailSubscriber implements EventSubscriberInterface
             }
             $users = $this->userModel->getRepository()->findBy(['id' => $properties['user_id']]);
             $this->companyTriggerModel->sendEmails($users, $properties, $event->getCompany()->getOwner(), $event->getCompany());
+            $this->companyTriggerModel->saveLog(
+                $event->getCompany(),
+                $eventTrigger
+            );
         }
     }
 

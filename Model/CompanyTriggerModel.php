@@ -540,6 +540,7 @@ class CompanyTriggerModel extends CommonFormModel
         $companyTagsString     = $this->getCompanyTagsString($company);
         $companySegmentsString = $this->getCompanySegmentsString($company);
 
+        $tokensFields['{contactfield=points}']            = $company->getScore();
         $tokensFields['{contactfield=companies.points}']  = $company->getScore();
         $tokensFields['{companylist=tags}']               = $companyTagsString;
         $tokensFields['{companylist=segments}']           = $companySegmentsString;
