@@ -56,7 +56,7 @@ class PluginInstallSubscriber implements EventSubscriberInterface
         $field->setLabel($label);
         $field->setType($type);
         $field->setObject('company');
-        $field->setGroup('professional');
+        $field->setGroup('core');
         $field->setIsRequired(false);
         $field->setIsFixed(false);
         $field->setIsVisible(true);
