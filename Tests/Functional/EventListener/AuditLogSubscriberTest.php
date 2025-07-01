@@ -74,6 +74,9 @@ class AuditLogSubscriberTest extends MauticMysqlTestCase
         self::assertSame('company_point_trigger', $lastAuditLogUpdate->getObject());
         self::assertSame('updated', $lastAuditLogUpdate->getAction());
         self::assertStringContainsString('Updated Trigger Name', json_encode($lastAuditLogUpdate->getDetails()));
+        self::assertStringContainsString('name', json_encode($lastAuditLogUpdate->getDetails()));
+        self::assertStringContainsString('object_description', json_encode($lastAuditLogUpdate->getDetails()));
+        self::assertStringContainsString('dateModified', json_encode($lastAuditLogUpdate->getDetails()));
 
         return $companyTriggerEntity;
     }

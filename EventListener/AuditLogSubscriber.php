@@ -46,22 +46,23 @@ class AuditLogSubscriber implements EventSubscriberInterface
     /**
      * Prepare the arguments for the audit log entry.
      */
-    private function getArgsFromCompanyPointsToAuditLog(CompanyTriggerEvent $CompanyTriggerEvent, string $action, string $object): array
+    private function getArgsFromCompanyPointsToAuditLog(CompanyTriggerEvent $companyTriggerEvent, string $action, string $object): array
     {
-        $objectId = $CompanyTriggerEvent->getTrigger()->getId() ?? 0;
+        $objectId = $companyTriggerEvent->getTrigger()->getId() ?? 0;
+        $details  = $companyTriggerEvent->getChanges();
+
+        $details['object_description']         = $companyTriggerEvent->getTrigger()->getName();
+        $details['company_point_trigger_name'] = $companyTriggerEvent->getTrigger()->getName();
+        $details['company_point_trigger_id']   = $objectId;
 
         return [
             'object'             => $object,
             'action'             => $action,
             'objectId'           => $objectId,
-            'object_description' => $CompanyTriggerEvent->getTrigger()->getName(),
+            'object_description' => $companyTriggerEvent->getTrigger()->getName(),
             'bundle'             => 'company',
-            'details'            => [
-                'company_segment_id'   => $objectId,
-                'company_segment_name' => $CompanyTriggerEvent->getTrigger()->getName(),
-                'object_description'   => $CompanyTriggerEvent->getTrigger()->getName(),
-            ],
-            'ipAddress' => $this->ipLookupHelper->getIpAddressFromRequest(),
+            'details'            => $details,
+            'ipAddress'          => $this->ipLookupHelper->getIpAddressFromRequest(),
         ];
     }
 }
