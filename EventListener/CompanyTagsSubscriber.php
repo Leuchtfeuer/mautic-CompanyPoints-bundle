@@ -2,8 +2,6 @@
 
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\EventListener;
 
-use Mautic\CoreBundle\Helper\IpLookupHelper;
-use Mautic\LeadBundle\Model\CompanyModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyPointBuilderEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyTriggerBuilderEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents;
@@ -23,8 +21,6 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
     public function __construct(
         private CompanyTagModel $companyTagModel,
         private CompanyTriggerModel $companyTriggerModel,
-        private CompanyModel $companyModel,
-        private IpLookupHelper $ipLookupHelper,
     ) {
     }
 
@@ -62,13 +58,16 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
         $event->addEvent(self::TRIGGER_KEY, $newEvent);
     }
 
-    public function onPointExecute(CompanyTagsEvent $event)
+    public function onPointExecute(CompanyTagsEvent $event): void
     {
         $eventTriggers = $this->companyTriggerModel->getEventRepository()->getPublishedByType(self::TRIGGER_KEY);
         if (empty($eventTriggers)) {
             return;
         }
         $eventLogged    = $this->companyTriggerModel->getEventTriggerLogRepository()->findBy(['company' => $event->getCompany()]);
+        if (empty($eventLogged)) {
+            $eventLogged = [];
+        }
         $eventLoggedIds = [];
         foreach ($eventLogged as $eventLog) {
             $eventLoggedIds[] = $eventLog->getEvent()->getId();
