@@ -63,6 +63,9 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
             return;
         }
         $eventLogged    = $this->companyTriggerModel->getEventTriggerLogRepository()->findBy(['company' => $event->getCompany()]);
+        if (empty($eventLogged)) {
+            $eventLogged = [];
+        }
         $eventLoggedIds = [];
         foreach ($eventLogged as $eventLog) {
             $eventLoggedIds[] = $eventLog->getEvent()->getId();

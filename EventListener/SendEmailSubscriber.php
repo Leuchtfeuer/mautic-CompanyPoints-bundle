@@ -2,15 +2,18 @@
 
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\EventListener;
 
-use Mautic\EmailBundle\EmailEvents;
-use Mautic\EmailBundle\Event\EmailBuilderEvent;
+use Mautic\EmailBundle\Helper\MailHelper;
+use Mautic\EmailBundle\Model\EmailModel;
+use Mautic\LeadBundle\Entity\Company;
 use Mautic\UserBundle\Model\UserModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyTriggerBuilderEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Form\Type\CompanySubmitActionEmailType;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Event\CompanyTagsEvent;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\LeuchtfeuerCompanyTagsEvents;
+use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Model\CompanyTagModel;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class SendEmailSubscriber implements EventSubscriberInterface
@@ -19,15 +22,17 @@ class SendEmailSubscriber implements EventSubscriberInterface
 
     public function __construct(
         private CompanyTriggerModel $companyTriggerModel,
+        private MailHelper $mailHelper,
         private UserModel $userModel,
-        private \Symfony\Contracts\Translation\TranslatorInterface $translator
+        private EmailModel $emailModel,
+        private CompanyTagModel $companyTagModel,
+        private CompanySegmentModel $companySegmentModel,
     ) {
     }
 
     public static function getSubscribedEvents()
     {
         return [
-            EmailEvents::EMAIL_ON_BUILD                              => ['onEmailBuild', 0],
             LeuchtfeuerCompanyPointsEvents::COMPANY_TRIGGER_ON_BUILD => ['onTriggerBuild', 0],
             LeuchtfeuerCompanyTagsEvents::COMPANY_POS_UPDATE         => ['onPointExecute', 0],
             LeuchtfeuerCompanyTagsEvents::COMPANY_POS_SAVE           => ['onPointExecute', 0],
@@ -60,6 +65,11 @@ class SendEmailSubscriber implements EventSubscriberInterface
         }
 
         $eventLogged    = $this->companyTriggerModel->getEventTriggerLogRepository()->findBy(['company' => $event->getCompany()]);
+
+        if (empty($eventLogged)) {
+            return;
+        }
+
         $eventLoggedIds = [];
         foreach ($eventLogged as $eventLog) {
             $eventLoggedIds[] = $eventLog->getEvent()->getId();
@@ -71,14 +81,10 @@ class SendEmailSubscriber implements EventSubscriberInterface
 
             $trigger = $eventTrigger->getTrigger();
             $company = $event->getCompany();
-            if (!isset($company->getField('companyscore_calculated')['value']) || null === $company->getField('companyscore_calculated')['value']) {
-                $company->getField('score_calculated')['value']        = 0;
-                $getFields                                             = $company->getFields();
-                $getFields['companyscore_calculated']                  = ['value' => 0];
-                $company->setFields($getFields);
+            if (!isset($company->getField('score_calculated')['value'])) {
+                $company->getField('score_calculated')['value'] = 0;
             }
-
-            if ($trigger->getPoints() >= $company->getField('companyscore_calculated')['value']) {
+            if ($trigger->getPoints() >= $company->getField('score_calculated')['value']) {
                 continue;
             }
 
@@ -94,7 +100,32 @@ class SendEmailSubscriber implements EventSubscriberInterface
                 continue;
             }
             $users = $this->userModel->getRepository()->findBy(['id' => $properties['user_id']]);
-            $this->companyTriggerModel->sendEmails($users, $properties, $event->getCompany()->getOwner(), $company);
+            foreach ($users as $user) {
+                $email = $this->emailModel->getRepository()->find($properties['email']);
+
+                $this->mailHelper->setEmail($email);
+                if (!empty($user->getEmail())) {
+                    $this->mailHelper->addTo($user->getEmail());
+                }
+                if (!empty($properties['to'])) {
+                    $this->mailHelper->addTo($properties['to']);
+                }
+                if (!empty($properties['email_to_owner']) && !empty($event->getCompany()->getOwner())) {
+                    $owner = $event->getCompany()->getOwner();
+                    $this->mailHelper->addTo($owner->getEmail());
+                }
+                if (!empty($properties['cc'])) {
+                    $this->mailHelper->addCc($properties['cc']);
+                }
+                if (!empty($properties['bcc'])) {
+                    $this->mailHelper->addBcc($properties['bcc']);
+                }
+
+                $tokens = $this->getTokens($event->getCompany());
+                $this->mailHelper->setTokens($tokens);
+                $this->mailHelper->send();
+                $this->mailHelper->reset();
+            }
             $this->companyTriggerModel->saveLog(
                 $event->getCompany(),
                 $eventTrigger
@@ -102,20 +133,46 @@ class SendEmailSubscriber implements EventSubscriberInterface
         }
     }
 
-    public function onEmailBuild(EmailBuilderEvent $event): void
+    private function getTokens(Company $company): array
     {
-        $tokens = [
-            '{contactfield=companies.companyscore_calculated}' => $this->translator->trans('mautic.companypoints.companytags.token.label.companyscore_calculated'),
-            '{companylist=tags}'                               => $this->translator->trans('mautic.companypoints.companytags.token.label.companytags'),
-            '{companylist=segments}'                           => $this->translator->trans('mautic.companypoints.companytags.token.label.companysegments'),
-            '{contactfield=companies.points}'                  => $this->translator->trans('mautic.companypoints.companytags.token.label.companyscore'),
-        ];
+        $fields                = $company->getFields();
+        $companyTagsString     = $this->getCompanyTagsString($company);
+        $companySegmentsString = $this->getCompanySegmentsString($company);
 
-        if ($event->tokensRequested(array_keys($tokens))) {
-            $event->addTokens(
-                $event->filterTokens($tokens)
-            );
-            $event->addToken('{contactfield=companyscore_calculated}', '');
+        return [
+            '{contactfield=companyname}'                => $company->getName(),
+            '{contactfield=companycountry}'             => $company->getCountry(),
+            '{contactfield=companyemail}'               => $company->getEmail(),
+            '{contactfield=industry_tags}'              => $fields['professional']['companyindustry']['value'] ?? '',
+            '{contactfield=companyindustry}'            => $fields['professional']['companyindustry']['value'] ?? '',
+            '{companynumber_of_employees}'              => $fields['professional']['companynumber_of_employees']['value'] ?? '',
+            '{contactfield=companynumber_of_employees}' => $fields['professional']['companynumber_of_employees']['value'] ?? '',
+            '{contactfield=companyannual_revenue}'      => $fields['professional']['companyannual_revenue']['value'] ?? '',
+            '{companyfield=list_tag_names}'             => $companyTagsString,
+            '{companyfield=list_segment_names}'         => $companySegmentsString,
+            '{companyfield=score_calculated}'           => $fields['professional']['score_calculated']['value'] ?? '',
+        ];
+    }
+
+    private function getCompanySegmentsString(Company $company): string
+    {
+        $companySegments       = $this->companySegmentModel->getCompaniesSegmentsRepository()->findBy(['company' => $company]);
+        $companySegmentsString = [];
+        foreach ($companySegments as $companySegment) {
+            $companySegmentsString[]= $companySegment->getCompanySegment()->getName();
         }
+
+        return implode(', ', $companySegmentsString);
+    }
+
+    private function getCompanyTagsString(Company $company): string
+    {
+        $companyTags       = $this->companyTagModel->getTagsByCompany($company);
+        $companyTagsString = [];
+        foreach ($companyTags as $companyTag) {
+            $companyTagsString[]= $companyTag->getName();
+        }
+
+        return implode(', ', $companyTagsString);
     }
 }

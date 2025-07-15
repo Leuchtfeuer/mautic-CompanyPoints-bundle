@@ -239,15 +239,4 @@ HTML;
 
         return $companyTrigger;
     }
-
-    public function testViewOfNewTokens(): void
-    {
-        $this->client->request('GET', '/s/ajax?action=email:getBuilderTokens', [], [], $this->createAjaxHeaders());
-        self::assertStringContainsString('Company Tags', $this->client->getResponse()->getContent());
-        self::assertStringContainsString('Company Score Calculated', $this->client->getResponse()->getContent());
-        self::assertStringContainsString('Company Points', $this->client->getResponse()->getContent());
-        self::assertStringContainsString('Company Segments', $this->client->getResponse()->getContent());
-        $count = substr_count(strtolower($this->client->getResponse()->getContent()), strtolower('Score Calculated'));
-        self::assertEquals(1, $count, 'Company Score Calculated token should only be listed once');
-    }
 }
