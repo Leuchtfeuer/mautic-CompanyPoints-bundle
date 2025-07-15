@@ -46,6 +46,8 @@ You should set up a cron entry accordingly.
 
 The only current algorithm for the aggregation is "static company points PLUS average among all contacts that currently have points)"
 
+Audit Log is created for each Company Point Trigger created, updated or deleted.
+
 ## Troubleshooting
 Make sure you have not only installed but also enabled the Plugin.
 
