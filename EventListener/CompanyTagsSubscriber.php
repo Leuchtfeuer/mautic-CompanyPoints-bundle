@@ -12,8 +12,6 @@ use MauticPlugin\LeuchtfeuerCompanyTagsBundle\LeuchtfeuerCompanyTagsEvents;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Model\CompanyTagModel;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-// use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
-
 class CompanyTagsSubscriber implements EventSubscriberInterface
 {
     public const TRIGGER_KEY = 'companytags.updatetags';
@@ -79,11 +77,11 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
 
             $trigger = $eventTrigger->getTrigger();
             $company = $event->getCompany();
-            if (!isset($company->getField('score_calculated')['value'])) {
-                $company->getField('score_calculated')['value'] = 0;
+            if (!isset($company->getField('companyscore_calculated')['value'])) {
+                $company->getField('companyscore_calculated')['value'] = 0;
             }
 
-            if ($trigger->getPoints() >= $company->getField('score_calculated')['value']) {
+            if ($trigger->getPoints() >= $company->getField('companyscore_calculated')['value']) {
                 continue;
             }
 

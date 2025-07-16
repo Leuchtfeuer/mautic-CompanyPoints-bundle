@@ -11,10 +11,14 @@ use Mautic\CoreBundle\Helper\UserHelper;
 use Mautic\CoreBundle\Model\FormModel as CommonFormModel;
 use Mautic\CoreBundle\Security\Permissions\CorePermissions;
 use Mautic\CoreBundle\Translation\Translator;
+use Mautic\EmailBundle\Helper\MailHelper;
+use Mautic\EmailBundle\Model\EmailModel;
+use Mautic\LeadBundle\Entity\Company;
 use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Entity\LeadRepository;
 use Mautic\LeadBundle\Model\LeadModel;
 use Mautic\LeadBundle\Tracker\ContactTracker;
+use Mautic\UserBundle\Entity\User;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerLog;
@@ -22,6 +26,8 @@ use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event as Events;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyTriggerBuilderEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Form\Type\CompanyTriggerType;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents as CompanyPointEvents;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
+use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Model\CompanyTagModel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormFactoryInterface;
@@ -54,7 +60,11 @@ class CompanyTriggerModel extends CommonFormModel
         Translator $translator,
         UserHelper $userHelper,
         LoggerInterface $mauticLogger,
-        CoreParametersHelper $coreParametersHelper
+        CoreParametersHelper $coreParametersHelper,
+        private EmailModel $emailModel,
+        private MailHelper $mailHelper,
+        private CompanyTagModel $companyTagModel,
+        private CompanySegmentModel $companySegmentModel,
     ) {
         parent::__construct($em, $security, $dispatcher, $router, $translator, $userHelper, $mauticLogger, $coreParametersHelper);
     }
@@ -137,27 +147,6 @@ class CompanyTriggerModel extends CommonFormModel
                     ],
                 ];
 
-                //                if (!$pointGroup) {
-                //                    $args['filter']['force'][] = [
-                //                        'column' => 'l.points',
-                //                        'expr'   => 'gte',
-                //                        'value'  => $entity->getPoints(),
-                //                    ];
-                //                } else {
-                //                $args['qb'] = $leadRepository->getEntitiesDbalQueryBuilder()
-                //                    ->leftJoin('l', MAUTIC_TABLE_PREFIX.GroupContactScore::TABLE_NAME, 'pls', 'l.id = pls.contact_id');
-                //                $args['filter']['force'][] = [
-                //                    'column' => 'pls.score',
-                //                    'expr'   => 'gte',
-                //                    'value'  => $entity->getPoints(),
-                //                ];
-                //                $args['filter']['force'][] = [
-                //                    'column' => 'pls.group_id',
-                //                    'expr'   => 'eq',
-                //                    'value'  => $entity->getGroup()->getId(),
-                //                ];
-                //                }
-
                 if (!$isNew) {
                     // get a list of leads that has already had this event applied
                     //                    $leadIds = $repo->getLeadsForEvent($event->getId());
@@ -206,7 +195,7 @@ class CompanyTriggerModel extends CommonFormModel
     /**
      * @throws MethodNotAllowedHttpException
      */
-    protected function dispatchEvent($action, &$entity, $isNew = false, Event $event = null): ?Event
+    public function dispatchEvent($action, &$entity, $isNew = false, Event $event = null): ?Event
     {
         if (!$entity instanceof CompanyTrigger) {
             throw new MethodNotAllowedHttpException(['CompanyTrigger']);
@@ -472,5 +461,112 @@ class CompanyTriggerModel extends CommonFormModel
         $companyEventLog->setIpAddress($this->ipLookupHelper->getIpAddress());
         $companyEventLog->setDateFired(new \DateTime());
         $this->getEventTriggerLogRepository()->saveEntity($companyEventLog);
+    }
+
+    public function sendEmails(array $users, array $properties, ?User $owner, Company $company): array
+    {
+        $result = [];
+        if (empty($users) || empty($properties['email'])) {
+            return $result;
+        }
+
+        foreach ($users as $user) {
+            assert($user instanceof User);
+            $result[$user->getId()] = $this->sendEmail($properties['email'], $user, $owner, $company);
+        }
+
+        return $result;
+    }
+
+    public function sendEmail($emailId, User $user, ?User $owner, Company $company): bool|array
+    {
+        $email = $this->emailModel->getRepository()->find($emailId);
+        if (!$email || !$email->isPublished()) {
+            return false;
+        }
+        $this->mailHelper->setEmail($email);
+        if (!empty($user->getEmail())) {
+            $this->mailHelper->addTo($user->getEmail());
+        }
+        if (!empty($properties['to'])) {
+            $this->mailHelper->addTo($properties['to']);
+        }
+        if (!empty($properties['email_to_owner']) && !empty($owner)) {
+            $this->mailHelper->addTo($owner->getEmail());
+        }
+        if (!empty($properties['cc'])) {
+            $this->mailHelper->addCc($properties['cc']);
+        }
+        if (!empty($properties['bcc'])) {
+            $this->mailHelper->addBcc($properties['bcc']);
+        }
+
+        $tokens = $this->mailHelper->getTokens();
+        $this->mailHelper->addTokens($tokens);
+        $newTokens = $this->getTokens($company);
+        $this->mailHelper->addTokens($newTokens);
+        $result = $this->mailHelper->send();
+        $this->mailHelper->reset();
+
+        return $result;
+    }
+
+    private function getTokens(Company $company): array
+    {
+        $fields = $company->getFields();
+
+        $fullFields = array_merge(
+            $fields['professional'] ?? [],
+            $fields['personal'] ?? [],
+            $fields['custom'] ?? [],
+            $fields['core'] ?? [],
+        );
+        $tokensFields = [];
+        foreach ($fullFields as $key => $field) {
+            $tempKey = $key;
+            if ('companyscore_calculated' === $key) {
+                $tempKey = 'companies.companyscore_calculated';
+            }
+            $keyToken                = '{contactfield='.$tempKey.'}';
+            $tokensFields[$keyToken] = '';
+            if (isset($field['value']) && !empty($field['value'])) {
+                $tokensFields[$keyToken] = $field['value'];
+                if ('companyscore_calculated' === $key) {
+                    $tokensFields['{contactfield='.$key.'}'] = $field['value'];
+                }
+            }
+        }
+
+        $companyTagsString     = $this->getCompanyTagsString($company);
+        $companySegmentsString = $this->getCompanySegmentsString($company);
+
+        $tokensFields['{contactfield=points}']            = $company->getScore();
+        $tokensFields['{contactfield=companies.points}']  = $company->getScore();
+        $tokensFields['{companylist=tags}']               = $companyTagsString;
+        $tokensFields['{companylist=segments}']           = $companySegmentsString;
+
+        return $tokensFields;
+    }
+
+    private function getCompanySegmentsString(Company $company): string
+    {
+        $companySegments       = $this->companySegmentModel->getCompaniesSegmentsRepository()->findBy(['company' => $company]);
+        $companySegmentsString = [];
+        foreach ($companySegments as $companySegment) {
+            $companySegmentsString[]= $companySegment->getCompanySegment()->getName();
+        }
+
+        return implode(', ', $companySegmentsString);
+    }
+
+    private function getCompanyTagsString(Company $company): string
+    {
+        $companyTags       = $this->companyTagModel->getTagsByCompany($company);
+        $companyTagsString = [];
+        foreach ($companyTags as $companyTag) {
+            $companyTagsString[]= $companyTag->getName();
+        }
+
+        return implode(', ', $companyTagsString);
     }
 }
