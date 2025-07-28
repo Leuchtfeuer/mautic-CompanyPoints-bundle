@@ -47,8 +47,8 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
     public function onTriggerBuild(CompanyTriggerBuilderEvent $event): void
     {
         $newEvent = [
-            'group'           => 'mautic.email.point.trigger',
-            'label'           => 'mautic.companytag.companytags.events.changetags',
+            'group'           => 'mautic.companypoints.companytags.group.actions',
+            'label'           => 'mautic.companypoints.companytags.group.actions.tag',
             'eventName'       => LeuchtfeuerCompanyPointsEvents::COMPANY_TRIGGER_ON_EVENT_EXECUTE,
             'formType'        => ModifyCompanyTagsType::class,
             'formTheme'       => '@MauticEmail/FormTheme/EmailSendList/emailsend_list_row.html.twig',
