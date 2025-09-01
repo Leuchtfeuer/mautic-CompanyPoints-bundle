@@ -42,23 +42,30 @@ class RecalculateCompanyScoresCommand extends ModeratedCommand
             ->setDescription('Recalculate company scores based on directly assigned points plus algorithm-based aggregation of leads that belong to the points.');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): int
+    protected function execute(InputInterface $input, OutputInterface $output, $new = true): int
     {
         if (!$this->config->isPublished()) {
             $output->writeln('<error>Plugin is not published.</error>');
 
             return \Symfony\Component\Console\Command\Command::FAILURE;
         }
+
         $output->writeln('');
         $output->writeln('<info>Recalculating company scores...</info>');
         $progressBar           = new ProgressBar($output, 100);
         $batch                 = $input->getOption('batch-limit');
         $offset                = $this->countQueueHelper->getOffset();
         $companies             = $this->companyScoreModel->getCompanies($batch, $offset);
+        // If no companies are found, reset the offset and try again
         if (empty($companies)) {
             $this->countQueueHelper->resetOffset();
+            $offset                = $this->countQueueHelper->getOffset();
+            $companies             = $this->companyScoreModel->getCompanies($batch, $offset);
+        }
+        // If still no companies are found in second attempt, exit
+        if (empty($companies)) {
             $output->writeln('<info>No companies found</info>');
-
+            $this->countQueueHelper->resetOffset();
             return \Symfony\Component\Console\Command\Command::SUCCESS;
         }
         $output->writeln('<info>'.count($companies).' company scores to be recalculated in batches of '.$batch.'</info>');
