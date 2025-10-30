@@ -2,14 +2,16 @@
 
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\EventListener;
 
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyPointBuilderEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyTriggerBuilderEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\ModifyTagsActionHandler;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Event\CompanyTagsEvent;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Form\Type\ModifyCompanyTagsType;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\LeuchtfeuerCompanyTagsEvents;
-use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Model\CompanyTagModel;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class CompanyTagsSubscriber implements EventSubscriberInterface
@@ -17,8 +19,8 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
     public const TRIGGER_KEY = 'companytags.updatetags';
 
     public function __construct(
-        private CompanyTagModel $companyTagModel,
         private CompanyTriggerModel $companyTriggerModel,
+        private ModifyTagsActionHandler $modifyTagsActionHandler
     ) {
     }
 
@@ -62,47 +64,46 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
         if (empty($eventTriggers)) {
             return;
         }
-        $eventLogged    = $this->companyTriggerModel->getEventTriggerLogRepository()->findBy(['company' => $event->getCompany()]);
-        if (empty($eventLogged)) {
-            $eventLogged = [];
-        }
+
+        $company = $event->getCompany();
+
+        $eventLogged = $this->companyTriggerModel->getEventTriggerLogRepository()->findBy(['company' => $company]);
         $eventLoggedIds = [];
         foreach ($eventLogged as $eventLog) {
             $eventLoggedIds[] = $eventLog->getEvent()->getId();
         }
+
+        /** @var CompanyTriggerEvent $eventTrigger */
         foreach ($eventTriggers as $eventTrigger) {
-            if (in_array($eventTrigger->getId(), $eventLoggedIds)) {
+            // Check if this trigger has already been executed for this company
+            if (in_array($eventTrigger->getId(), $eventLoggedIds, true)) {
                 continue;
             }
 
             $trigger = $eventTrigger->getTrigger();
-            $company = $event->getCompany();
-            if (!isset($company->getField('companyscore_calculated')['value'])) {
-                $company->getField('companyscore_calculated')['value'] = 0;
-            }
 
-            if ($trigger->getPoints() >= $company->getField('companyscore_calculated')['value']) {
+            // Check if the trigger is a point-based trigger
+            if ($trigger->getType() !== CompanyTrigger::TYPE_POINTS) {
                 continue;
             }
 
-            $companiesToAdd    = [];
-            $companiesToRemove = [];
-            if (!empty($eventTrigger->getProperties()['add_tags'])) {
-                $companiesToAdd   = $this->companyTagModel->getRepository()->findBy(['tag'=> $eventTrigger->getProperties()['add_tags']]);
-                $tagsAlreadyExist = $this->companyTagModel->getTagsByCompany($company);
-                foreach ($companiesToAdd as $key => $companyToAdd) {
-                    if (in_array($companyToAdd, $tagsAlreadyExist)) {
-                        unset($companiesToAdd[$key]);
-                    }
-                }
-            }
-            if (!empty($eventTrigger->getProperties()['remove_tags'])) {
-                $companiesToRemove = $this->companyTagModel->getRepository()->findBy(['tag'=> $eventTrigger->getProperties()['remove_tags']]);
+            // Ensure company score is initialized for comparison
+            $companyScore = $company->getField('companyscore_calculated')['value'] ?? 0;
+
+            // Check if the company has reached the required score
+            if ($trigger->getPoints() > $companyScore) {
+                continue;
             }
 
-            $this->companyTagModel->updateCompanyTags($event->getCompany(), $companiesToAdd, $companiesToRemove);
+            // --- Decision logic passed. Now execute the action using the handler. ---
+            $this->modifyTagsActionHandler->execute(
+                $company,
+                $eventTrigger->getProperties()
+            );
+
+            // After execution, log that this trigger has been processed for the company.
             $this->companyTriggerModel->saveLog(
-                $event->getCompany(),
+                $company,
                 $eventTrigger
             );
         }

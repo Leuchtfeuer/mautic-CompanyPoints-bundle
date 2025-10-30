@@ -6,6 +6,7 @@ use Mautic\EmailBundle\Helper\MailHelper;
 use Mautic\EmailBundle\Model\EmailModel;
 use Mautic\LeadBundle\Entity\Company;
 use Mautic\UserBundle\Model\UserModel;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyTriggerBuilderEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Form\Type\CompanySubmitActionEmailType;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents;
@@ -80,6 +81,10 @@ class SendEmailSubscriber implements EventSubscriberInterface
             }
 
             $trigger = $eventTrigger->getTrigger();
+            if ($trigger->getType() !== CompanyTrigger::TYPE_POINTS) {
+                continue;
+            }
+
             $company = $event->getCompany();
             if (!isset($company->getField('score_calculated')['value'])) {
                 $company->getField('score_calculated')['value'] = 0;
