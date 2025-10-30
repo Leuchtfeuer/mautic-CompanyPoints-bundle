@@ -17,8 +17,9 @@
 }) %}
 
 {% block content %}
+{{ includeStylesheet('plugins/LeuchtfeuerCompanyPointsBundle/Assets/css/companypoint.css') }}
 {{ form_start(form) }}
-<div class="box-layout">
+<div class="box-layout" data-onload-callback="companyPointTriggerFormOnLoad">
     <div class="col-md-9 bg-white height-auto">
         <div class="row">
             <div class="col-xs-12">
@@ -40,11 +41,17 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="pa-md">
+                                    {{ form_row(form.type) }}
+                                </div>
+                                <div class="pa-md form-type--points">
                                     {{ form_row(form.points) }}
                                     {{ form_row(form.color) }}
-{#                                    {{ form_row(form.group) }}#}
-{#                                    {{ form_row(form.triggerExistingLeads) }}#}
                                 </div>
+                                <div class="pa-md form-type--member-activity" data-company-form-type="member_activity">
+                                    {{ form_row(form.memberActivity) }}
+                                </div>
+{#                              {{ form_row(form.group) }}#}
+{#                              {{ form_row(form.triggerExistingLeads) }}#}
                             </div>
                         </div>
                     </div>

@@ -12,6 +12,16 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 class CompanyTrigger extends FormEntity
 {
+
+    public const TYPE_POINTS = 'points';
+    public const TYPE_MEMBER_ACTIVITY = 'member_activity';
+
+    public const ACTIVITY_FIRST_EVER          = 'first_contact_activity_ever';
+    public const ACTIVITY_FIRST_WITHIN_30_DAYS  = 'first_contact_activity_within_30_days';
+    public const ACTIVITY_FIRST_OF_NEW_CONTACT = 'first_activity_of_new_contact';
+    public const ACTIVITY_EVERY_OF_A_CONTACT     = 'every_activity_of_a_contact';
+    public const ACTIVITY_EVERY_OF_KNOWN_CONTACT = 'every_activity_of_a_known_contact';
+
     /**
      * @var int
      */
@@ -37,6 +47,8 @@ class CompanyTrigger extends FormEntity
      */
     private $publishDown;
 
+    private string $type = '';
+
     /**
      * @var int
      */
@@ -46,6 +58,8 @@ class CompanyTrigger extends FormEntity
      * @var string
      */
     private $color = 'a0acb8';
+
+    private ?string $memberActivity;
 
     /**
      * @var bool
@@ -87,10 +101,18 @@ class CompanyTrigger extends FormEntity
 
         $builder->addPublishDates();
 
+        $builder->createField('type', 'string')
+            ->build();
+
         $builder->addField('points', 'integer');
 
         $builder->createField('color', 'string')
             ->length(7)
+            ->build();
+
+        $builder->createField('memberActivity', 'string')
+            ->columnName('member_activity')
+            ->nullable()
             ->build();
 
         //        $builder->createField('triggerExistingLeads', 'boolean')
@@ -137,8 +159,10 @@ class CompanyTrigger extends FormEntity
                 [
                     'publishUp',
                     'publishDown',
+                    'type',
                     'points',
                     'color',
+                    'memberActivity',
                     'events',
                     //                    'triggerExistingLeads',
                 ]
@@ -303,6 +327,17 @@ class CompanyTrigger extends FormEntity
         return $this->publishDown;
     }
 
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): void
+    {
+        $this->isChanged('type', $type);
+        $this->type = $type;
+    }
+
     /**
      * @return mixed
      */
@@ -334,6 +369,17 @@ class CompanyTrigger extends FormEntity
     public function setColor($color): void
     {
         $this->color = $color;
+    }
+
+    public function getMemberActivity(): ?string
+    {
+        return $this->memberActivity;
+    }
+
+    public function setMemberActivity(?string $memberActivity): void
+    {
+        $this->isChanged('memberActivity', $memberActivity);
+        $this->memberActivity = $memberActivity;
     }
 
     //    /**

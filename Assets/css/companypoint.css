@@ -1,0 +1,9 @@
+.form-type--points,
+.form-type--member-activity {
+    display: none;
+}
+
+[data-trigger-type="points"] .form-type--points,
+[data-trigger-type="member_activity"] .form-type--member-activity {
+    display: block;
+}
