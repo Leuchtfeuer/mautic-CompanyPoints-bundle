@@ -11,6 +11,7 @@ use Mautic\PageBundle\PageEvents;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEventRepository;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\LeadActivityEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyScoreModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\ModifyTagsActionHandler;
@@ -44,14 +45,13 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            PageEvents::PAGE_ON_HIT => ['onPageHit', 0],
+            LeadActivityEvent::class => ['onLeadActivity', 0],
         ];
     }
 
-    public function onPageHit(PageHitEvent $event): void
+    public function onLeadActivity(LeadActivityEvent $event): void
     {
-        $hit = $event->getHit();
-        $lead = $hit->getLead();
+        $lead = $event->lead;
 
         if (null === $lead) {
             return;
