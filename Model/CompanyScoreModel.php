@@ -10,6 +10,7 @@ use Mautic\CoreBundle\Translation\Translator;
 use Mautic\EmailBundle\Helper\EmailValidator;
 use Mautic\LeadBundle\Deduplicate\CompanyDeduper;
 use Mautic\LeadBundle\Entity\Company;
+use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Field\FieldList;
 use Mautic\LeadBundle\Model\CompanyModel;
 use Mautic\LeadBundle\Model\FieldModel;
@@ -91,7 +92,7 @@ class CompanyScoreModel extends CompanyModel
     }
 
     /**
-     * @return array<\Mautic\LeadBundle\Entity\Lead>
+     * @return array<Lead>
      */
     public function getLeadsByCompany(Company $company): array
     {
@@ -110,5 +111,27 @@ class CompanyScoreModel extends CompanyModel
         }
 
         return $this->leadModel->getRepository()->findBy(['id' => $leads]);
+    }
+
+    /**
+     * @return array<Company>
+     */
+    public function getCompaniesByLead(Lead $lead): array
+    {
+        $leadId = $lead->getId();
+        $q      = $this->em->getConnection()->createQueryBuilder();
+        $q->select('cl.company_id,cl.company_id')
+            ->from(MAUTIC_TABLE_PREFIX.'companies_leads', 'cl');
+
+        $q->where($q->expr()->eq('cl.lead_id', ':lead'))
+            ->setParameter('lead', $leadId);
+
+        $companies = $q->executeQuery()->fetchAllKeyValue();
+
+        if (empty($companies)) {
+            return [];
+        }
+
+        return $this->getRepository()->findBy(['id' => $companies]);
     }
 }
