@@ -59,7 +59,7 @@ class CompanyTrigger extends FormEntity
      */
     private $color = 'a0acb8';
 
-    private ?string $memberActivity;
+    private ?string $memberActivity = null;
 
     /**
      * @var bool
