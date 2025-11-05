@@ -87,10 +87,8 @@ class CompanyTagsSubscriber implements EventSubscriberInterface
                 continue;
             }
 
-            // Ensure company score is initialized for comparison
-            $companyScore = $company->getField('companyscore_calculated')['value'] ?? 0;
-
             // Check if the company has reached the required score
+            $companyScore = $company->getField('companyscore_calculated')['value'] ?? 0;
             if ($trigger->getPoints() > $companyScore) {
                 continue;
             }
