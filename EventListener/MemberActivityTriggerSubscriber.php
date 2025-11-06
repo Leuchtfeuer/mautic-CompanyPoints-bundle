@@ -6,14 +6,13 @@ namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\EventListener;
 
 use Mautic\LeadBundle\Entity\Company;
 use Mautic\LeadBundle\Entity\Lead;
-use Mautic\PageBundle\Event\PageHitEvent;
-use Mautic\PageBundle\PageEvents;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEventRepository;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\LeadActivityEvent;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\BeforeUpdateLeadActivityEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyScoreModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\CompanyMemberActivityService;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\ModifyTagsActionHandler;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\SendEmailActionHandler;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -29,11 +28,12 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
     private array $handlers = [];
 
     public function __construct(
-        private CompanyTriggerModel $companyTriggerModel,
+        private CompanyTriggerModel           $companyTriggerModel,
         private CompanyTriggerEventRepository $companyTriggerEventRepository,
-        private CompanyScoreModel $companyScoreModel,
-        ModifyTagsActionHandler $modifyTagsActionHandler,
-        SendEmailActionHandler $sendEmailActionHandler
+        private CompanyScoreModel             $companyScoreModel,
+        private CompanyMemberActivityService  $companyMemberActivityService,
+        ModifyTagsActionHandler               $modifyTagsActionHandler,
+        SendEmailActionHandler                $sendEmailActionHandler
     ) {
         // Map the trigger keys to their corresponding handlers.
         $this->handlers = [
@@ -45,11 +45,11 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            LeadActivityEvent::class => ['onLeadActivity', 0],
+            BeforeUpdateLeadActivityEvent::class => ['onLeadActivity', 0],
         ];
     }
 
-    public function onLeadActivity(LeadActivityEvent $event): void
+    public function onLeadActivity(BeforeUpdateLeadActivityEvent $event): void
     {
         $lead = $event->lead;
 
@@ -107,17 +107,35 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         }
 
         $memberActivityTrigger = $trigger->getMemberActivity();
+        if (null === $memberActivityTrigger) {
+            return false;
+        }
 
-        /**
-         * TODO check for every type:
-         * CompanyTrigger::ACTIVITY_FIRST_EVER                // "First contact activity in this company ever"
-         * CompanyTrigger::ACTIVITY_FIRST_WITHIN_30_DAYS      // "First contact activity in this company within 30 days"
-         * CompanyTrigger::ACTIVITY_FIRST_OF_NEW_CONTACT      // "First activity of every new contact"
-         * CompanyTrigger::ACTIVITY_EVERY_OF_A_CONTACT        // "Every activity of a contact"
-         * CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT    // "Every activity of a known contact"
-         */
+        switch ($memberActivityTrigger) {
 
-        return false;
+            case CompanyTrigger::ACTIVITY_EVERY_OF_A_CONTACT:
+                // Every activity of a contact
+                return true;
+
+            case CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT:
+                // Every activity of a known contact
+                return !$lead->isAnonymous();
+
+            case CompanyTrigger::ACTIVITY_FIRST_EVER:
+                // First contact activity in this company ever
+                return !$this->companyMemberActivityService->hasAnyLeadActivity($company);
+
+            case CompanyTrigger::ACTIVITY_FIRST_WITHIN_30_DAYS:
+                // First contact activity in this company within 30 days
+                return !$this->companyMemberActivityService->hasLeadActivityWithin30Days($company);
+
+            case CompanyTrigger::ACTIVITY_FIRST_OF_NEW_CONTACT:
+                // First activity of every new contact
+
+
+            default:
+                return false;
+        }
     }
 
     /**

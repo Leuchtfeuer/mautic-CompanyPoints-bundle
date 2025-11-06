@@ -6,7 +6,7 @@ namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event;
 
 use Mautic\LeadBundle\Entity\Lead;
 
-class LeadActivityEvent
+class BeforeUpdateLeadActivityEvent
 {
     public function __construct(
         public Lead $lead,
