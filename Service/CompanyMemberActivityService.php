@@ -6,64 +6,91 @@ namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Mautic\LeadBundle\Entity\Company;
+use Mautic\LeadBundle\Entity\Lead;
 
 class CompanyMemberActivityService
 {
     public function __construct(
         private EntityManagerInterface $em,
-    )
-    {
+    ) {
     }
 
-
-    /**
-     * Checks if the company had any contact activity at all.
-     */
-    public function hasAnyLeadActivity(Company $company): bool
+    public function isLeadFirstActivity(Lead $lead): bool
     {
-        return $this->queryForLeadActivity($company);
+        $changes = $lead->getChanges(true);
+        return array_key_exists('dateLastActive', $changes) && $changes['dateLastActive'][0] === null;
     }
 
     /**
-     * Checks if the company had any contact activity within the last 30 days.
-     */
-    public function hasLeadActivityWithin30Days(Company $company): bool
-    {
-        return $this->queryForLeadActivity($company, 30);
-    }
-
-    /**
-     * Queries for lead activity associated with a company.
+     * Counts relevant lead activities associated with a company.
+     * An activity is only considered if it occurred after the lead was added to the company.
      *
-     * @param int|null $withinDays If null, checks for any activity ever.
-     *                             If an integer, checks for activity within the last N days.
+     * @param int|null $withinDays If null, counts all activities ever.
+     *                             If an integer, counts activities within the last N days.
      */
-    private function queryForLeadActivity(Company $company, ?int $withinDays = null): bool
+    public function countLeadActivities(Company $company, ?int $withinDays = null, ?Lead $excludeLead = null): int
     {
         $qb = $this->em->getConnection()->createQueryBuilder();
-        $qb->select('1')
+        $qb->select('COUNT(l.id)')
             ->from(MAUTIC_TABLE_PREFIX.'companies_leads', 'cl')
             ->join('cl', MAUTIC_TABLE_PREFIX.'leads', 'l', 'cl.lead_id = l.id')
             ->where($qb->expr()->eq('cl.company_id', ':companyId'))
-            // count activity that happened AFTER the lead was added to the company
-            ->andWhere($qb->expr()->gt('l.last_active', 'cl.date_added'))
-            ->setParameter('companyId', $company->getId())
-            ->setMaxResults(1);
+            ->andWhere($qb->expr()->gte('l.last_active', 'cl.date_added'))
+            ->setParameter('companyId', $company->getId());
+
+        if (null !== $excludeLead) {
+            $qb->andWhere($qb->expr()->neq('cl.lead_id', ':excludeLeadId'))
+                ->setParameter('excludeLeadId', $excludeLead->getId());
+        }
 
         if (null !== $withinDays) {
-            // Further restrict to activity within a specific timeframe
             $qb->andWhere(
                 $qb->expr()->gte('l.last_active', ':date')
             );
             $date = new \DateTime();
-            // Ensure we use a positive integer
             $date->modify('-'.abs($withinDays).' days');
             $qb->setParameter('date', $date->format('Y-m-d H:i:s'));
         }
 
-        $sql = $qb->getSQL();
-        $result = $qb->executeQuery()->fetchOne();
-        return (bool) $result;
+        return (int) $qb->executeQuery()->fetchOne();
     }
 
+    public function isJoinCoincidingWithActivity(Lead $lead, Company $company, int $thresholdInSeconds = 5): bool
+    {
+        $lastActive = $lead->getLastActive();
+        if (null === $lastActive) {
+            // No activity, so they can't coincide.
+            return false;
+        }
+
+        $associationDate = $this->getAssociationDate($lead, $company);
+        if (null === $associationDate) {
+            // Should not happen if called from LeadCompanyChangeEvent, but good to have.
+            return false;
+        }
+
+        $difference = abs($lastActive->getTimestamp() - $associationDate->getTimestamp());
+
+        return $difference <= $thresholdInSeconds;
+    }
+
+    /**
+     * Fetches the timestamp when a lead was added to a company.
+     */
+    private function getAssociationDate(Lead $lead, Company $company): ?\DateTimeImmutable
+    {
+        $qb = $this->em->getConnection()->createQueryBuilder();
+        $qb->select('cl.date_added')
+            ->from(MAUTIC_TABLE_PREFIX.'companies_leads', 'cl')
+            ->where($qb->expr()->eq('cl.lead_id', ':leadId'))
+            ->andWhere($qb->expr()->eq('cl.company_id', ':companyId'))
+            ->setParameter('leadId', $lead->getId())
+            ->setParameter('companyId', $company->getId())
+            ->orderBy('cl.date_added', 'DESC')
+            ->setMaxResults(1);
+
+        $dateAdded = $qb->executeQuery()->fetchOne();
+
+        return $dateAdded ? new \DateTimeImmutable($dateAdded) : null;
+    }
 }

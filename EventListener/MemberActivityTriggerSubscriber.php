@@ -6,6 +6,8 @@ namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\EventListener;
 
 use Mautic\LeadBundle\Entity\Company;
 use Mautic\LeadBundle\Entity\Lead;
+use Mautic\LeadBundle\Event\LeadChangeCompanyEvent;
+use Mautic\LeadBundle\LeadEvents;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEventRepository;
@@ -35,7 +37,6 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         ModifyTagsActionHandler               $modifyTagsActionHandler,
         SendEmailActionHandler                $sendEmailActionHandler
     ) {
-        // Map the trigger keys to their corresponding handlers.
         $this->handlers = [
             self::TRIGGER_KEY_MODIFY_TAGS => $modifyTagsActionHandler,
             self::TRIGGER_KEY_SEND_EMAIL  => $sendEmailActionHandler,
@@ -45,14 +46,19 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
+            // This handles activity from contacts ALREADY in a company
             BeforeUpdateLeadActivityEvent::class => ['onLeadActivity', 0],
+            // This handles the moment a contact is ADDED to a company
+            LeadEvents::LEAD_COMPANY_CHANGE      => ['onCompanyChange', 0],
         ];
     }
 
+    /**
+     * Triggered when an existing company member becomes active.
+     */
     public function onLeadActivity(BeforeUpdateLeadActivityEvent $event): void
     {
         $lead = $event->lead;
-
         if (null === $lead) {
             return;
         }
@@ -62,46 +68,58 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
             return;
         }
 
+        foreach ($leadCompanies as $company) {
+            $this->processCompanyTriggers($lead, $company);
+        }
+    }
+
+    /**
+     * Triggered when a lead is added to a company
+     */
+    public function onCompanyChange(LeadChangeCompanyEvent $event): void
+    {
+        if (
+            !$event->wasAdded() ||
+            !$this->companyMemberActivityService->isJoinCoincidingWithActivity($event->getLead(), $event->getCompany())
+        ) {
+            return;
+        }
+        $this->processCompanyTriggers($event->getLead(), $event->getCompany(), true);
+    }
+
+    /**
+     * Centralized logic to check and execute triggers for a given lead/company pair.
+     * @param bool $isNewMemberActivity True if triggered by a lead joining a company.
+     */
+    private function processCompanyTriggers(Lead $lead, Company $company, bool $isNewMemberActivity = false): void
+    {
         $allTriggers = $this->companyTriggerEventRepository->getPublishedByTriggerType(CompanyTrigger::TYPE_MEMBER_ACTIVITY);
         if (empty($allTriggers)) {
             return;
         }
 
-        foreach ($leadCompanies as $company) {
-            $loggedEventIds = $this->getLoggedEventIdsForCompany($company);
+        $loggedEventIds = $this->getLoggedEventIdsForCompany($company);
 
-            /** @var CompanyTriggerEvent $eventTrigger */
-            foreach ($allTriggers as $eventTrigger) {
-                if ($this->shouldExecute($eventTrigger, $lead, $company, $loggedEventIds)) {
-                    $handler = $this->getHandlerForTrigger($eventTrigger);
+        /** @var CompanyTriggerEvent $eventTrigger */
+        foreach ($allTriggers as $eventTrigger) {
+            if ($this->shouldExecute($eventTrigger, $lead, $company, $loggedEventIds, $isNewMemberActivity)) {
+                $handler = $this->getHandlerForTrigger($eventTrigger);
 
-                    if (null !== $handler) {
-                        $handler->execute($company, $eventTrigger->getProperties());
-                        $this->companyTriggerModel->saveLog($company, $eventTrigger);
-                    }
+                if (null !== $handler) {
+                    $handler->execute($company, $eventTrigger->getProperties());
+                    $this->companyTriggerModel->saveLog($company, $eventTrigger);
                 }
             }
         }
     }
 
-
-    /**
-     * @param int[] $loggedIds
-     */
-    private function shouldExecute(CompanyTriggerEvent $eventTrigger, Lead $lead, Company $company, array $loggedIds): bool
+    private function shouldExecute(CompanyTriggerEvent $eventTrigger, Lead $lead, Company $company, array $loggedIds, bool $isNewMemberActivity): bool
     {
-        // Check if the trigger type has a registered handler.
-        if (!isset($this->handlers[$eventTrigger->getType()])) {
-            return false;
-        }
-
-        // Check if this trigger has already been executed for this company
-        if (in_array($eventTrigger->getId(), $loggedIds, true)) {
+        if (!isset($this->handlers[$eventTrigger->getType()]) || in_array($eventTrigger->getId(), $loggedIds, true)) {
             return false;
         }
 
         $trigger = $eventTrigger->getTrigger();
-        // Check if the trigger is a member_activity-based trigger
         if (null === $trigger || $trigger->getType() !== CompanyTrigger::TYPE_MEMBER_ACTIVITY) {
             return false;
         }
@@ -112,26 +130,30 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         }
 
         switch ($memberActivityTrigger) {
-
             case CompanyTrigger::ACTIVITY_EVERY_OF_A_CONTACT:
-                // Every activity of a contact
                 return true;
 
             case CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT:
-                // Every activity of a known contact
                 return !$lead->isAnonymous();
 
             case CompanyTrigger::ACTIVITY_FIRST_EVER:
-                // First contact activity in this company ever
-                return !$this->companyMemberActivityService->hasAnyLeadActivity($company);
+                if ($isNewMemberActivity) {
+                    $activityCount = $this->companyMemberActivityService->countLeadActivities($company, excludeLead: $lead);
+                } else {
+                    $activityCount = $this->companyMemberActivityService->countLeadActivities($company);
+                }
+                return 0 === $activityCount;
 
             case CompanyTrigger::ACTIVITY_FIRST_WITHIN_30_DAYS:
-                // First contact activity in this company within 30 days
-                return !$this->companyMemberActivityService->hasLeadActivityWithin30Days($company);
+                if ($isNewMemberActivity) {
+                    $activityCount = $this->companyMemberActivityService->countLeadActivities($company, 30, excludeLead: $lead);
+                } else {
+                    $activityCount = $this->companyMemberActivityService->countLeadActivities($company, 30);
+                }
+                return 0 === $activityCount;
 
             case CompanyTrigger::ACTIVITY_FIRST_OF_NEW_CONTACT:
-                // First activity of every new contact
-
+                return $this->companyMemberActivityService->isLeadFirstActivity($lead);
 
             default:
                 return false;
