@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\EventListener;
 
+use Mautic\FormBundle\Event\SubmissionEvent;
+use Mautic\FormBundle\FormEvents;
 use Mautic\LeadBundle\Entity\Company;
 use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Event\LeadChangeCompanyEvent;
@@ -50,6 +52,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
             BeforeUpdateLeadActivityEvent::class => ['onLeadActivity', 0],
             // This handles the moment a contact is ADDED to a company
             LeadEvents::LEAD_COMPANY_CHANGE      => ['onCompanyChange', 0],
+            FormEvents::FORM_ON_SUBMIT           => ['onFormSubmit', 0],
         ];
     }
 
@@ -87,11 +90,22 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         $this->processCompanyTriggers($event->getLead(), $event->getCompany(), true);
     }
 
+    public function onFormSubmit(SubmissionEvent $submissionEvent): void
+    {
+        $lead = $submissionEvent->getLead();
+        $leadCompanies = $this->companyScoreModel->getCompaniesByLead($lead);
+        if (empty($leadCompanies)) {
+            return;
+        }
+        foreach ($leadCompanies as $company) {
+            $this->processCompanyTriggers($lead, $company, true);
+        }
+    }
+
     /**
      * Centralized logic to check and execute triggers for a given lead/company pair.
-     * @param bool $isNewMemberActivity True if triggered by a lead joining a company.
      */
-    private function processCompanyTriggers(Lead $lead, Company $company, bool $isNewMemberActivity = false): void
+    private function processCompanyTriggers(Lead $lead, Company $company, bool $isActivityAlreadyCounted = false): void
     {
         $allTriggers = $this->companyTriggerEventRepository->getPublishedByTriggerType(CompanyTrigger::TYPE_MEMBER_ACTIVITY);
         if (empty($allTriggers)) {
@@ -102,7 +116,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
 
         /** @var CompanyTriggerEvent $eventTrigger */
         foreach ($allTriggers as $eventTrigger) {
-            if ($this->shouldExecute($eventTrigger, $lead, $company, $loggedEventIds, $isNewMemberActivity)) {
+            if ($this->shouldExecute($eventTrigger, $lead, $company, $loggedEventIds, $isActivityAlreadyCounted)) {
                 $handler = $this->getHandlerForTrigger($eventTrigger);
 
                 if (null !== $handler) {
@@ -113,7 +127,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         }
     }
 
-    private function shouldExecute(CompanyTriggerEvent $eventTrigger, Lead $lead, Company $company, array $loggedIds, bool $isNewMemberActivity): bool
+    private function shouldExecute(CompanyTriggerEvent $eventTrigger, Lead $lead, Company $company, array $loggedIds, bool $isActivityAlreadyCounted): bool
     {
         if (!isset($this->handlers[$eventTrigger->getType()]) || in_array($eventTrigger->getId(), $loggedIds, true)) {
             return false;
@@ -137,7 +151,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
                 return !$lead->isAnonymous();
 
             case CompanyTrigger::ACTIVITY_FIRST_EVER:
-                if ($isNewMemberActivity || $this->companyMemberActivityService->isLeadFirstActivity($lead)) {
+                if ($isActivityAlreadyCounted || $this->companyMemberActivityService->isLeadFirstActivity($lead)) {
                     $activityCount = $this->companyMemberActivityService->countLeadActivities($company, excludeLead: $lead);
                 } else {
                     $activityCount = $this->companyMemberActivityService->countLeadActivities($company);
@@ -145,7 +159,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
                 return 0 === $activityCount;
 
             case CompanyTrigger::ACTIVITY_FIRST_WITHIN_30_DAYS:
-                if ($isNewMemberActivity || $this->companyMemberActivityService->isLeadFirstActivity($lead)) {
+                if ($isActivityAlreadyCounted || $this->companyMemberActivityService->isLeadFirstActivity($lead)) {
                     $activityCount = $this->companyMemberActivityService->countLeadActivities($company, 30, excludeLead: $lead);
                 } else {
                     $activityCount = $this->companyMemberActivityService->countLeadActivities($company, 30);

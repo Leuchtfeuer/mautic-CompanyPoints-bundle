@@ -90,13 +90,13 @@ final class FunctionalFixtureHelper
         return $company;
     }
 
-    public function addContactToCompany(Lead $lead, Company $company, \DateTime $dateAdded = null): CompanyLead
+    public function addContactToCompany(Lead $lead, Company $company, \DateTime $dateAdded = null, bool $isPrimary = true): CompanyLead
     {
         $companyLead = new CompanyLead();
         $companyLead->setCompany($company);
         $companyLead->setLead($lead);
         $companyLead->setDateAdded($dateAdded ?? new \DateTime());
-        $companyLead->setPrimary(true);
+        $companyLead->setPrimary($isPrimary);
         $this->em->persist($companyLead);
 
         return $companyLead;
@@ -217,6 +217,28 @@ final class FunctionalFixtureHelper
         return $event;
     }
 
+    public function createCompanyEmailAction(
+        CompanyTrigger $trigger,
+        Email $email,
+        string $name,
+        string $recipient
+    ): CompanyTriggerEvent {
+        $event = new CompanyTriggerEvent();
+        $event->setTrigger($trigger);
+        $event->setName($name);
+        $event->setType('companytags.sendemails');
+        $event->setProperties([
+            'email_to_owner' => true,
+            'to'             => $recipient,
+            'cc'             => '',
+            'email'          => $email->getId(),
+        ]);
+        $event->setOrder(1);
+        $this->em->persist($event);
+        $this->em->flush();
+        return $event;
+    }
+
     public function emulateEmailLinkClicked(Lead $contact): void
     {
         // Create a redirect link
@@ -266,13 +288,13 @@ final class FunctionalFixtureHelper
         ]);
     }
 
-    public function emulateFormSubmit(Lead $contact): void
+    public function emulateFormSubmit(Lead $contact, Company $company = null): void
     {
         $formData = [
             'mauticform[email]'   => $contact->getEmail()
         ];
-        if ($contact->getCompany()) {
-            $formData['mauticform[company]'] = $contact->getCompany();
+        if (null !== $company) {
+            $formData['mauticform[company]'] = $company->getName();
         }
         $form = $this->createFormWithCompanyViaApi('Test Form');
         $this->submitForm($form, $formData);
