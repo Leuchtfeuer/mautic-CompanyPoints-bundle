@@ -137,7 +137,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
                 return !$lead->isAnonymous();
 
             case CompanyTrigger::ACTIVITY_FIRST_EVER:
-                if ($isNewMemberActivity) {
+                if ($isNewMemberActivity || $this->companyMemberActivityService->isLeadFirstActivity($lead)) {
                     $activityCount = $this->companyMemberActivityService->countLeadActivities($company, excludeLead: $lead);
                 } else {
                     $activityCount = $this->companyMemberActivityService->countLeadActivities($company);
@@ -145,7 +145,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
                 return 0 === $activityCount;
 
             case CompanyTrigger::ACTIVITY_FIRST_WITHIN_30_DAYS:
-                if ($isNewMemberActivity) {
+                if ($isNewMemberActivity || $this->companyMemberActivityService->isLeadFirstActivity($lead)) {
                     $activityCount = $this->companyMemberActivityService->countLeadActivities($company, 30, excludeLead: $lead);
                 } else {
                     $activityCount = $this->companyMemberActivityService->countLeadActivities($company, 30);
