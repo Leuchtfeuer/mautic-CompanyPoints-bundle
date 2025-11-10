@@ -340,6 +340,120 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         Assert::assertCount(0, $tags, 'Company should NOT be tagged as there was recent activity within the last 30 days.');
     }
 
+    /**
+     * @dataProvider activityEmulationDataProvider
+     */
+    public function testFirstActivityOfNewContactTriggersSuccessfully(string $emulationMethod): void
+    {
+        // 1. Setup: Create entities and configure the trigger
+        $this->fixtureHelper->createAndEnablePlugin();
+
+        $companyTag = $this->fixtureHelper->createCompanyTag('New Contact Activity Tag');
+
+        $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
+            'Tag on new contact first activity',
+            CompanyTrigger::ACTIVITY_FIRST_OF_NEW_CONTACT
+        );
+
+        $this->fixtureHelper->createCompanyTagsAction(
+            $trigger,
+            'Add New Contact Activity Tag Action',
+            [$companyTag->getTag()]
+        );
+
+        // Create a company
+        $company = $this->fixtureHelper->createCompany('Newbie Inc.');
+        $this->em->flush();
+
+        // Create a pre-existing contact to ensure their presence doesn't interfere.
+        // This contact is not "new" in the company.
+        $oldContact = new Lead();
+        $oldContact->setEmail('old.timer@example.com');
+        $oldContact->setCompany($company->getName());
+        $this->em->persist($oldContact);
+        $this->em->flush();
+        // Add this contact as if they joined 10 days ago
+        $this->fixtureHelper->addContactToCompany($oldContact, $company, (new \DateTime())->modify('-10 days'));
+
+        // Create the "new" contact who will perform the action
+        $newContact = new Lead();
+        $newContact->setEmail('new.kid@example.com');
+        $newContact->setCompany($company->getName());
+        $this->em->persist($newContact);
+        $this->em->flush();
+        // Add this contact to the company now, making them a "new contact"
+        $this->fixtureHelper->addContactToCompany($newContact, $company);
+        $this->em->flush();
+
+        // 2. Action: Emulate the first activity for the new contact
+        match ($emulationMethod) {
+            'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
+            'page_visit'         => $this->fixtureHelper->emulatePageVisit($newContact),
+            'form_submit'        => $this->fixtureHelper->emulateFormSubmit($newContact),
+            default              => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
+        };
+
+        // 3. Assertion: Check that the company was tagged
+        $this->em->clear();
+
+        /** @var Company|null $updatedCompany */
+        $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
+        Assert::assertNotNull($updatedCompany);
+
+        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+
+        Assert::assertCount(1, $tags, 'Company should be tagged on the first activity of a new contact.');
+        Assert::assertSame($companyTag->getId(), $tags[0]->getId(), 'The company was not tagged with the correct "new contact activity" tag.');
+        Assert::assertSame($companyTag->getTag(), $tags[0]->getTag());
+    }
+
+    public function testFirstActivityOfNewContactDoesNotTriggerForOldContact(): void
+    {
+        // 1. Setup: Create entities and configure the trigger for a "new" contact
+        $this->fixtureHelper->createAndEnablePlugin();
+
+        $companyTag = $this->fixtureHelper->createCompanyTag('Should Not Be Added');
+
+        $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
+            'Tag on new contact first activity',
+            CompanyTrigger::ACTIVITY_FIRST_OF_NEW_CONTACT
+        );
+
+        $this->fixtureHelper->createCompanyTagsAction(
+            $trigger,
+            'This action should not run',
+            [$companyTag->getTag()]
+        );
+
+        // Create a company
+        $company = $this->fixtureHelper->createCompany('Established Inc.');
+        $this->em->flush();
+
+        // Create an "old" contact for the company
+        $oldContact = new Lead();
+        $oldContact->setEmail('old.hand@example.com');
+        $oldContact->setCompany($company->getName());
+        $oldContact->setLastActive((new \DateTime())->modify('-10 days'));
+        $this->em->persist($oldContact);
+        $this->em->flush();
+        $this->fixtureHelper->addContactToCompany($oldContact, $company, (new \DateTime())->modify('-20 days'));
+        $this->em->flush();
+
+        // 2. Action: Emulate an activity for this EXISTING contact
+        $this->fixtureHelper->emulateEmailLinkClicked($oldContact);
+
+        // 3. Assertion: Check that the company was NOT tagged
+        $this->em->clear();
+
+        /** @var Company|null $updatedCompany */
+        $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
+        Assert::assertNotNull($updatedCompany);
+
+        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+
+        Assert::assertCount(0, $tags, 'Company should NOT be tagged as the activity was from an existing contact, not a new one.');
+    }
+
     public function testTriggerIsNotExecutedTwiceOnNextActivity(): void
     {
         // 1. Create all required entities

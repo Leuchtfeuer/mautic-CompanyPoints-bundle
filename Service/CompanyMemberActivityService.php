@@ -17,8 +17,24 @@ class CompanyMemberActivityService
 
     public function isLeadFirstActivity(Lead $lead): bool
     {
+        if ($lead->getLastActive() === null) {
+            return true;
+        }
+
         $changes = $lead->getChanges(true);
-        return array_key_exists('dateLastActive', $changes) && $changes['dateLastActive'][0] === null;
+        if (array_key_exists('dateLastActive', $changes) && $changes['dateLastActive'][0] === null) {
+            return true;
+        }
+
+        // sometimes mautic writes the dateLastActive many times in one request,
+        // so we want to check also the past changes
+        $leadArray = $lead->convertToArray();
+        $pastChanges = $leadArray['pastChanges'] ?? null;
+        if ((array_key_exists('dateLastActive', $pastChanges) && $pastChanges['dateLastActive'][0] === null)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
