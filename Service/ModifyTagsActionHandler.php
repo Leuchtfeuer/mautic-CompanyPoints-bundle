@@ -26,24 +26,18 @@ class ModifyTagsActionHandler
         $tagsToRemove = [];
 
         if (!empty($triggerProperties['add_tags'])) {
-            // Find tag entities to add based on the trigger configuration.
-            // The name `$companiesToAdd` is kept from the original source code for consistency.
-            // This variable contains tag entities, not company entities.
-            $companiesToAdd = $this->companyTagModel->getRepository()->findBy(['tag' => $triggerProperties['add_tags']]);
+            $tags = $this->companyTagModel->getRepository()->findBy(['tag' => $triggerProperties['add_tags']]);
 
             // Get tags the company already possesses to avoid adding duplicates.
             $tagsAlreadyExist = $this->companyTagModel->getTagsByCompany($company);
 
-            foreach ($companiesToAdd as $key => $companyToAdd) {
+            foreach ($tags as $key => $tag) {
                 // If the tag is already on the company, remove it from the list of tags to add.
-                // The original code uses a loose `in_array` comparison for objects.
-                if (in_array($companyToAdd, $tagsAlreadyExist, false)) {
-                    unset($companiesToAdd[$key]);
+                if (in_array($tag, $tagsAlreadyExist)) {
+                    unset($tags[$key]);
                 }
             }
-
-            // After filtering, the remaining entities are the ones to be added.
-            $tagsToAdd = $companiesToAdd;
+            $tagsToAdd = $tags;
         }
 
         if (!empty($triggerProperties['remove_tags'])) {
