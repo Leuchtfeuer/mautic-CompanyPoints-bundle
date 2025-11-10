@@ -14,6 +14,7 @@ use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEventRepository;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\BeforeUpdateLeadActivityEvent;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\Config;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyScoreModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\CompanyMemberActivityService;
@@ -36,6 +37,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         private CompanyTriggerEventRepository $companyTriggerEventRepository,
         private CompanyScoreModel             $companyScoreModel,
         private CompanyMemberActivityService  $companyMemberActivityService,
+        private Config $pluginConfig,
         ModifyTagsActionHandler               $modifyTagsActionHandler,
         SendEmailActionHandler                $sendEmailActionHandler
     ) {
@@ -61,6 +63,10 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
      */
     public function onLeadActivity(BeforeUpdateLeadActivityEvent $event): void
     {
+        if (!$this->pluginConfig->isPublished()) {
+            return;
+        }
+
         $lead = $event->lead;
         if (null === $lead) {
             return;
@@ -81,6 +87,10 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
      */
     public function onCompanyChange(LeadChangeCompanyEvent $event): void
     {
+        if (!$this->pluginConfig->isPublished()) {
+            return;
+        }
+
         if (
             !$event->wasAdded() ||
             !$this->companyMemberActivityService->isJoinCoincidingWithActivity($event->getLead(), $event->getCompany())
@@ -92,6 +102,10 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
 
     public function onFormSubmit(SubmissionEvent $submissionEvent): void
     {
+        if (!$this->pluginConfig->isPublished()) {
+            return;
+        }
+
         $lead = $submissionEvent->getLead();
         $leadCompanies = $this->companyScoreModel->getCompaniesByLead($lead);
         if (empty($leadCompanies)) {

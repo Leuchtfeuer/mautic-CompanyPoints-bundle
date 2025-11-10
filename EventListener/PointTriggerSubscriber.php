@@ -9,6 +9,7 @@ use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEventRepository;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyPostRecalculateEvent;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\Config;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\ModifyTagsActionHandler;
@@ -28,6 +29,7 @@ class PointTriggerSubscriber implements EventSubscriberInterface
     public function __construct(
         private CompanyTriggerModel $companyTriggerModel,
         private CompanyTriggerEventRepository $companyTriggerEventRepository,
+        private Config $pluginConfig,
         ModifyTagsActionHandler $modifyTagsActionHandler,
         SendEmailActionHandler $sendEmailActionHandler
     ) {
@@ -47,6 +49,10 @@ class PointTriggerSubscriber implements EventSubscriberInterface
 
     public function onPointRecalculate(CompanyPostRecalculateEvent $event): void
     {
+        if (!$this->pluginConfig->isPublished()) {
+            return;
+        }
+
         $company = $event->getCompany();
 
         // Fetch all trigger events associated with triggers of TYPE_POINTS.
