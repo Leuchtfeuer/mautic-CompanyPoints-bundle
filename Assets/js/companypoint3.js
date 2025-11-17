@@ -1,4 +1,4 @@
-c//PointBundle
+//PointBundle
 Mautic.companypointOnLoad = function (container) {
     if (mQuery(container + ' #list-search').length) {
         Mautic.activateSearchAutocomplete('list-search', 'companypoint');
