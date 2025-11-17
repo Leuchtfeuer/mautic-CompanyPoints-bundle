@@ -9,6 +9,7 @@ use Mautic\FormBundle\FormEvents;
 use Mautic\LeadBundle\Entity\Company;
 use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Event\LeadChangeCompanyEvent;
+use Mautic\LeadBundle\Event\LeadMergeEvent;
 use Mautic\LeadBundle\LeadEvents;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
@@ -18,6 +19,7 @@ use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\Config;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyScoreModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\CompanyMemberActivityService;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\MergeActivityTracker;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\ModifyTagsActionHandler;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\SendEmailActionHandler;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -37,7 +39,8 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         private CompanyTriggerEventRepository $companyTriggerEventRepository,
         private CompanyScoreModel             $companyScoreModel,
         private CompanyMemberActivityService  $companyMemberActivityService,
-        private Config $pluginConfig,
+        private MergeActivityTracker          $mergeActivityTracker,
+        private Config                        $pluginConfig,
         ModifyTagsActionHandler               $modifyTagsActionHandler,
         SendEmailActionHandler                $sendEmailActionHandler
     ) {
@@ -50,6 +53,8 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
+            // Track merges where the loser lead had no previous activity
+            LeadEvents::LEAD_PRE_MERGE           => ['onLeadPreMerge', 0],
             // This handles activity from contacts ALREADY in a company
             BeforeUpdateLeadActivityEvent::class => ['onLeadActivity', 0],
             // This handles the moment a contact is ADDED to a company
@@ -79,6 +84,21 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
 
         foreach ($leadCompanies as $company) {
             $this->processCompanyTriggers($lead, $company);
+        }
+    }
+
+    public function onLeadPreMerge(LeadMergeEvent $event): void
+    {
+        if (!$this->pluginConfig->isPublished()) {
+            return;
+        }
+
+        $winner = $event->getVictor();
+        $loser = $event->getLoser();
+
+        if ($winner->isAnonymous() && null === $loser->getLastActive()) {
+            // Track this contact as receiving first activity through merge
+            $this->mergeActivityTracker->trackFirstActivityAfterMerge($winner->getId());
         }
     }
 
@@ -165,7 +185,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
                 return !$lead->isAnonymous();
 
             case CompanyTrigger::ACTIVITY_FIRST_EVER:
-                if ($isActivityAlreadyCounted || $this->companyMemberActivityService->isLeadFirstActivity($lead)) {
+                if ($isActivityAlreadyCounted || $this->companyMemberActivityService->isLeadFirstActivity($lead, $company)) {
                     $activityCount = $this->companyMemberActivityService->countLeadActivities($company, excludeLead: $lead);
                 } else {
                     $activityCount = $this->companyMemberActivityService->countLeadActivities($company);
@@ -173,7 +193,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
                 return 0 === $activityCount;
 
             case CompanyTrigger::ACTIVITY_FIRST_WITHIN_30_DAYS:
-                if ($isActivityAlreadyCounted || $this->companyMemberActivityService->isLeadFirstActivity($lead)) {
+                if ($isActivityAlreadyCounted || $this->companyMemberActivityService->isLeadFirstActivity($lead, $company)) {
                     $activityCount = $this->companyMemberActivityService->countLeadActivities($company, 30, excludeLead: $lead);
                 } else {
                     $activityCount = $this->companyMemberActivityService->countLeadActivities($company, 30);
@@ -181,7 +201,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
                 return 0 === $activityCount;
 
             case CompanyTrigger::ACTIVITY_FIRST_OF_NEW_CONTACT:
-                return $this->companyMemberActivityService->isLeadFirstActivity($lead);
+                return $this->companyMemberActivityService->isLeadFirstActivity($lead, $company);
 
             default:
                 return false;

@@ -13,6 +13,7 @@ use Mautic\LeadBundle\Entity\CompanyLead;
 use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Entity\LeadDevice;
 use Mautic\LeadBundle\Entity\LeadList;
+use Mautic\PageBundle\Entity\Page;
 use Mautic\PageBundle\Entity\Redirect;
 use Mautic\PluginBundle\Entity\Integration;
 use Mautic\PluginBundle\Entity\Plugin;
@@ -288,6 +289,19 @@ final class FunctionalFixtureHelper
         ]);
     }
 
+    public function createLandingPage(string $title = 'LP', string $alias = 'lp', bool $isPublished = true, string $html = '<html><body>LP</body></html>'): Page
+    {
+        $page = new Page();
+        $page->setTitle($title);
+        $page->setAlias($alias);
+        $page->setIsPublished($isPublished);
+        $page->setCustomHtml($html);
+        $this->em->persist($page);
+        $this->em->flush();
+
+        return $page;
+    }
+
     public function emulateFormSubmit(Lead $contact, Company $company = null): void
     {
         $formData = [
@@ -297,6 +311,23 @@ final class FunctionalFixtureHelper
             $formData['mauticform[company]'] = $company->getName();
         }
         $form = $this->createFormWithCompanyViaApi('Test Form');
+
+        $this->submitForm($form, $formData);
+    }
+
+    public function emulateFormSubmitWithTracking(Lead $contact, Company $company = null): void
+    {
+        $formData = [
+            'mauticform[email]'   => $contact->getEmail()
+        ];
+        if (null !== $company) {
+            $formData['mauticform[company]'] = $company->getName();
+        }
+        $form = $this->createFormWithCompanyViaApi('Test Form');
+        $token = "{form=" . $form->getId() . "}";
+        $this->createLandingPage(alias: 'test-lp', html: "<html><body>{$token}</body></html>");
+        $this->client->request('GET', '/test-lp');
+        $this->client->enableReboot();
         $this->submitForm($form, $formData);
     }
 

@@ -12,11 +12,21 @@ class CompanyMemberActivityService
 {
     public function __construct(
         private EntityManagerInterface $em,
+        private MergeActivityTracker $mergeActivityTracker,
     ) {
     }
 
-    public function isLeadFirstActivity(Lead $lead): bool
+    public function isLeadFirstActivity(Lead $lead, Company $company): bool
     {
+        // Check if this lead received the first activity through merge
+        if ($this->mergeActivityTracker->hasFirstActivityAfterMerge($lead->getId())) {
+            return true;
+        }
+
+        if ($this->isJoinCoincidingWithActivity($lead, $company)) {
+            return true;
+        }
+
         if ($lead->getLastActive() === null) {
             return true;
         }

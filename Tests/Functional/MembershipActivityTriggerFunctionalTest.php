@@ -30,6 +30,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
             'email link clicked' => ['email_link_clicked'],
             'page visit'       => ['page_visit'],
             'form submit'       => ['form_submit'],
+            'form submit with tracking'       => ['form_submit_with_tracking'],
         ];
     }
 
@@ -73,6 +74,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
             'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($contact),
             'page_visit' => $this->fixtureHelper->emulatePageVisit($contact),
             'form_submit' => $this->fixtureHelper->emulateFormSubmit($contact),
+            'form_submit_with_tracking' => $this->fixtureHelper->emulateFormSubmitWithTracking($contact),
             default => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
         };
 
@@ -136,6 +138,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
             'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
             'page_visit' => $this->fixtureHelper->emulatePageVisit($newContact),
             'form_submit' => $this->fixtureHelper->emulateFormSubmit($newContact),
+            'form_submit_with_tracking' => $this->fixtureHelper->emulateFormSubmitWithTracking($newContact),
             default => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
         };
 
@@ -197,6 +200,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
             'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
             'page_visit'         => $this->fixtureHelper->emulatePageVisit($newContact),
             'form_submit'        => $this->fixtureHelper->emulateFormSubmit($newContact),
+            'form_submit_with_tracking' => $this->fixtureHelper->emulateFormSubmitWithTracking($newContact),
             default              => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
         };
 
@@ -261,6 +265,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
             'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
             'page_visit'         => $this->fixtureHelper->emulatePageVisit($newContact),
             'form_submit'        => $this->fixtureHelper->emulateFormSubmit($newContact),
+            'form_submit_with_tracking' => $this->fixtureHelper->emulateFormSubmitWithTracking($newContact),
             default              => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
         };
 
@@ -325,6 +330,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
             'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
             'page_visit'         => $this->fixtureHelper->emulatePageVisit($newContact),
             'form_submit'        => $this->fixtureHelper->emulateFormSubmit($newContact),
+            'form_submit_with_tracking' => $this->fixtureHelper->emulateFormSubmitWithTracking($newContact),
             default              => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
         };
 
@@ -390,6 +396,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
             'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
             'page_visit'         => $this->fixtureHelper->emulatePageVisit($newContact),
             'form_submit'        => $this->fixtureHelper->emulateFormSubmit($newContact),
+            'form_submit_with_tracking' => $this->fixtureHelper->emulateFormSubmitWithTracking($newContact),
             default              => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
         };
 
