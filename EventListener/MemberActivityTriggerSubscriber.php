@@ -182,7 +182,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
                 return true;
 
             case CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT:
-                return !$lead->isAnonymous();
+                return !$this->companyMemberActivityService->isAnonymousLead($lead);
 
             case CompanyTrigger::ACTIVITY_FIRST_EVER:
                 if ($isActivityAlreadyCounted || $this->companyMemberActivityService->isLeadFirstActivity($lead, $company)) {

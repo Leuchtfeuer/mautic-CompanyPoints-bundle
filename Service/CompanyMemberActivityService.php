@@ -101,6 +101,15 @@ class CompanyMemberActivityService
     }
 
     /**
+     * This is different from `Lead::isAnonymous`
+     * We do not consider contact with a company field as non-anonymous
+     */
+    public function isAnonymousLead(Lead $lead): bool
+    {
+        return !($lead->getFirstname() || $lead->getLastname() || $lead->getEmail());
+    }
+
+    /**
      * Fetches the timestamp when a lead was added to a company.
      */
     private function getAssociationDate(Lead $lead, Company $company): ?\DateTimeImmutable
