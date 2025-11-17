@@ -1,4 +1,4 @@
-//PointBundle
+c//PointBundle
 Mautic.companypointOnLoad = function (container) {
     if (mQuery(container + ' #list-search').length) {
         Mautic.activateSearchAutocomplete('list-search', 'companypoint');
@@ -41,7 +41,6 @@ Mautic.companyPointTriggerFormOnLoad = function() {
     const updateTriggerType = function () {
         const type = $triggerType.val();
         mQuery('#details-container').attr('data-trigger-type', type);
-        console.log(type, mQuery('#details-container'));
     };
 
     $triggerType.on('change', updateTriggerType);
