@@ -5,6 +5,7 @@ namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Controller;
 use Mautic\CoreBundle\Controller\FormController;
 use Mautic\CoreBundle\Factory\PageHelperFactoryInterface;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerEventModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
 use Symfony\Component\Form\FormError;
@@ -171,10 +172,11 @@ class TriggerController extends FormController
      * Generates new form and processes post data.
      *
      * @param CompanyTrigger $entity
+     * @param array<mixed>   $triggerEvents
      *
      * @return array<mixed>|RedirectResponse|JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
      */
-    public function newAction(Request $request, $entity = null)
+    public function newAction(Request $request, $entity = null, array $triggerEvents = [])
     {
         /** @var CompanyTriggerModel $model */
         $model = $this->getModel('companypoint.trigger');
@@ -203,6 +205,10 @@ class TriggerController extends FormController
         }
         if (!is_array($deletedEvents)) {
             $deletedEvents = [];
+        }
+        if (!empty($triggerEvents)) {
+            $addEvents += $triggerEvents;
+            $session->set('mautic.companypoint.'.$sessionId.'.triggerevents.modified', $triggerEvents);
         }
 
         $action = $this->generateUrl('mautic_company_pointtrigger_action', ['objectAction' => 'new']);
@@ -265,8 +271,10 @@ class TriggerController extends FormController
                     ],
                 ]);
             }
+        } elseif (!empty($triggerEvents)) {
+            $addEvents     = $triggerEvents;
+            $deletedEvents = [];
         } else {
-            // clear out existing fields in case the form was refreshed, browser closed, etc
             $this->clearSessionComponents($request, $sessionId);
             $addEvents = $deletedEvents = [];
         }
@@ -361,7 +369,7 @@ class TriggerController extends FormController
 
                 if ($valid = $this->isFormValid($form)) {
                     // make sure that at least one field is selected
-                    if ('companypoint.trigger' == 'point' && empty($addEvents)) {
+                    if (empty($addEvents)) {
                         // set the error
                         $form->addError(new FormError(
                             $this->translator->trans('mautic.core.value.required', [], 'validators')
@@ -467,6 +475,10 @@ class TriggerController extends FormController
     {
         $model  = $this->getModel('companypoint.trigger');
         $entity = $model->getEntity($objectId);
+        \assert($entity instanceof CompanyTrigger);
+        $existingActions = $entity->getEvents()->toArray();
+
+        $triggerEvents = [];
 
         if (null != $entity) {
             if (!$this->security->isGranted('companypoint:triggers:create')) {
@@ -475,9 +487,18 @@ class TriggerController extends FormController
 
             $entity = clone $entity;
             $entity->setIsPublished(false);
+            foreach ($existingActions as $key => $action) {
+                \assert($action instanceof CompanyTriggerEvent);
+                $action      = clone $action;
+                $action->setTrigger($entity);
+                $entity->addTriggerEvent($key, $action);
+                $actionArray = $action->convertToArray();
+                unset($actionArray['form']);
+                $triggerEvents[] = $actionArray;
+            }
         }
 
-        return $this->newAction($request, $entity);
+        return $this->newAction($request, $entity, $triggerEvents);
     }
 
     /**
