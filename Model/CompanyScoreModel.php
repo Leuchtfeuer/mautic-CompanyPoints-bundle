@@ -112,26 +112,4 @@ class CompanyScoreModel extends CompanyModel
 
         return $this->leadModel->getRepository()->findBy(['id' => $leads]);
     }
-
-    /**
-     * @return array<Company>
-     */
-    public function getCompaniesByLead(Lead $lead): array
-    {
-        $leadId = $lead->getId();
-        $q      = $this->em->getConnection()->createQueryBuilder();
-        $q->select('cl.company_id,cl.company_id')
-            ->from(MAUTIC_TABLE_PREFIX.'companies_leads', 'cl');
-
-        $q->where($q->expr()->eq('cl.lead_id', ':lead'))
-            ->setParameter('lead', $leadId);
-
-        $companies = $q->executeQuery()->fetchAllKeyValue();
-
-        if (empty($companies)) {
-            return [];
-        }
-
-        return $this->getRepository()->findBy(['id' => $companies]);
-    }
 }

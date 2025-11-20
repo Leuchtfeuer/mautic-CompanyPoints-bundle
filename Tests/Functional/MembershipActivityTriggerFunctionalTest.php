@@ -585,7 +585,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $contact->setLastActive((new \DateTime())->modify('-1 day'));
         $this->em->persist($contact);
         $this->em->flush();
-        $this->fixtureHelper->addContactToCompany($contact, $company, (new \DateTime())->modify('-1 day'), false);
+        $this->fixtureHelper->addContactToCompany($contact, $company, (new \DateTime())->modify('-1 day'));
         $this->em->flush();
 
         // 2. Emulate the activity
@@ -603,6 +603,62 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         Assert::assertCount(1, $tags, 'Company should have one tag after the link click.');
         Assert::assertSame($companyTag->getId(), $tags[0]->getId(), 'The company was not tagged with the correct tag.');
         Assert::assertSame($companyTag->getTag(), $tags[0]->getTag());
+    }
+
+    public function testEventsTriggeredOnlyForPrimaryCompany(): void
+    {
+        $this->fixtureHelper->createAndEnablePlugin();
+
+        $companyTag = $this->fixtureHelper->createCompanyTag('Primary Check Tag');
+
+        $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
+            'Tag company on known contact activity',
+            CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT
+        );
+
+        $this->fixtureHelper->createCompanyTagsAction(
+            $trigger,
+            'Add Tag action',
+            [$companyTag->getTag()]
+        );
+
+        $primaryCompany   = $this->fixtureHelper->createCompany('Primary Company Inc.');
+        $secondaryCompany = $this->fixtureHelper->createCompany('Secondary Company Ltd.');
+        $this->em->flush();
+
+        $contact = new Lead();
+        $contact->setEmail('multicompany@example.com');
+        $contact->setLastActive((new \DateTime())->modify('-1 day'));
+        $this->em->persist($contact);
+        $this->em->flush();
+
+        // Associate to the Primary Company (isPrimary = true)
+        $this->fixtureHelper->addContactToCompany($contact, $primaryCompany, null, true);
+
+        // Associate to the Secondary Company (isPrimary = false)
+        $this->fixtureHelper->addContactToCompany($contact, $secondaryCompany, null, false);
+        $this->em->flush();
+
+        $this->fixtureHelper->emulatePageVisit($contact);
+
+        $this->em->clear();
+
+        // Assert Primary Company HAS the tag
+        /** @var Company|null $reloadedPrimary */
+        $reloadedPrimary = $this->em->getRepository(Company::class)->find($primaryCompany->getId());
+        Assert::assertNotNull($reloadedPrimary);
+        $primaryTags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($reloadedPrimary);
+
+        Assert::assertCount(1, $primaryTags, 'Primary company SHOULD be tagged.');
+        Assert::assertSame($companyTag->getId(), $primaryTags[0]->getId());
+
+        // Assert Secondary Company does NOT have the tag
+        /** @var Company|null $reloadedSecondary */
+        $reloadedSecondary = $this->em->getRepository(Company::class)->find($secondaryCompany->getId());
+        Assert::assertNotNull($reloadedSecondary);
+        $secondaryTags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($reloadedSecondary);
+
+        Assert::assertCount(0, $secondaryTags, 'Secondary company SHOULD NOT be tagged.');
     }
 
 }

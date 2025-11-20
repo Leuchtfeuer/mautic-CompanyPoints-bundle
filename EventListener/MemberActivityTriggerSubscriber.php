@@ -16,9 +16,9 @@ use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEventRepository;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\BeforeUpdateLeadActivityEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\Config;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyScoreModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\CompanyMemberActivityService;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\LeadCompanyResolver;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\MergeActivityTracker;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\ModifyTagsActionHandler;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\SendEmailActionHandler;
@@ -37,7 +37,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
     public function __construct(
         private CompanyTriggerModel           $companyTriggerModel,
         private CompanyTriggerEventRepository $companyTriggerEventRepository,
-        private CompanyScoreModel             $companyScoreModel,
+        private LeadCompanyResolver           $leadCompanyResolver,
         private CompanyMemberActivityService  $companyMemberActivityService,
         private MergeActivityTracker          $mergeActivityTracker,
         private Config                        $pluginConfig,
@@ -77,14 +77,12 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $leadCompanies = $this->companyScoreModel->getCompaniesByLead($lead);
-        if (empty($leadCompanies)) {
+        $primaryCompany = $this->leadCompanyResolver->getPrimaryCompanyByLead($lead);
+        if (null === $primaryCompany) {
             return;
         }
 
-        foreach ($leadCompanies as $company) {
-            $this->processCompanyTriggers($lead, $company);
-        }
+        $this->processCompanyTriggers($lead, $primaryCompany);
     }
 
     public function onLeadPreMerge(LeadMergeEvent $event): void
@@ -127,13 +125,12 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         }
 
         $lead = $submissionEvent->getLead();
-        $leadCompanies = $this->companyScoreModel->getCompaniesByLead($lead);
-        if (empty($leadCompanies)) {
+        $primaryCompany = $this->leadCompanyResolver->getPrimaryCompanyByLead($lead);
+        if (null === $primaryCompany) {
             return;
         }
-        foreach ($leadCompanies as $company) {
-            $this->processCompanyTriggers($lead, $company, true);
-        }
+
+        $this->processCompanyTriggers($lead, $primaryCompany, true);
     }
 
     /**
