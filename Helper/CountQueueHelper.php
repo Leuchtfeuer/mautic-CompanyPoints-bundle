@@ -1,12 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Helper;
 
+use Mautic\CoreBundle\Configurator\Configurator;
+
 class CountQueueHelper
 {
-    public const PRE_PHP = '<?php ';
-
-    public const DEFAULT_PARAMETERS = [
+    private const DEFAULT_PARAMETERS = [
         'batch'         => 0,
         'total'         => 0,
         'last'          => 0,
@@ -14,13 +14,13 @@ class CountQueueHelper
         'currentOffset' => 0,
     ];
 
-    private string $path       = __DIR__.'/../Assets/json/count.json.php';
+    private const CONFIGURATION_KEY = 'company_points_count_queue';
 
-    public function __construct()
+    private Configurator $configurator;
+
+    public function __construct(Configurator $configurator)
     {
-        if (!file_exists($this->path)) {
-            $this->generate();
-        }
+        $this->configurator = $configurator;
     }
 
     /**
@@ -28,16 +28,7 @@ class CountQueueHelper
      */
     public function get(): array
     {
-        $json = file_get_contents($this->path);
-        $json = str_replace(self::PRE_PHP, '', $json);
-
-        return json_decode($json, true);
-    }
-
-    public function generate(): void
-    {
-        $json = json_encode(self::DEFAULT_PARAMETERS);
-        file_put_contents($this->path, self::PRE_PHP.$json);
+        return $this->configurator->getParameters()[self::CONFIGURATION_KEY] ?? self::DEFAULT_PARAMETERS;
     }
 
     /**
@@ -47,8 +38,9 @@ class CountQueueHelper
     {
         $localParameters = $this->get();
         $parameters      = array_merge($localParameters, $parameters);
-        $json            = json_encode($parameters);
-        file_put_contents($this->path, self::PRE_PHP.$json);
+
+        $this->configurator->mergeParameters([self::CONFIGURATION_KEY => $parameters]);
+        $this->configurator->write();
     }
 
     public function getOffset(): int
