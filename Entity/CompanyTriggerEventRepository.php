@@ -2,11 +2,7 @@
 
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Mautic\CoreBundle\Entity\CommonRepository;
-
-// use Mautic\PointBundle\Entity\GroupContactScore;
 
 /**
  * @extends CommonRepository<CompanyTriggerEvent>
@@ -40,65 +36,27 @@ class CompanyTriggerEventRepository extends CommonRepository
         return $q->getQuery()->getArrayResult();
     }
 
-    //    /**
-    //     * @param ArrayCollection<int,GroupContactScore> $groupScores
-    //     *
-    //     * @return mixed[]
-    //     */
-    //    public function getPublishedByGroupScore(Collection $groupScores)
-    //    {
-    //        if ($groupScores->isEmpty()) {
-    //            return [];
-    //        }
-    //
-    //        $q = $this->createQueryBuilder('a')
-    //            ->select('partial a.{id, type, name, properties}, partial r.{id, name, points, color}, partial pl.{id, name}')
-    //            ->leftJoin('a.trigger', 'r')
-    //            ->leftJoin('r.group', 'pl')
-    //            ->orderBy('a.order');
-    //
-    //        // make sure the published up and down dates are good
-    //        $expr = $this->getPublishedByDateExpression($q, 'r');
-    //
-    //        $groupsExpr = $q->expr()->orX();
-    //        /** @var GroupContactScore $score */
-    //        foreach ($groupScores as $score) {
-    //            $groupsExpr->add(
-    //                $q->expr()->andX(
-    //                    $q->expr()->eq('pl.id', $score->getGroup()->getId()),
-    //                    $q->expr()->lte('r.points', $score->getScore())
-    //                )
-    //            );
-    //        }
-    //
-    //        $q->where($expr);
-    //        $q->andWhere($groupsExpr);
-    //        $q->andWhere('r.group IS NOT NULL');
-    //
-    //        return $q->getQuery()->getArrayResult();
-    //    }
-
     /**
      * Get array of published actions based on type.
      *
-     * @param string $type
+     * @param string $triggerType
      *
      * @return array
      */
-    public function getPublishedByType($type)
+    public function getPublishedByTriggerType($triggerType)
     {
         $q = $this->createQueryBuilder('e')
-            ->select('partial e.{id, type, name, properties}, partial t.{id, name, points, color}')
+            ->select('partial e.{id, type, name, properties}, partial t.{id, name, points, color, type, memberActivity}')
             ->join('e.trigger', 't')
             ->orderBy('e.order');
 
         // make sure the published up and down dates are good
         $expr = $this->getPublishedByDateExpression($q, 't');
         $expr->add(
-            $q->expr()->eq('e.type', ':type')
+            $q->expr()->eq('t.type', ':type')
         );
         $q->where($expr)
-            ->setParameter('type', $type);
+            ->setParameter('type', $triggerType);
 
         return $q->getQuery()->getResult();
     }

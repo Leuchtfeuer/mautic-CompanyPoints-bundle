@@ -14,11 +14,14 @@ use Mautic\CoreBundle\Security\Permissions\CorePermissions;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 // use Mautic\PointBundle\Form\Type\GroupListType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
@@ -66,6 +69,22 @@ class CompanyTriggerType extends AbstractType
         );
 
         $builder->add(
+            'type',
+            ChoiceType::class,
+            [
+                'label'      => 'mautic.companypoint.trigger.form.type',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'   => 'form-control',
+                ],
+                'choices' => [
+                    'mautic.companypoint.trigger.form.type.points' => CompanyTrigger::TYPE_POINTS,
+                    'mautic.companypoint.trigger.form.type.member_activity' => CompanyTrigger::TYPE_MEMBER_ACTIVITY,
+                ],
+            ]
+        );
+
+        $builder->add(
             'points',
             NumberType::class,
             [
@@ -95,6 +114,27 @@ class CompanyTriggerType extends AbstractType
                 'required'   => false,
                 'data'       => (!empty($color)) ? $color : 'a0acb8',
                 'empty_data' => 'a0acb8',
+            ]
+        );
+
+        $builder->add(
+            'memberActivity',
+            ChoiceType::class,
+            [
+                'label'      => 'mautic.companypoint.trigger.form.member_activity',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'   => 'form-control',
+                ],
+                'choices' => [
+                    'mautic.companypoint.trigger.form.member_activity.first_contact_ever' => CompanyTrigger::ACTIVITY_FIRST_EVER,
+                    'mautic.companypoint.trigger.form.member_activity.first_contact_within_30_days' => CompanyTrigger::ACTIVITY_FIRST_WITHIN_30_DAYS,
+                    'mautic.companypoint.trigger.form.member_activity.first_of_new_contact' => CompanyTrigger::ACTIVITY_FIRST_OF_NEW_CONTACT,
+                    'mautic.companypoint.trigger.form.member_activity.every_of_a_contact' => CompanyTrigger::ACTIVITY_EVERY_OF_A_CONTACT,
+                    'mautic.companypoint.trigger.form.member_activity.every_of_known_contact' => CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT,
+                ],
+                'required'    => false,
+                'placeholder' => 'mautic.core.form.chooseone',
             ]
         );
 
@@ -136,6 +176,29 @@ class CompanyTriggerType extends AbstractType
         if (!empty($options['action'])) {
             $builder->setAction($options['action']);
         }
+
+        // This listener will empty the appropriate fields based on the selected 'type'
+        $builder->addEventListener(
+            FormEvents::PRE_SUBMIT,
+            function (FormEvent $event) {
+                $data = $event->getData();
+
+                if (empty($data) || empty($data['type'])) {
+                    return;
+                }
+
+                if (CompanyTrigger::TYPE_MEMBER_ACTIVITY === $data['type']) {
+                    // If the type is 'member_activity', reset points and color
+                    $data['points'] = 0;
+                    $data['color']  = 'a0acb8';
+                } elseif (CompanyTrigger::TYPE_POINTS === $data['type']) {
+                    // If the type is 'points', clear memberActivity
+                    $data['memberActivity'] = null;
+                }
+
+                $event->setData($data);
+            }
+        );
     }
 
     public function configureOptions(OptionsResolver $resolver): void

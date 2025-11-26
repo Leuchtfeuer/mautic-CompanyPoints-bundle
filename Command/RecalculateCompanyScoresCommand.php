@@ -5,11 +5,11 @@ namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Command;
 use Mautic\CoreBundle\Command\ModeratedCommand;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\PathsHelper;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyPostRecalculateEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Helper\CountQueueHelper;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\Config;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyScoreModel;
-use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Event\CompanyTagsEvent;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -73,7 +73,7 @@ class RecalculateCompanyScoresCommand extends ModeratedCommand
 
         foreach ($companies as $company) {
             $this->companyScoreModel->recalculateCompanyScores($company);
-            $this->dispatcher->dispatch(new CompanyTagsEvent($company), LeuchtfeuerCompanyPointsEvents::COMPANY_POST_RECALCULATE);
+            $this->dispatcher->dispatch(new CompanyPostRecalculateEvent($company), LeuchtfeuerCompanyPointsEvents::COMPANY_POST_RECALCULATE);
             $progressBar->advance();
         }
         $this->countQueueHelper->setOffset($offset + $batch);

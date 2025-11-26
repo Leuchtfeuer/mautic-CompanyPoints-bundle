@@ -35,6 +35,18 @@ Mautic.companypointTriggerOnLoad = function (container) {
     }
 };
 
+Mautic.companyPointTriggerFormOnLoad = function() {
+    const $triggerType = mQuery('#companypointtrigger_type');
+
+    const updateTriggerType = function () {
+        const type = $triggerType.val();
+        mQuery('#details-container').attr('data-trigger-type', type);
+    };
+
+    $triggerType.on('change', updateTriggerType);
+    updateTriggerType();
+};
+
 Mautic.companypointTriggerEventOnLoad = function (container, response) {
     //new action created so append it to the form
     if (response.eventHtml) {

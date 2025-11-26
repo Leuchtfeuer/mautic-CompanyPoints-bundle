@@ -10,6 +10,7 @@ use Mautic\CoreBundle\Translation\Translator;
 use Mautic\EmailBundle\Helper\EmailValidator;
 use Mautic\LeadBundle\Deduplicate\CompanyDeduper;
 use Mautic\LeadBundle\Entity\Company;
+use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Field\FieldList;
 use Mautic\LeadBundle\Model\CompanyModel;
 use Mautic\LeadBundle\Model\FieldModel;
@@ -91,7 +92,7 @@ class CompanyScoreModel extends CompanyModel
     }
 
     /**
-     * @return array<\Mautic\LeadBundle\Entity\Lead>
+     * @return array<Lead>
      */
     public function getLeadsByCompany(Company $company): array
     {
