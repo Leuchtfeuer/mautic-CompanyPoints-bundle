@@ -39,7 +39,7 @@ class ModifyCompanyContactsCampaignType extends AbstractType
                 'placeholder' => 'mautic.core.form.chooseone',
             ]
         );
-        $builder->add('addTo', CampaignListType::class, [
+        $builder->add('addToCampaign', CampaignListType::class, [
             'label'      => 'mautic.campaign.form.addtocampaigns',
             'label_attr' => ['class' => 'control-label'],
             'attr'       => [
@@ -51,7 +51,7 @@ class ModifyCompanyContactsCampaignType extends AbstractType
             'constraints'      => [new InfiniteLoop()],
         ]);
 
-        $builder->add('removeFrom', CampaignListType::class, [
+        $builder->add('removeFromCampaign', CampaignListType::class, [
             'label'      => 'mautic.campaign.form.removefromcampaigns',
             'label_attr' => ['class' => 'control-label'],
             'attr'       => [

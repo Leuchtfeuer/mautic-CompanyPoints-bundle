@@ -14,6 +14,8 @@ use Mautic\CampaignBundle\Tests\Functional\Fixtures\FixtureHelper as CampaignFix
 
 class PointTriggerSubscriberFunctionalTest extends MauticMysqlTestCase
 {
+    private FunctionalFixtureHelper $fixtureHelper;
+    private CampaignFixtureHelper $campaginFixtureHelper;
     protected function setUp(): void
     {
         parent::setUp();
@@ -21,23 +23,28 @@ class PointTriggerSubscriberFunctionalTest extends MauticMysqlTestCase
         $this->campaginFixtureHelper = new CampaignFixtureHelper($this->em);
     }
 
-    public function testAddLeadToCampaignTriggerAction(): void
+    /**
+     * @dataProvider triggerContactDataProvider
+     */
+    public function testAddLeadToCampaignTriggerAction(string $triggerContacts, $leadsToEndUpInCampaign): void
     {
         $this->fixtureHelper->createAndEnablePlugin();
         $company = $this->fixtureHelper->createCompany("abc");
         $this->createAllLeads($company);
         $campaign = $this->campaginFixtureHelper->createCampaign('Add Lead To Campaign Company Trigger Action');
-        $this->campaginFixtureHelper->createCampaignWithScheduledEvent($campaign, 0, 'i');
+        $event = $this->campaginFixtureHelper->createCampaignWithScheduledEvent($campaign, 0, 'i');
 
         $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
             'Tag on new contact first activity',
             CompanyTrigger::ACTIVITY_FIRST_OF_NEW_CONTACT
         );
 
-        $this->fixtureHelper->createModifyContactCampaignsAction(
+        $triggerEvent = $this->fixtureHelper->createModifyContactCampaignsAction(
             $trigger,
             'This action should not run',
-            [$campaign]
+            [$campaign],
+            [],
+            $triggerContacts,
         );
 
         // Create an "old" contact for the company
@@ -57,6 +64,7 @@ class PointTriggerSubscriberFunctionalTest extends MauticMysqlTestCase
         $this->em->clear();
 
         $campaignLeads = $campaign->getLeads();
+        $campaignLeads = $campaignLeads;
 
 
     }
@@ -69,7 +77,7 @@ class PointTriggerSubscriberFunctionalTest extends MauticMysqlTestCase
         $contact = $this->createContactWithDateAddedAndDateLastActive('youngestunknowncontact@abc.com', (new \DateTime())->modify('-1 hour'), $defaultLastActiveDate);
         $this->fixtureHelper->addContactToCompany($contact, $company);
 
-        $this->createContactWithDateAddedAndDateLastActive('youngestknowncontact@abc.com', (new \DateTime())->modify('-2 hours'), $defaultLastActiveDate);
+        $contact = $this->createContactWithDateAddedAndDateLastActive('youngestknowncontact@abc.com', (new \DateTime())->modify('-2 hours'), $defaultLastActiveDate);
         $this->fixtureHelper->addContactToCompany($contact, $company);
 
         $contact = $this->createContactWithDateAddedAndDateLastActive('oldestunknowncontact@abc.com', (new \DateTime())->modify('-31 days'), (new \DateTime())->modify('-31 days'));
@@ -97,19 +105,28 @@ class PointTriggerSubscriberFunctionalTest extends MauticMysqlTestCase
         return $contact;
     }
 
-    public function activityEmulationDataProvider(): array
+    public function triggerContactDataProvider(): array
     {
         return [
-            'youngest_contact' => [['youngest-unknown-contact@abc.com'], 1],
-            'youngest_known_contact'       => [['youngest-known-contact@abc.com'], 1],
-            'oldest_contact'       => [['oldest-unknown-contact@abc.com'], 1],
-            'oldest_known_contact'       => [['oldest-known-contact@abc.com'], 1],
-            'contact_with_most_recent_activity'       => [['contactwith-most-recent-activity@abc.com'], 1],
-            'known_contact_with_most_recent_activity'       => [['known-contact-with-most-recent-activity@abc.com'], 1],
-            'all_contacts_with_recent_activity'       => [['youngest-unknown-contact@abc.com', 'youngest-known-contact@abc.com', 'oldest-known-contact@abc.com', 'contactwith-most-recent-activity@abc.com', 'known-contact-with-most-recent-activity@abc.com'], 5],
-            'all_known_contacts_with_recent_activity'       => ['form_submit_with_tracking@abc.com'],
-            'all_contacts'       => [['youngest-unknown-contact@abc.com', 'youngest-known-contact@abc.com', 'oldest-unknown-contact@abc.com', 'oldest-known-contact@abc.com', 'contactwith-most-recent-activity@abc.com', 'known-contact-with-most-recent-activity@abc.com'], 6],
-            'all_known_contacts'       => [['youngest-known-contact@abc.com', 'oldest-known-contact@abc.com', 'known-contact-with-most-recent-activity@abc.com'], 3],
+            'youngest_contact' => ['youngest_contact', 'youngest-unknown-contact@abc.com'],
+            'youngest_known_contact' => ['youngest_known_contact', 'youngest-known-contact@abc.com'],
+            'oldest_contact' => ['oldest_contact', 'oldest-unknown-contact@abc.com'],
+            'oldest_known_contact' => ['oldest_known_contact', 'oldest-known-contact@abc.com'],
+            'contact_with_most_recent_activity' => ['contact_with_most_recent_activity', 'contactwith-most-recent-activity@abc.com'],
+            'known_contact_with_most_recent_activity' => ['known_contact_with_most_recent_activity', 'known-contact-with-most-recent-activity@abc.com'],
+            'all_contacts_with_recent_activity' => [
+                'all_contacts_with_recent_activity',
+                ['youngest-unknown-contact@abc.com', 'youngest-known-contact@abc.com', 'oldest-known-contact@abc.com', 'contactwith-most-recent-activity@abc.com', 'known-contact-with-most-recent-activity@abc.com']
+            ],
+            'all_known_contacts_with_recent_activity' => ['all_known_contacts_with_recent_activity', ['form_submit_with_tracking@abc.com']],
+            'all_contacts' => [
+                'all_contacts',
+                ['youngest-unknown-contact@abc.com', 'youngest-known-contact@abc.com', 'oldest-unknown-contact@abc.com', 'oldest-known-contact@abc.com', 'contactwith-most-recent-activity@abc.com', 'known-contact-with-most-recent-activity@abc.com']
+            ],
+            'all_known_contacts' => [
+                'all_known_contacts',
+                ['youngest-known-contact@abc.com', 'oldest-known-contact@abc.com', 'known-contact-with-most-recent-activity@abc.com']
+            ],
         ];
     }
 }

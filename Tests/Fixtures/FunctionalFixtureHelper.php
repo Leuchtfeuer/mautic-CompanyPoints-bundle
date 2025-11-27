@@ -223,14 +223,23 @@ final class FunctionalFixtureHelper
         string $name,
         array $addToCampaign = [],
         array $removefromCampaign = [],
+        string $triggerContacts
     ): CompanyTriggerEvent {
         $event = new CompanyTriggerEvent();
         $event->setTrigger($trigger);
         $event->setName($name);
-        $event->setType('companytags.updatetags');
+        $event->setType('companypoints.modifycampaigns');
+        $addToCampaignIds = array_map(function ($campaign) {
+            return $campaign instanceof \Mautic\CampaignBundle\Entity\Campaign ? $campaign->getId() : $campaign;
+        }, $addToCampaign);
+
+        $removeFromCampaignIds = array_map(function ($campaign) {
+            return $campaign instanceof \Mautic\CampaignBundle\Entity\Campaign ? $campaign->getId() : $campaign;
+        }, $removefromCampaign);
         $event->setProperties([
-            'add_campaigns'    => $addToCampaign,
-            'remove_campaigns' => $removefromCampaign,
+            'triggerContacts' => $triggerContacts,
+            'addToCampaign'    => $addToCampaignIds,
+            'removeFromCampaign' => $removeFromCampaignIds,
         ]);
         $event->setOrder(1);
         $this->em->persist($event);
