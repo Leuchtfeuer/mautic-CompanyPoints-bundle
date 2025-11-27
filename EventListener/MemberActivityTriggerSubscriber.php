@@ -20,6 +20,7 @@ use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\CompanyMemberActivityService;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\LeadCompanyResolver;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\MergeActivityTracker;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\ModifyCampaignsActionHandler;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\ModifyTagsActionHandler;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\SendEmailActionHandler;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -28,6 +29,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
 {
     public const TRIGGER_KEY_MODIFY_TAGS = 'companytags.updatetags';
     public const TRIGGER_KEY_SEND_EMAIL  = 'companytags.sendemails';
+    public const TRIGGER_KEY_MODIFY_CAMPAIGNS  = 'companypoints.modifycampaigns';
 
     /**
      * @var array<string, object>
@@ -42,11 +44,13 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         private MergeActivityTracker          $mergeActivityTracker,
         private Config                        $pluginConfig,
         ModifyTagsActionHandler               $modifyTagsActionHandler,
-        SendEmailActionHandler                $sendEmailActionHandler
+        SendEmailActionHandler                $sendEmailActionHandler,
+        ModifyCampaignsActionHandler           $modifyCampaignsActionHandler
     ) {
         $this->handlers = [
             self::TRIGGER_KEY_MODIFY_TAGS => $modifyTagsActionHandler,
             self::TRIGGER_KEY_SEND_EMAIL  => $sendEmailActionHandler,
+            self::TRIGGER_KEY_MODIFY_CAMPAIGNS  => $modifyCampaignsActionHandler,
         ];
     }
 
