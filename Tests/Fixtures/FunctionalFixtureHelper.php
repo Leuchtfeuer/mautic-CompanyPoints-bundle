@@ -218,6 +218,26 @@ final class FunctionalFixtureHelper
         return $event;
     }
 
+    public function createModifyContactCampaignsAction(
+        CompanyTrigger $trigger,
+        string $name,
+        array $addToCampaign = [],
+        array $removefromCampaign = [],
+    ): CompanyTriggerEvent {
+        $event = new CompanyTriggerEvent();
+        $event->setTrigger($trigger);
+        $event->setName($name);
+        $event->setType('companytags.updatetags');
+        $event->setProperties([
+            'add_campaigns'    => $addToCampaign,
+            'remove_campaigns' => $removefromCampaign,
+        ]);
+        $event->setOrder(1);
+        $this->em->persist($event);
+        $this->em->flush();
+        return $event;
+    }
+
     public function createCompanyEmailAction(
         CompanyTrigger $trigger,
         Email $email,

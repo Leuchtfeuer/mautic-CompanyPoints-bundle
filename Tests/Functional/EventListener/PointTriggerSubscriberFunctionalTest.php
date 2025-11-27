@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Functional\EventListener;
 
+use Mautic\CampaignBundle\Entity\Campaign;
 use Mautic\CoreBundle\Test\MauticMysqlTestCase;
 use Mautic\LeadBundle\Entity\Company;
 use Mautic\LeadBundle\Entity\Lead;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Fixtures\FunctionalFixtureHelper;
+use Mautic\CampaignBundle\Tests\Functional\Fixtures\FixtureHelper as CampaignFixtureHelper;
 
 class PointTriggerSubscriberFunctionalTest extends MauticMysqlTestCase
 {
@@ -15,12 +18,46 @@ class PointTriggerSubscriberFunctionalTest extends MauticMysqlTestCase
     {
         parent::setUp();
         $this->fixtureHelper = new FunctionalFixtureHelper($this->em, $this->client);
+        $this->campaginFixtureHelper = new CampaignFixtureHelper($this->em);
     }
 
     public function testAddLeadToCampaignTriggerAction(): void
     {
+        $this->fixtureHelper->createAndEnablePlugin();
         $company = $this->fixtureHelper->createCompany("abc");
         $this->createAllLeads($company);
+        $campaign = $this->campaginFixtureHelper->createCampaign('Add Lead To Campaign Company Trigger Action');
+        $this->campaginFixtureHelper->createCampaignWithScheduledEvent($campaign, 0, 'i');
+
+        $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
+            'Tag on new contact first activity',
+            CompanyTrigger::ACTIVITY_FIRST_OF_NEW_CONTACT
+        );
+
+        $this->fixtureHelper->createModifyContactCampaignsAction(
+            $trigger,
+            'This action should not run',
+            [$campaign]
+        );
+
+        // Create an "old" contact for the company
+        $oldContact = new Lead();
+        $oldContact->setEmail('old.hand@example.com');
+        $oldContact->setCompany($company->getName());
+        $oldContact->setLastActive((new \DateTime())->modify('-10 days'));
+        $this->em->persist($oldContact);
+        $this->em->flush();
+        $this->fixtureHelper->addContactToCompany($oldContact, $company, (new \DateTime())->modify('-20 days'));
+        $this->em->flush();
+
+        // 2. Action: Emulate an activity for this EXISTING contact
+        $this->fixtureHelper->emulateEmailLinkClicked($oldContact);
+
+        // 3. Assertion: Check that the company was NOT tagged
+        $this->em->clear();
+
+        $campaignLeads = $campaign->getLeads();
+
 
     }
 
