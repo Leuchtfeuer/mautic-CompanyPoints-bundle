@@ -221,8 +221,8 @@ final class FunctionalFixtureHelper
     public function createModifyContactCampaignsAction(
         CompanyTrigger $trigger,
         string $name,
-        array $addToCampaign = [],
-        array $removefromCampaign = [],
+        array $addToCampaign,
+        array $removefromCampaign,
         string $triggerContacts
     ): CompanyTriggerEvent {
         $event = new CompanyTriggerEvent();

@@ -30,13 +30,13 @@ class PointTriggerSubscriberFunctionalTest extends MauticMysqlTestCase
     {
         $this->fixtureHelper->createAndEnablePlugin();
         $company = $this->fixtureHelper->createCompany("abc");
-        $this->createAllLeads($company);
+        $contactIds = $this->createAllLeads($company);
         $campaign = $this->campaginFixtureHelper->createCampaign('Add Lead To Campaign Company Trigger Action');
-        $event = $this->campaginFixtureHelper->createCampaignWithScheduledEvent($campaign, 0, 'i');
+        $this->campaginFixtureHelper->createCampaignWithScheduledEvent($campaign, 0, 'i');
 
         $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
             'Tag on new contact first activity',
-            CompanyTrigger::ACTIVITY_FIRST_OF_NEW_CONTACT
+            CompanyTrigger::ACTIVITY_EVERY_OF_A_CONTACT
         );
 
         $triggerEvent = $this->fixtureHelper->createModifyContactCampaignsAction(
@@ -47,51 +47,74 @@ class PointTriggerSubscriberFunctionalTest extends MauticMysqlTestCase
             $triggerContacts,
         );
 
-        // Create an "old" contact for the company
-        $oldContact = new Lead();
-        $oldContact->setEmail('old.hand@example.com');
-        $oldContact->setCompany($company->getName());
-        $oldContact->setLastActive((new \DateTime())->modify('-10 days'));
-        $this->em->persist($oldContact);
-        $this->em->flush();
-        $this->fixtureHelper->addContactToCompany($oldContact, $company, (new \DateTime())->modify('-20 days'));
-        $this->em->flush();
+        $contactToEmulate = $this->em->getRepository(Lead::class)->find($contactIds['known-contact-with-most-recent-activity']);
 
         // 2. Action: Emulate an activity for this EXISTING contact
-        $this->fixtureHelper->emulateEmailLinkClicked($oldContact);
+        $this->fixtureHelper->emulateEmailLinkClicked($contactToEmulate);
 
         // 3. Assertion: Check that the company was NOT tagged
         $this->em->clear();
 
-        $campaignLeads = $campaign->getLeads();
-        $campaignLeads = $campaignLeads;
+        $campaignId = $campaign->getId();
+        $reloadedCampaign = $this->em->getRepository(Campaign::class)->find($campaignId);
 
+        $campaignLeads = $reloadedCampaign->getLeads()->toArray();
 
+        $actualLeadIds = array_map(
+            fn($campaignLead) => $campaignLead->getLead()->getId(),
+            $campaignLeads
+        );
+        sort($actualLeadIds);
+
+        $identifiers = is_array($leadsToEndUpInCampaign) ? $leadsToEndUpInCampaign : [$leadsToEndUpInCampaign];
+        $expectedLeadIds = array_map(fn($id) => $contactIds[$id], $identifiers);
+        sort($expectedLeadIds);
+
+        $this->assertEquals($expectedLeadIds, $actualLeadIds);
     }
 
-    private function createAllLeads(Company $company): void
+    private function createAllLeads(Company $company): array
     {
         $defaultLastActiveDate = new \DateTime('-1 hour');
         $defaultDateAddedDate = new \DateTime('-5 days');
 
-        $contact = $this->createContactWithDateAddedAndDateLastActive('youngestunknowncontact@abc.com', (new \DateTime())->modify('-1 hour'), $defaultLastActiveDate);
+        $contacts = [];
+        $contact = $this->createUnknownContact((new \DateTime())->modify('-1 hour'), $defaultLastActiveDate);
         $this->fixtureHelper->addContactToCompany($contact, $company);
+        $contacts['youngest-unknown-contact'] = $contact->getId();
 
         $contact = $this->createContactWithDateAddedAndDateLastActive('youngestknowncontact@abc.com', (new \DateTime())->modify('-2 hours'), $defaultLastActiveDate);
         $this->fixtureHelper->addContactToCompany($contact, $company);
+        $contacts['youngest-known-contact'] = $contact->getId();
 
-        $contact = $this->createContactWithDateAddedAndDateLastActive('oldestunknowncontact@abc.com', (new \DateTime())->modify('-31 days'), (new \DateTime())->modify('-31 days'));
+        $contact = $this->createUnknownContact((new \DateTime())->modify('-31 days'), (new \DateTime())->modify('-31 days'));
         $this->fixtureHelper->addContactToCompany($contact, $company);
+        $contacts['oldest-unknown-contact'] = $contact->getId();
 
         $contact = $this->createContactWithDateAddedAndDateLastActive('oldestknowncontact@abc.com', (new \DateTime())->modify('-9 days'), $defaultLastActiveDate);
         $this->fixtureHelper->addContactToCompany($contact, $company);
+        $contacts['oldest-known-contact'] = $contact->getId();
 
-        $contact = $this->createContactWithDateAddedAndDateLastActive('contactwithmostrecentactivity@abc.com', $defaultDateAddedDate, (new \DateTime())->modify('-20 minutes'));
+        $contact = $this->createUnknownContact($defaultDateAddedDate, (new \DateTime())->modify('+30 minutes'));
         $this->fixtureHelper->addContactToCompany($contact, $company);
+        $contacts['contact-with-most-recent-activity'] = $contact->getId();
 
-        $contact = $this->createContactWithDateAddedAndDateLastActive('knowncontactwithmostrecentactivity@abc.com', $defaultDateAddedDate, (new \DateTime())->modify('-30 minutes'));
+        $contact = $this->createContactWithDateAddedAndDateLastActive('knowncontactwithmostrecentactivity@abc.com', $defaultDateAddedDate, (new \DateTime()));
         $this->fixtureHelper->addContactToCompany($contact, $company);
+        $contacts['known-contact-with-most-recent-activity'] = $contact->getId();
 
+        return $contacts;
+    }
+
+    private function createUnknownContact(\DateTime $dateAdded, \DateTime $dateLastActive): Lead
+    {
+        $contact = new Lead();
+        // Keine E-Mail setzen - bleibt anonymous/unknown
+        $contact->setDateAdded($dateAdded);
+        $contact->setLastActive($dateLastActive);
+        $this->em->persist($contact);
+        $this->em->flush();
+        return $contact;
     }
 
     private function createContactWithDateAddedAndDateLastActive(string $email, \DateTime $dateAdded, \DateTime $dateLastActive): Lead
@@ -108,24 +131,24 @@ class PointTriggerSubscriberFunctionalTest extends MauticMysqlTestCase
     public function triggerContactDataProvider(): array
     {
         return [
-            'youngest_contact' => ['youngest_contact', 'youngest-unknown-contact@abc.com'],
-            'youngest_known_contact' => ['youngest_known_contact', 'youngest-known-contact@abc.com'],
-            'oldest_contact' => ['oldest_contact', 'oldest-unknown-contact@abc.com'],
-            'oldest_known_contact' => ['oldest_known_contact', 'oldest-known-contact@abc.com'],
-            'contact_with_most_recent_activity' => ['contact_with_most_recent_activity', 'contactwith-most-recent-activity@abc.com'],
-            'known_contact_with_most_recent_activity' => ['known_contact_with_most_recent_activity', 'known-contact-with-most-recent-activity@abc.com'],
+            'youngest_contact' => ['youngest_contact', 'youngest-unknown-contact'],
+            'youngest_known_contact' => ['youngest_known_contact', 'youngest-known-contact'],
+            'oldest_contact' => ['oldest_contact', 'oldest-unknown-contact'],
+            'oldest_known_contact' => ['oldest_known_contact', 'oldest-known-contact'],
+            'contact_with_most_recent_activity' => ['contact_with_most_recent_activity', 'contact-with-most-recent-activity'],
+            'known_contact_with_most_recent_activity' => ['known_contact_with_most_recent_activity', 'known-contact-with-most-recent-activity'],
             'all_contacts_with_recent_activity' => [
                 'all_contacts_with_recent_activity',
-                ['youngest-unknown-contact@abc.com', 'youngest-known-contact@abc.com', 'oldest-known-contact@abc.com', 'contactwith-most-recent-activity@abc.com', 'known-contact-with-most-recent-activity@abc.com']
+                ['youngest-unknown-contact', 'youngest-known-contact', 'oldest-known-contact', 'contact-with-most-recent-activity', 'known-contact-with-most-recent-activity']
             ],
-            'all_known_contacts_with_recent_activity' => ['all_known_contacts_with_recent_activity', ['form_submit_with_tracking@abc.com']],
+            'all_known_contacts_with_recent_activity' => ['all_known_contacts_with_recent_activity', ['known-contact-with-most-recent-activity']],
             'all_contacts' => [
                 'all_contacts',
-                ['youngest-unknown-contact@abc.com', 'youngest-known-contact@abc.com', 'oldest-unknown-contact@abc.com', 'oldest-known-contact@abc.com', 'contactwith-most-recent-activity@abc.com', 'known-contact-with-most-recent-activity@abc.com']
+                ['youngest-unknown-contact', 'youngest-known-contact', 'oldest-unknown-contact', 'oldest-known-contact', 'contact-with-most-recent-activity', 'known-contact-with-most-recent-activity']
             ],
             'all_known_contacts' => [
                 'all_known_contacts',
-                ['youngest-known-contact@abc.com', 'oldest-known-contact@abc.com', 'known-contact-with-most-recent-activity@abc.com']
+                ['youngest-known-contact', 'oldest-known-contact', 'known-contact-with-most-recent-activity']
             ],
         ];
     }
