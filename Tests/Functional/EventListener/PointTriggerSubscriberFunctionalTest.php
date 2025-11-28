@@ -87,6 +87,7 @@ class PointTriggerSubscriberFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->addContactToCompany($contact, $company);
         $contacts['youngest-known-contact'] = $contact->getId();
 
+        //oldest unkown contact with non-recent activity
         $contact = $this->createUnknownContact((new \DateTime())->modify('-31 days'), (new \DateTime())->modify('-31 days'));
         $this->fixtureHelper->addContactToCompany($contact, $company);
         $contacts['oldest-unknown-contact'] = $contact->getId();
@@ -141,7 +142,7 @@ class PointTriggerSubscriberFunctionalTest extends MauticMysqlTestCase
                 'all_contacts_with_recent_activity',
                 ['youngest-unknown-contact', 'youngest-known-contact', 'oldest-known-contact', 'contact-with-most-recent-activity', 'known-contact-with-most-recent-activity']
             ],
-            'all_known_contacts_with_recent_activity' => ['all_known_contacts_with_recent_activity', ['known-contact-with-most-recent-activity']],
+            'all_known_contacts_with_recent_activity' => ['all_known_contacts_with_recent_activity', ['known-contact-with-most-recent-activity', 'youngest-known-contact', 'oldest-known-contact']],
             'all_contacts' => [
                 'all_contacts',
                 ['youngest-unknown-contact', 'youngest-known-contact', 'oldest-unknown-contact', 'oldest-known-contact', 'contact-with-most-recent-activity', 'known-contact-with-most-recent-activity']
