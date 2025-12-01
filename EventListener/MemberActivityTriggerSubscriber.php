@@ -27,8 +27,8 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class MemberActivityTriggerSubscriber implements EventSubscriberInterface
 {
-    public const TRIGGER_KEY_MODIFY_TAGS = 'companytags.updatetags';
-    public const TRIGGER_KEY_SEND_EMAIL  = 'companytags.sendemails';
+    public const TRIGGER_KEY_MODIFY_TAGS       = 'companytags.updatetags';
+    public const TRIGGER_KEY_SEND_EMAIL        = 'companytags.sendemails';
     public const TRIGGER_KEY_MODIFY_CAMPAIGNS  = 'companypoints.modifycampaigns';
 
     /**
@@ -37,19 +37,19 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
     private array $handlers = [];
 
     public function __construct(
-        private CompanyTriggerModel           $companyTriggerModel,
+        private CompanyTriggerModel $companyTriggerModel,
         private CompanyTriggerEventRepository $companyTriggerEventRepository,
-        private LeadCompanyResolver           $leadCompanyResolver,
-        private CompanyMemberActivityService  $companyMemberActivityService,
-        private MergeActivityTracker          $mergeActivityTracker,
-        private Config                        $pluginConfig,
-        ModifyTagsActionHandler               $modifyTagsActionHandler,
-        SendEmailActionHandler                $sendEmailActionHandler,
-        ModifyCampaignsActionHandler           $modifyCampaignsActionHandler
+        private LeadCompanyResolver $leadCompanyResolver,
+        private CompanyMemberActivityService $companyMemberActivityService,
+        private MergeActivityTracker $mergeActivityTracker,
+        private Config $pluginConfig,
+        ModifyTagsActionHandler $modifyTagsActionHandler,
+        SendEmailActionHandler $sendEmailActionHandler,
+        ModifyCampaignsActionHandler $modifyCampaignsActionHandler
     ) {
         $this->handlers = [
-            self::TRIGGER_KEY_MODIFY_TAGS => $modifyTagsActionHandler,
-            self::TRIGGER_KEY_SEND_EMAIL  => $sendEmailActionHandler,
+            self::TRIGGER_KEY_MODIFY_TAGS       => $modifyTagsActionHandler,
+            self::TRIGGER_KEY_SEND_EMAIL        => $sendEmailActionHandler,
             self::TRIGGER_KEY_MODIFY_CAMPAIGNS  => $modifyCampaignsActionHandler,
         ];
     }
@@ -96,7 +96,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         }
 
         $winner = $event->getVictor();
-        $loser = $event->getLoser();
+        $loser  = $event->getLoser();
 
         if ($winner->isAnonymous() && null === $loser->getLastActive()) {
             // Track this contact as receiving first activity through merge
@@ -105,7 +105,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * Triggered when a lead is added to a company
+     * Triggered when a lead is added to a company.
      */
     public function onCompanyChange(LeadChangeCompanyEvent $event): void
     {
@@ -114,8 +114,8 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         }
 
         if (
-            !$event->wasAdded() ||
-            !$this->companyMemberActivityService->isJoinCoincidingWithActivity($event->getLead(), $event->getCompany())
+            !$event->wasAdded()
+            || !$this->companyMemberActivityService->isJoinCoincidingWithActivity($event->getLead(), $event->getCompany())
         ) {
             return;
         }
@@ -128,7 +128,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $lead = $submissionEvent->getLead();
+        $lead           = $submissionEvent->getLead();
         $primaryCompany = $this->leadCompanyResolver->getPrimaryCompanyByLead($lead);
         if (null === $primaryCompany) {
             return;
@@ -169,7 +169,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         }
 
         $trigger = $eventTrigger->getTrigger();
-        if (null === $trigger || $trigger->getType() !== CompanyTrigger::TYPE_MEMBER_ACTIVITY) {
+        if (null === $trigger || CompanyTrigger::TYPE_MEMBER_ACTIVITY !== $trigger->getType()) {
             return false;
         }
 
@@ -191,6 +191,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
                 } else {
                     $activityCount = $this->companyMemberActivityService->countLeadActivities($company);
                 }
+
                 return 0 === $activityCount;
 
             case CompanyTrigger::ACTIVITY_FIRST_WITHIN_30_DAYS:
@@ -199,6 +200,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
                 } else {
                     $activityCount = $this->companyMemberActivityService->countLeadActivities($company, 30);
                 }
+
                 return 0 === $activityCount;
 
             case CompanyTrigger::ACTIVITY_FIRST_OF_NEW_CONTACT:
