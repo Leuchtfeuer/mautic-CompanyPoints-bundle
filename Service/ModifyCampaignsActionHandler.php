@@ -31,8 +31,8 @@ class ModifyCampaignsActionHandler
      */
     public function execute(Company $company, array $triggerProperties): void
     {
-        $campaignIdsToAdd      = $triggerProperties['addToCampaign'] ?? [];
-        $campaignIdsToRemove   = $triggerProperties['removeFromCampaign'] ?? [];
+        $campaignIdsToAdd          = $triggerProperties['addToCampaign'] ?? [];
+        $campaignIdsToRemove       = $triggerProperties['removeFromCampaign'] ?? [];
         $campaignIdsToRestartOrAdd = $triggerProperties['restartOrAddToCampaign'] ?? [];
 
         $contactRule           = $triggerProperties['triggerContacts'];
@@ -49,7 +49,7 @@ class ModifyCampaignsActionHandler
             }
 
             foreach ($campaignsToAdd as $campaign) {
-                //Copy of contactsCollection is necessary as addContacts and removeContacts modify the collection
+                // Copy of contactsCollection is necessary as addContacts and removeContacts modify the collection
                 $contactsCopy = new ArrayCollection($contactsCollection->toArray());
                 $this->membershipManager->addContacts(
                     $contactsCopy,

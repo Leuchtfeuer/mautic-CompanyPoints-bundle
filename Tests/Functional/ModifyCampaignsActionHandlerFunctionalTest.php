@@ -28,6 +28,7 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
 
     /**
      * @param string[] $leadsToEndUpInCampaign
+     *
      * @dataProvider triggerContactDataProvider
      */
     public function testAddLeadToCampaignTriggerAction(string $triggerContacts, array $leadsToEndUpInCampaign): void
@@ -68,8 +69,6 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
         /** @var CampaignLead[] $campaignLeads */
         $campaignLeads = $reloadedCampaign->getLeads()->toArray();
 
-
-
         $actualLeadIds = array_map(
             fn ($campaignLead) => $campaignLead->getLead()->getId(),
             $campaignLeads
@@ -84,6 +83,7 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
 
     /**
      * @param string[] $leadsToBeRemovedFromCampaign
+     *
      * @dataProvider triggerContactDataProvider
      */
     public function testRemoveLeadFromCampaignTriggerAction(string $triggerContacts, array $leadsToBeRemovedFromCampaign): void
@@ -122,7 +122,7 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
         $this->em->clear();
 
         $campaignId               = $campaign->getId();
-        $campaignMemberRepository = $this->em->getRepository(\Mautic\CampaignBundle\Entity\Lead::class);
+        $campaignMemberRepository = $this->em->getRepository(CampaignLead::class);
         $campaignMembers          = $campaignMemberRepository->findBy(['campaign' => $campaignId]);
 
         $expectedRemovedLeadIds = array_map(fn ($id) => $contactIds[$id], $leadsToBeRemovedFromCampaign);
@@ -158,7 +158,7 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
             $contactIds['youngest-known-contact'],
         ];
 
-        //Add two contacts to ensure that restart works
+        // Add two contacts to ensure that restart works
         foreach ($contactsToAdd as $contactId) {
             $contact = $this->em->getRepository(Lead::class)->find($contactId);
             $this->assertInstanceOf(Lead::class, $contact);
@@ -185,13 +185,13 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
         $this->em->clear();
 
         $campaignId               = $campaign->getId();
-        $campaignMemberRepository = $this->em->getRepository(\Mautic\CampaignBundle\Entity\Lead::class);
+        $campaignMemberRepository = $this->em->getRepository(CampaignLead::class);
         $campaignMembers          = $campaignMemberRepository->findBy(['campaign' => $campaignId]);
 
         $this->assertCount(count($contactIds), $campaignMembers);
 
         foreach ($campaignMembers as $campaignMember) {
-            $this->assertTrue($campaignMember->getManuallyAdded(), 'name = ' . $campaignMember->getLead()->getId() . ", manuallyRemoved = " . $campaignMember->getManuallyRemoved() . ", manuallyAdded = " . $campaignMember->getManuallyAdded());
+            $this->assertTrue($campaignMember->getManuallyAdded(), 'name = '.$campaignMember->getLead()->getId().', manuallyRemoved = '.$campaignMember->getManuallyRemoved().', manuallyAdded = '.$campaignMember->getManuallyAdded());
             $this->assertFalse($campaignMember->getManuallyRemoved());
             // Contacts that were already in the campaign should now be in rotation 2
             if (in_array($campaignMember->getLead()->getId(), $contactsToAdd, true)) {
