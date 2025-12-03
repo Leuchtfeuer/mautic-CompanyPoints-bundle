@@ -5,11 +5,18 @@ namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Unit\Helper;
 use Mautic\CoreBundle\Configurator\Configurator;
 use Mautic\CoreBundle\Helper\PathsHelper;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Helper\CountQueueHelper;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
 class CountQueueHelperTest extends TestCase
 {
+
+    /**
+     * @var MockObject&PathsHelper
+     */
+    private MockObject $pathsHelper;
+
     private Configurator $configurator;
 
     private string $configFile;
@@ -35,9 +42,9 @@ class CountQueueHelperTest extends TestCase
             unlink($this->configFile);
         }
 
-        $pathsHelperMock = $this->createMock(PathsHelper::class);
-        $pathsHelperMock->method('getSystemPath')->willReturn($tmp);
-        $this->configurator = new Configurator($pathsHelperMock);
+        $this->pathsHelper = $this->createMock(PathsHelper::class);
+        $this->pathsHelper->method('getSystemPath')->willReturn($tmp);
+        $this->configurator = new Configurator($this->pathsHelper);
     }
 
     public static function tearDownAfterClass(): void
@@ -82,5 +89,17 @@ class CountQueueHelperTest extends TestCase
         $helper->setOffset(2);
         $helper->resetOffset();
         $this->assertSame(0, $helper->getOffset());
+    }
+
+    public function testSetValueAndReadConfig(): void
+    {
+        $helper = new CountQueueHelper($this->configurator);
+        $helper->setOffset(2);
+        $this->assertSame(2, $helper->getOffset());
+
+        // Construct new configurator.
+        $configurator = new Configurator($this->pathsHelper);
+        $helper = new CountQueueHelper($configurator);
+        $this->assertSame(2, $helper->getOffset());
     }
 }

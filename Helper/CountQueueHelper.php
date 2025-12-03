@@ -47,7 +47,13 @@ class CountQueueHelper
     {
         $parameters = $this->get();
 
-        return $parameters['currentOffset'];
+        $currentOffset = $parameters['currentOffset'];
+
+        if (!is_numeric($currentOffset)) {
+            throw new \RuntimeException('The "currentOffset" must be numeric value.');
+        }
+
+        return (int) $currentOffset;
     }
 
     public function setOffset(int $offset): void
