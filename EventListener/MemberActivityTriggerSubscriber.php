@@ -77,9 +77,6 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         }
 
         $lead = $event->lead;
-        if (null === $lead) {
-            return;
-        }
 
         $primaryCompany = $this->leadCompanyResolver->getPrimaryCompanyByLead($lead);
         if (null === $primaryCompany) {
@@ -129,6 +126,9 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         }
 
         $lead           = $submissionEvent->getLead();
+        if (null === $lead) {
+            return;
+        }
         $primaryCompany = $this->leadCompanyResolver->getPrimaryCompanyByLead($lead);
         if (null === $primaryCompany) {
             return;

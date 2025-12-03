@@ -225,6 +225,7 @@ final class FunctionalFixtureHelper
         string $name,
         array $addToCampaign,
         array $removefromCampaign,
+        array $addToOrRestartCampaign,
         string $triggerContacts
     ): CompanyTriggerEvent {
         $event = new CompanyTriggerEvent();
@@ -238,10 +239,14 @@ final class FunctionalFixtureHelper
         $removeFromCampaignIds = array_map(function ($campaign) {
             return $campaign instanceof \Mautic\CampaignBundle\Entity\Campaign ? $campaign->getId() : $campaign;
         }, $removefromCampaign);
+        $addToOrRestartCampaignIds = array_map(function ($campaign) {
+            return $campaign instanceof \Mautic\CampaignBundle\Entity\Campaign ? $campaign->getId() : $campaign;
+        }, $addToOrRestartCampaign);
         $event->setProperties([
             'triggerContacts'    => $triggerContacts,
             'addToCampaign'      => $addToCampaignIds,
             'removeFromCampaign' => $removeFromCampaignIds,
+            'restartOrAddToCampaign' => $addToOrRestartCampaignIds,
         ]);
         $event->setOrder(1);
         $this->em->persist($event);

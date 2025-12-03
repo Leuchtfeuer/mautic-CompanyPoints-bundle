@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Mautic\CampaignBundle\Membership\MembershipManager;
 use Mautic\CampaignBundle\Model\CampaignModel;
 use Mautic\LeadBundle\Entity\Company;
+use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Model\CompanyModel;
 use Mautic\LeadBundle\Model\LeadModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
@@ -32,12 +33,15 @@ class ModifyCampaignsActionHandler
     {
         $campaignIdsToAdd      = $triggerProperties['addToCampaign'] ?? [];
         $campaignIdsToRemove   = $triggerProperties['removeFromCampaign'] ?? [];
+        $campaignIdsToRestartOrAdd = $triggerProperties['restartOrAddToCampaign'] ?? [];
+
         $contactRule           = $triggerProperties['triggerContacts'];
+        if (!is_string($contactRule)) {
+            return;
+        }
         $contactsToBeProcessed = $this->getContactsByRule($company, $contactRule);
 
         $campaignsToAdd    = $this->campaignModel->getEntities(['ids' => $campaignIdsToAdd, 'ignore_paginator' => true]);
-        $campaignsToRemove = $this->campaignModel->getEntities(['ids' => $campaignIdsToRemove, 'ignore_paginator' => true]);
-
         if (!empty($contactsToBeProcessed)) {
             $contactsCollection = new ArrayCollection();
             foreach ($contactsToBeProcessed as $contact) {
@@ -45,21 +49,42 @@ class ModifyCampaignsActionHandler
             }
 
             foreach ($campaignsToAdd as $campaign) {
+                //Copy of contactsCollection is necessary as addContacts and removeContacts modify the collection
+                $contactsCopy = new ArrayCollection($contactsCollection->toArray());
                 $this->membershipManager->addContacts(
-                    $contactsCollection,
+                    $contactsCopy,
                     $campaign,
                 );
             }
 
+            $campaignsToRemove = $this->campaignModel->getEntities(['ids' => $campaignIdsToRemove, 'ignore_paginator' => true]);
             foreach ($campaignsToRemove as $campaign) {
+                $contactsCopy = new ArrayCollection($contactsCollection->toArray());
                 $this->membershipManager->removeContacts(
-                    $contactsCollection,
+                    $contactsCopy,
+                    $campaign,
+                );
+            }
+
+            $campaignsToRestartOrAdd = $this->campaignModel->getEntities(['ids' => $campaignIdsToRestartOrAdd, 'ignore_paginator' => true]);
+            foreach ($campaignsToRestartOrAdd as $campaign) {
+                $contactsCopy = new ArrayCollection($contactsCollection->toArray());
+                $this->membershipManager->removeContacts(
+                    $contactsCopy,
+                    $campaign,
+                );
+                $contactsCopy = new ArrayCollection($contactsCollection->toArray());
+                $this->membershipManager->addContacts(
+                    $contactsCopy,
                     $campaign,
                 );
             }
         }
     }
 
+    /**
+     * @return array<Lead>
+     */
     private function getContactsByRule(Company $company, string $contactRule): array
     {
         $companyLeadRepo = $this->companyModel->getCompanyLeadRepository();
@@ -86,7 +111,7 @@ class ModifyCampaignsActionHandler
                     'limit'      => 1,
                 ]);
 
-                return !empty($results) ? array_values($results) : [];
+                return (is_array($results) && !empty($results)) ? array_values($results) : [];
 
             case CompanyTriggerEvent::COMPANY_YOUNGEST_KNOWN_CONTACT:
                 $filter['force'][] = [
@@ -101,7 +126,7 @@ class ModifyCampaignsActionHandler
                     'limit'      => 1,
                 ]);
 
-                return !empty($results) ? array_values($results) : [];
+                return (is_array($results) && !empty($results)) ? array_values($results) : [];
 
             case CompanyTriggerEvent::COMPANY_OLDEST_CONTACT:
                 // Ältester Kontakt
@@ -112,7 +137,7 @@ class ModifyCampaignsActionHandler
                     'limit'      => 1,
                 ]);
 
-                return !empty($results) ? array_values($results) : [];
+                return (is_array($results) && !empty($results)) ? array_values($results) : [];
 
             case CompanyTriggerEvent::COMPANY_OLDEST_KNOWN_CONTACT:
                 $filter['force'][] = [
@@ -127,7 +152,7 @@ class ModifyCampaignsActionHandler
                     'limit'      => 1,
                 ]);
 
-                return !empty($results) ? array_values($results) : [];
+                return (is_array($results) && !empty($results)) ? array_values($results) : [];
 
             case CompanyTriggerEvent::COMPANY_MOST_RECENT_ACTIVITY_CONTACT:
                 $results = $this->leadModel->getEntities([
@@ -137,7 +162,7 @@ class ModifyCampaignsActionHandler
                     'limit'      => 1,
                 ]);
 
-                return !empty($results) ? array_values($results) : [];
+                return (is_array($results) && !empty($results)) ? array_values($results) : [];
 
             case CompanyTriggerEvent::COMPANY_MOST_RECENT_ACTIVITY_KNOWN_CONTACT:
                 $filter['force'][] = [
@@ -152,12 +177,14 @@ class ModifyCampaignsActionHandler
                     'limit'      => 1,
                 ]);
 
-                return !empty($results) ? array_values($results) : [];
+                return (is_array($results) && !empty($results)) ? array_values($results) : [];
 
             case CompanyTriggerEvent::COMPANY_ALL_CONTACTS:
-                return $this->leadModel->getEntities([
+                $results = $this->leadModel->getEntities([
                     'filter' => $filter,
                 ]);
+
+                return (is_array($results) && !empty($results)) ? array_values($results) : [];
 
             case CompanyTriggerEvent::COMPANY_ALL_KNOWN_CONTACTS:
                 $filter['force'][] = [
@@ -165,9 +192,11 @@ class ModifyCampaignsActionHandler
                     'expr'   => 'isNotNull',
                 ];
 
-                return $this->leadModel->getEntities([
+                $results =  $this->leadModel->getEntities([
                     'filter' => $filter,
                 ]);
+
+                return (is_array($results) && !empty($results)) ? array_values($results) : [];
 
             case CompanyTriggerEvent::COMPANY_ALL_CONTACTS_WITH_RECENT_ACTIVITY:
                 $filter['force'][] = [
@@ -176,9 +205,11 @@ class ModifyCampaignsActionHandler
                     'value'  => (new \DateTime('-30 days'))->format('Y-m-d H:i:s'),
                 ];
 
-                return $this->leadModel->getEntities([
+                $results =  $this->leadModel->getEntities([
                     'filter' => $filter,
                 ]);
+
+                return (is_array($results) && !empty($results)) ? array_values($results) : [];
 
             case CompanyTriggerEvent::COMPANY_ALL_KNOWN_CONTACTS_WITH_RECENT_ACTIVITY:
                 $filter['force'][] = [
@@ -191,9 +222,11 @@ class ModifyCampaignsActionHandler
                     'value'  => (new \DateTime('-30 days'))->format('Y-m-d H:i:s'),
                 ];
 
-                return $this->leadModel->getEntities([
+                $results = $this->leadModel->getEntities([
                     'filter' => $filter,
                 ]);
+
+                return (is_array($results) && !empty($results)) ? array_values($results) : [];
 
             default:
                 return [];

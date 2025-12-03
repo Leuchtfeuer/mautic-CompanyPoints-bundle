@@ -7,8 +7,6 @@ use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Mautic\CampaignBundle\Form\Validator\Constraints\InfiniteLoop;
-use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class ModifyCompanyContactsCampaignType extends AbstractType
 {
@@ -40,32 +38,30 @@ class ModifyCompanyContactsCampaignType extends AbstractType
             ]
         );
         $builder->add('addToCampaign', CampaignListType::class, [
-            'label'      => 'mautic.campaign.form.addtocampaigns',
+            'label'      => 'mautic.companypoints.modifycampaigns.form.addtocampaigns',
             'label_attr' => ['class' => 'control-label'],
             'attr'       => [
                 'class' => 'form-control',
             ],
             'required'         => false,
-            'include_this'     => $options['include_this'],
-            'this_translation' => 'mautic.campaign.form.thiscampaign_restart',
-            'constraints'      => [new InfiniteLoop()],
         ]);
 
         $builder->add('removeFromCampaign', CampaignListType::class, [
-            'label'      => 'mautic.campaign.form.removefromcampaigns',
+            'label'      => 'mautic.companypoints.modifycampaigns.form.removefromcampaigns',
             'label_attr' => ['class' => 'control-label'],
             'attr'       => [
                 'class' => 'form-control',
             ],
             'required'     => false,
-            'include_this' => $options['include_this'],
         ]);
-    }
 
-    public function configureOptions(OptionsResolver $resolver): void
-    {
-        $resolver->setDefaults([
-            'include_this' => false,
+        $builder->add('restartOrAddToCampaign', CampaignListType::class, [
+            'label'      => 'mautic.companypoints.modifycampaigns.form.addtoorrestartcampaigns',
+            'label_attr' => ['class' => 'control-label'],
+            'attr'       => [
+                'class' => 'form-control',
+            ],
+            'required'     => false,
         ]);
     }
 }
