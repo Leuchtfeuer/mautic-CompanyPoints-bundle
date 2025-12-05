@@ -11,10 +11,17 @@ use Mautic\CoreBundle\Form\Type\PublishUpDateType;
 use Mautic\CoreBundle\Form\Type\YesNoButtonGroupType;
 use Mautic\CoreBundle\Security\Permissions\CorePermissions;
 // use Mautic\PointBundle\Entity\Trigger;
+use Mautic\LeadBundle\Form\DataTransformer\FieldFilterTransformer;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 // use Mautic\PointBundle\Form\Type\GroupListType;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Form\Type\CompanySegmentListType;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Form\Type\FilterType;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Validator\Constraints\CircularDependency;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Validator\Constraints\SegmentDate;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -23,6 +30,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @extends AbstractType<CompanyTrigger>
@@ -30,7 +38,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 class CompanyTriggerType extends AbstractType
 {
     public function __construct(
-        private CorePermissions $security
+        private CorePermissions $security,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -135,6 +144,14 @@ class CompanyTriggerType extends AbstractType
                 ],
                 'required'    => false,
                 'placeholder' => 'mautic.core.form.chooseone',
+            ]
+        );
+
+        $builder->add(
+            'companySegmentMembershipFilter',
+            \MauticPlugin\LeuchtfeuerCompanyPointsBundle\Form\Type\CompanySegmentMembershipFilterType::class,
+            [
+                'label' => false,
             ]
         );
 

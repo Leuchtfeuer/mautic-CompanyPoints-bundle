@@ -185,11 +185,12 @@ final class FunctionalFixtureHelper
         return $companyTag;
     }
 
-    public function createMembershipActivityTrigger(string $name, string $memberActivity): CompanyTrigger
+    public function createMembershipActivityTrigger(string $name, string $memberActivity, $filter = []): CompanyTrigger
     {
         $trigger = new CompanyTrigger();
         $trigger->setName($name);
         $trigger->setType(CompanyTrigger::TYPE_MEMBER_ACTIVITY);
+        $trigger->setCompanySegmentMembershipFilter($filter);
         $trigger->setIsPublished(true);
         $trigger->setMemberActivity($memberActivity);
         $this->em->persist($trigger);
@@ -344,5 +345,4 @@ final class FunctionalFixtureHelper
         $formElement->setValues($formData);
         $this->client->submit($formElement);
     }
-
 }

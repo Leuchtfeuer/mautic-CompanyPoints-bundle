@@ -46,7 +46,7 @@ class CompanyTriggerEventRepository extends CommonRepository
     public function getPublishedByTriggerType($triggerType)
     {
         $q = $this->createQueryBuilder('e')
-            ->select('partial e.{id, type, name, properties}, partial t.{id, name, points, color, type, memberActivity}')
+            ->select('partial e.{id, type, name, properties}, partial t.{id, name, points, color, type, memberActivity, companySegmentMembershipFilter}')
             ->join('e.trigger', 't')
             ->orderBy('e.order');
 

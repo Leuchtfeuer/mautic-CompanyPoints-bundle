@@ -661,4 +661,52 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         Assert::assertCount(0, $secondaryTags, 'Secondary company SHOULD NOT be tagged.');
     }
 
+    public function testActivityOfKnownContactWithSegmentFilterSuccessPath(): void
+    {
+        // 1. Create all required entities
+        $this->fixtureHelper->createAndEnablePlugin();
+        $segment = $this->fixtureHelper->createCompanySegment('abc');
+
+        $companyTag = $this->fixtureHelper->createCompanyTag('Test Tag To Add');
+
+        $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
+            'Tag company on contact click',
+            CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT,
+            ["operator" => "in", "values" => [$segment->getId()]]
+        );
+
+        $this->fixtureHelper->createCompanyTagsAction(
+            $trigger,
+            'Add Test Tag action',
+            [$companyTag->getTag()]
+        );
+
+        // Create a company
+        $company = $this->fixtureHelper->createCompany('Test Inc.');
+        $this->em->flush();
+
+        // Create a contact and associate the company
+        $contact = new Lead();
+        $contact->setEmail('jj@example.com');
+        $contact->setLastActive((new \DateTime())->modify('-1 day'));
+        $contact->setCompany($company->getName());
+        $this->em->persist($contact);
+        $this->em->flush();
+        $this->fixtureHelper->addContactToCompany($contact, $company);
+        $this->em->flush();
+
+        $this->fixtureHelper->emulateEmailLinkClicked($contact);
+        $this->em->clear();
+
+        /** @var Company|null $updatedCompany */
+        $updatedCompany = $this->em->getRepository(Company::class)->find($company);
+
+        Assert::assertNotNull($updatedCompany);
+        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+
+        Assert::assertCount(1, $tags, 'Company should have one tag after the link click.');
+        Assert::assertSame($companyTag->getId(), $tags[0]->getId(), 'The company was not tagged with the correct tag.');
+        Assert::assertSame($companyTag->getTag(), $tags[0]->getTag());
+    }
+
 }
