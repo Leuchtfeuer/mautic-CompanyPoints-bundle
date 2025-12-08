@@ -44,6 +44,9 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="pa-md">
+                                    {{ form_row(form.companySegmentMembershipFilter) }}
+                                </div>
+                                <div class="pa-md">
                                     {{ form_row(form.type) }}
                                 </div>
                                 <div class="pa-md form-type--points">
@@ -52,9 +55,6 @@
                                 </div>
                                 <div class="pa-md form-type--member-activity" data-company-form-type="member_activity">
                                     {{ form_row(form.memberActivity) }}
-                                </div>
-                                <div class="pa-md">
-                                    {{ form_row(form.companySegmentMembershipFilter) }}
                                 </div>
 {#                              {{ form_row(form.group) }}#}
 {#                              {{ form_row(form.triggerExistingLeads) }}#}

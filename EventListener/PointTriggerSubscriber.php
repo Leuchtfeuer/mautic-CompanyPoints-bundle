@@ -9,6 +9,7 @@ use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEventRepository;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyPostRecalculateEvent;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Helper\CompanySegmentHelper;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\Config;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
@@ -30,6 +31,7 @@ class PointTriggerSubscriber implements EventSubscriberInterface
         private CompanyTriggerModel $companyTriggerModel,
         private CompanyTriggerEventRepository $companyTriggerEventRepository,
         private Config $pluginConfig,
+        private CompanySegmentHelper $companySegmentHelper,
         ModifyTagsActionHandler $modifyTagsActionHandler,
         SendEmailActionHandler $sendEmailActionHandler
     ) {
@@ -100,7 +102,15 @@ class PointTriggerSubscriber implements EventSubscriberInterface
 
         // Check if the company has reached the required score
         $companyScore = $company->getField('companyscore_calculated')['value'] ?? 0;
-        return $companyScore >= $trigger->getPoints();
+
+        if ($companyScore < $trigger->getPoints()) {
+            return false;
+        }
+
+        $companySegmentMembershipFilter = $trigger->getCompanySegmentMembershipFilter();
+        $hasCorrectSegmentMembership = $this->companySegmentHelper->companyHasCorrectSegmentMembership($company, $companySegmentMembershipFilter);
+
+        return $hasCorrectSegmentMembership;
     }
 
     /**

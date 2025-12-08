@@ -673,7 +673,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
             'Tag company on contact click',
             CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT,
-            ["operator" => "in", "values" => [$segment->getId()]]
+            ["operator" => "in", "segments" => [$segment->getId()]]
         );
 
         $this->fixtureHelper->createCompanyTagsAction(
@@ -714,7 +714,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
             'Tag company on contact click',
             CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT,
-            ["operator" => "in", "values" => [$segment->getId()]]
+            ["operator" => "in", "segments" => [$segment->getId()]]
         );
 
         $this->fixtureHelper->createCompanyTagsAction(

@@ -15,6 +15,7 @@ use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEventRepository;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\BeforeUpdateLeadActivityEvent;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Helper\CompanySegmentHelper;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\Config;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\CompanyMemberActivityService;
@@ -22,7 +23,6 @@ use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\LeadCompanyResolver;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\MergeActivityTracker;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\ModifyTagsActionHandler;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\SendEmailActionHandler;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class MemberActivityTriggerSubscriber implements EventSubscriberInterface
@@ -42,7 +42,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         private CompanyMemberActivityService  $companyMemberActivityService,
         private MergeActivityTracker          $mergeActivityTracker,
         private Config                        $pluginConfig,
-        private CompanySegmentModel $companySegmentModel,
+        private CompanySegmentHelper      $companySegmentHelper,
         ModifyTagsActionHandler               $modifyTagsActionHandler,
         SendEmailActionHandler                $sendEmailActionHandler
     ) {
@@ -172,7 +172,7 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         }
 
         $companySegmentMembershipFilter = $trigger->getCompanySegmentMembershipFilter();
-        $hasCorrectSegmentMembership = $this->companyHasCorrectSegmentMembership($company, $companySegmentMembershipFilter);
+        $hasCorrectSegmentMembership = $this->companySegmentHelper->companyHasCorrectSegmentMembership($company, $companySegmentMembershipFilter);
 
         if(false === $hasCorrectSegmentMembership) {
             return false;
@@ -231,34 +231,5 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
     private function getHandlerForTrigger(CompanyTriggerEvent $eventTrigger): ?object
     {
         return $this->handlers[$eventTrigger->getType()] ?? null;
-    }
-
-
-    private function companyHasCorrectSegmentMembership(Company $company, array $companySegmentMembershipFilter): bool
-    {
-        $operator = $companySegmentMembershipFilter['operator'] ?? null;
-        if(null === $operator) {
-            return true;
-        }
-
-        $segmentIds = $companySegmentMembershipFilter['values'] ?? [];
-        if (count($companySegmentMembershipFilter['values']) === 0) {
-            return true;
-        }
-
-        $companySegments = $this->companySegmentModel->getCompaniesSegmentsRepository()->findBy(
-            [
-                'company'        => $company,
-                'companySegment' => $segmentIds,
-                'manuallyRemoved' => false,
-            ]
-        );
-
-        $isInSegment = is_array($companySegments) && count($companySegments) > 0;
-        return match ($operator) {
-            'in'    => $isInSegment,
-            'notin' => !$isInSegment,
-            default => true,
-        };
     }
 }
