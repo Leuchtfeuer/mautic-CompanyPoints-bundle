@@ -19,6 +19,7 @@ use Mautic\PluginBundle\Entity\Integration;
 use Mautic\PluginBundle\Entity\Plugin;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Entity\CompanyTags;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -344,5 +345,15 @@ final class FunctionalFixtureHelper
         $formElement = $formCrawler->form();
         $formElement->setValues($formData);
         $this->client->submit($formElement);
+    }
+
+    public function addCompanyToSegment(Company $company, CompanySegment $companySegment): void
+    {
+        $companiesSegments = new CompaniesSegments();
+        $companiesSegments->setCompany($company);
+        $companiesSegments->setCompanySegment($companySegment);
+        $companiesSegments->setDateAdded(new \DateTime());
+        $this->em->persist($companiesSegments);
+        $this->em->flush();
     }
 }

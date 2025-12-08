@@ -172,8 +172,11 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         }
 
         $companySegmentMembershipFilter = $trigger->getCompanySegmentMembershipFilter();
-        $this->companyHasCorrectSegmentMembership($company, $companySegmentMembershipFilter);
+        $hasCorrectSegmentMembership = $this->companyHasCorrectSegmentMembership($company, $companySegmentMembershipFilter);
 
+        if(false === $hasCorrectSegmentMembership) {
+            return false;
+        }
 
         $memberActivityTrigger = $trigger->getMemberActivity();
         if (null === $memberActivityTrigger) {
