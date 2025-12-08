@@ -200,6 +200,20 @@ final class FunctionalFixtureHelper
         return $trigger;
     }
 
+    public function createPointTrigger(string $name, $filter = []): CompanyTrigger
+    {
+        $trigger = new CompanyTrigger();
+        $trigger->setName($name);
+        $trigger->setType(CompanyTrigger::TYPE_POINTS);
+        $trigger->setCompanySegmentMembershipFilter($filter);
+        $trigger->setIsPublished(true);
+        $trigger->setPoints(1);
+        $this->em->persist($trigger);
+        $this->em->flush();
+
+        return $trigger;
+    }
+
     public function createCompanyTagsAction(
         CompanyTrigger $trigger,
         string $name,
