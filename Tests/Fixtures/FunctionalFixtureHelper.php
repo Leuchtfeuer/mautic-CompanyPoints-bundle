@@ -89,6 +89,7 @@ final class FunctionalFixtureHelper
         $company = new Company();
         $company->setName($name);
         $this->em->persist($company);
+
         return $company;
     }
 
@@ -186,6 +187,9 @@ final class FunctionalFixtureHelper
         return $companyTag;
     }
 
+    /**
+     * @param array<string, mixed> $filter
+     */
     public function createMembershipActivityTrigger(string $name, string $memberActivity, $filter = []): CompanyTrigger
     {
         $trigger = new CompanyTrigger();
@@ -200,6 +204,9 @@ final class FunctionalFixtureHelper
         return $trigger;
     }
 
+    /**
+     * @param array<string, mixed> $filter
+     */
     public function createPointTrigger(string $name, $filter = []): CompanyTrigger
     {
         $trigger = new CompanyTrigger();
@@ -231,6 +238,7 @@ final class FunctionalFixtureHelper
         $event->setOrder(1);
         $this->em->persist($event);
         $this->em->flush();
+
         return $event;
     }
 
@@ -253,6 +261,7 @@ final class FunctionalFixtureHelper
         $event->setOrder(1);
         $this->em->persist($event);
         $this->em->flush();
+
         return $event;
     }
 
@@ -300,7 +309,7 @@ final class FunctionalFixtureHelper
         $this->em->flush();
 
         $this->client->request('POST', '/mtc/event', [
-            'page_url' => 'https://example.com',
+            'page_url'         => 'https://example.com',
             'mautic_device_id' => $device->getTrackingId(),
         ]);
     }
@@ -321,7 +330,7 @@ final class FunctionalFixtureHelper
     public function emulateFormSubmit(Lead $contact, Company $company = null): void
     {
         $formData = [
-            'mauticform[email]'   => $contact->getEmail()
+            'mauticform[email]'   => $contact->getEmail(),
         ];
         if (null !== $company) {
             $formData['mauticform[company]'] = $company->getName();
@@ -334,13 +343,13 @@ final class FunctionalFixtureHelper
     public function emulateFormSubmitWithTracking(Lead $contact, Company $company = null): void
     {
         $formData = [
-            'mauticform[email]'   => $contact->getEmail()
+            'mauticform[email]'   => $contact->getEmail(),
         ];
         if (null !== $company) {
             $formData['mauticform[company]'] = $company->getName();
         }
-        $form = $this->createFormWithCompanyViaApi('Test Form');
-        $token = "{form=" . $form->getId() . "}";
+        $form  = $this->createFormWithCompanyViaApi('Test Form');
+        $token = '{form='.$form->getId().'}';
         $this->createLandingPage(alias: 'test-lp', html: "<html><body>{$token}</body></html>");
         $this->client->request('GET', '/test-lp');
         $this->client->enableReboot();

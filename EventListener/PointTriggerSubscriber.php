@@ -96,7 +96,7 @@ class PointTriggerSubscriber implements EventSubscriberInterface
 
         $trigger = $eventTrigger->getTrigger();
         // Check if the trigger is a point-based trigger
-        if (null === $trigger || $trigger->getType() !== CompanyTrigger::TYPE_POINTS) {
+        if (null === $trigger || CompanyTrigger::TYPE_POINTS !== $trigger->getType()) {
             return false;
         }
 
@@ -108,7 +108,7 @@ class PointTriggerSubscriber implements EventSubscriberInterface
         }
 
         $companySegmentMembershipFilter = $trigger->getCompanySegmentMembershipFilter();
-        $hasCorrectSegmentMembership = $this->companySegmentHelper->companyHasCorrectSegmentMembership($company, $companySegmentMembershipFilter);
+        $hasCorrectSegmentMembership    = $this->companySegmentHelper->companyHasCorrectSegmentMembership($company, $companySegmentMembershipFilter);
 
         return $hasCorrectSegmentMembership;
     }

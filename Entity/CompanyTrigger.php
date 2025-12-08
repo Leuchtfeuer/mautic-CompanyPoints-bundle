@@ -12,13 +12,12 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 class CompanyTrigger extends FormEntity
 {
-
-    public const TYPE_POINTS = 'points';
+    public const TYPE_POINTS          = 'points';
     public const TYPE_MEMBER_ACTIVITY = 'member_activity';
 
-    public const ACTIVITY_FIRST_EVER          = 'first_contact_activity_ever';
-    public const ACTIVITY_FIRST_WITHIN_30_DAYS  = 'first_contact_activity_within_30_days';
-    public const ACTIVITY_FIRST_OF_NEW_CONTACT = 'first_activity_of_new_contact';
+    public const ACTIVITY_FIRST_EVER             = 'first_contact_activity_ever';
+    public const ACTIVITY_FIRST_WITHIN_30_DAYS   = 'first_contact_activity_within_30_days';
+    public const ACTIVITY_FIRST_OF_NEW_CONTACT   = 'first_activity_of_new_contact';
     public const ACTIVITY_EVERY_OF_A_CONTACT     = 'every_activity_of_a_contact';
     public const ACTIVITY_EVERY_OF_KNOWN_CONTACT = 'every_activity_of_a_known_contact';
 

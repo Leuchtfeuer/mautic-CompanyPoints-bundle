@@ -20,13 +20,13 @@ class CompanySegmentMembershipFilterType extends AbstractType
             [
                 'label'      => false,
                 'choices'    => [
-                    'mautic.core.operator.in' => 'in',
+                    'mautic.core.operator.in'    => 'in',
                     'mautic.core.operator.notin' => 'notIn',
                 ],
                 'attr'       => [
                     'class'   => 'form-control not-chosen',
                 ],
-                'required'   => false,
+                'required'    => false,
                 'placeholder' => false,
             ]
         );
@@ -37,7 +37,7 @@ class CompanySegmentMembershipFilterType extends AbstractType
             [
                 'label'      => false,
                 'attr'       => [
-                    'class'   => 'form-control',
+                    'class'       => 'form-control',
                     'placeholder' => 'mautic.core.form.chooseone',
                 ],
                 'required'   => false,

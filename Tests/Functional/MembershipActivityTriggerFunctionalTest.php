@@ -10,6 +10,7 @@ use Mautic\LeadBundle\Entity\Lead;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Fixtures\FunctionalFixtureHelper;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Entity\CompanyTags;
+use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Entity\CompanyTagsRepository;
 use PHPUnit\Framework\Assert;
 
 class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
@@ -27,9 +28,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
     public function activityEmulationDataProvider(): array
     {
         return [
-            'email link clicked' => ['email_link_clicked'],
-            'page visit'       => ['page_visit'],
-            'form submit'       => ['form_submit'],
+            'email link clicked'              => ['email_link_clicked'],
+            'page visit'                      => ['page_visit'],
+            'form submit'                     => ['form_submit'],
             'form submit with tracking'       => ['form_submit_with_tracking'],
         ];
     }
@@ -71,11 +72,11 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
 
         // 2. Emulate the activity using the method from the data provider
         match ($emulationMethod) {
-            'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($contact),
-            'page_visit' => $this->fixtureHelper->emulatePageVisit($contact),
-            'form_submit' => $this->fixtureHelper->emulateFormSubmit($contact),
+            'email_link_clicked'        => $this->fixtureHelper->emulateEmailLinkClicked($contact),
+            'page_visit'                => $this->fixtureHelper->emulatePageVisit($contact),
+            'form_submit'               => $this->fixtureHelper->emulateFormSubmit($contact),
             'form_submit_with_tracking' => $this->fixtureHelper->emulateFormSubmitWithTracking($contact),
-            default => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
+            default                     => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
         };
 
         // 3. Check if the company has the tag assigned
@@ -135,11 +136,11 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
 
         // 2. Emulate the activity using the method from the data provider
         match ($emulationMethod) {
-            'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
-            'page_visit' => $this->fixtureHelper->emulatePageVisit($newContact),
-            'form_submit' => $this->fixtureHelper->emulateFormSubmit($newContact),
+            'email_link_clicked'        => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
+            'page_visit'                => $this->fixtureHelper->emulatePageVisit($newContact),
+            'form_submit'               => $this->fixtureHelper->emulateFormSubmit($newContact),
             'form_submit_with_tracking' => $this->fixtureHelper->emulateFormSubmitWithTracking($newContact),
-            default => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
+            default                     => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
         };
 
         // 3. Check that the company was NOT tagged
@@ -197,11 +198,11 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
 
         // 2. Emulate the activity using the method from the data provider
         match ($emulationMethod) {
-            'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
-            'page_visit'         => $this->fixtureHelper->emulatePageVisit($newContact),
-            'form_submit'        => $this->fixtureHelper->emulateFormSubmit($newContact),
+            'email_link_clicked'        => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
+            'page_visit'                => $this->fixtureHelper->emulatePageVisit($newContact),
+            'form_submit'               => $this->fixtureHelper->emulateFormSubmit($newContact),
             'form_submit_with_tracking' => $this->fixtureHelper->emulateFormSubmitWithTracking($newContact),
-            default              => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
+            default                     => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
         };
 
         // 3. Check that the company WAS tagged
@@ -262,11 +263,11 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
 
         // 2. Emulate the activity which should trigger the action
         match ($emulationMethod) {
-            'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
-            'page_visit'         => $this->fixtureHelper->emulatePageVisit($newContact),
-            'form_submit'        => $this->fixtureHelper->emulateFormSubmit($newContact),
+            'email_link_clicked'        => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
+            'page_visit'                => $this->fixtureHelper->emulatePageVisit($newContact),
+            'form_submit'               => $this->fixtureHelper->emulateFormSubmit($newContact),
             'form_submit_with_tracking' => $this->fixtureHelper->emulateFormSubmitWithTracking($newContact),
-            default              => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
+            default                     => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
         };
 
         // 3. Check that the company WAS tagged
@@ -327,11 +328,11 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
 
         // 2. Emulate the activity, which should NOT trigger the action
         match ($emulationMethod) {
-            'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
-            'page_visit'         => $this->fixtureHelper->emulatePageVisit($newContact),
-            'form_submit'        => $this->fixtureHelper->emulateFormSubmit($newContact),
+            'email_link_clicked'        => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
+            'page_visit'                => $this->fixtureHelper->emulatePageVisit($newContact),
+            'form_submit'               => $this->fixtureHelper->emulateFormSubmit($newContact),
             'form_submit_with_tracking' => $this->fixtureHelper->emulateFormSubmitWithTracking($newContact),
-            default              => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
+            default                     => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
         };
 
         // 3. Check that the company was NOT tagged
@@ -393,11 +394,11 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
 
         // 2. Action: Emulate the first activity for the new contact
         match ($emulationMethod) {
-            'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
-            'page_visit'         => $this->fixtureHelper->emulatePageVisit($newContact),
-            'form_submit'        => $this->fixtureHelper->emulateFormSubmit($newContact),
+            'email_link_clicked'        => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
+            'page_visit'                => $this->fixtureHelper->emulatePageVisit($newContact),
+            'form_submit'               => $this->fixtureHelper->emulateFormSubmit($newContact),
             'form_submit_with_tracking' => $this->fixtureHelper->emulateFormSubmitWithTracking($newContact),
-            default              => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
+            default                     => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
         };
 
         // 3. Assertion: Check that the company was tagged
@@ -555,7 +556,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createAndEnablePlugin();
 
         $companyTag = $this->fixtureHelper->createCompanyTag('Test Tag To Add');
-        $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
+        $trigger    = $this->fixtureHelper->createMembershipActivityTrigger(
             'Tag company on contact click',
             CompanyTrigger::ACTIVITY_EVERY_OF_A_CONTACT
         );
@@ -566,7 +567,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         );
 
         $companyTag2 = $this->fixtureHelper->createCompanyTag('This tag should not be added');
-        $trigger2 = $this->fixtureHelper->createMembershipActivityTrigger(
+        $trigger2    = $this->fixtureHelper->createMembershipActivityTrigger(
             'Tag company on contact click',
             CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT
         );
@@ -673,7 +674,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
             'Tag company on contact click',
             CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT,
-            ["operator" => "in", "segments" => [$segment->getId()]]
+            ['operator' => 'in', 'segments' => [$segment->getId()]]
         );
 
         $this->fixtureHelper->createCompanyTagsAction(
@@ -696,7 +697,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company);
 
         Assert::assertNotNull($updatedCompany);
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        /** @var CompanyTagsRepository $tagsRepository */
+        $tagsRepository = $this->em->getRepository(CompanyTags::class);
+        $tags           = $tagsRepository->getTagsByCompany($company);
 
         Assert::assertCount(1, $tags, 'Company should have one tag after the link click.');
         Assert::assertSame($companyTag->getId(), $tags[0]->getId(), 'The company was not tagged with the correct tag.');
@@ -714,7 +717,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
             'Tag company on contact click',
             CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT,
-            ["operator" => "in", "segments" => [$segment->getId()]]
+            ['operator' => 'in', 'segments' => [$segment->getId()]]
         );
 
         $this->fixtureHelper->createCompanyTagsAction(
@@ -737,9 +740,10 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company);
 
         Assert::assertNotNull($updatedCompany);
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        /** @var CompanyTagsRepository $tagsRepository */
+        $tagsRepository = $this->em->getRepository(CompanyTags::class);
+        $tags           = $tagsRepository->getTagsByCompany($company);
 
         Assert::assertCount(0, $tags, 'Company should not have a tag after link click.');
     }
-
 }

@@ -3,7 +3,7 @@
 return [
     'name'        => 'Company Points by Leuchtfeuer',
     'description' => 'Massively enhanced Company-based Scoring',
-    'version'     => '1.2.0',
+    'version'     => '1.3.0',
     'author'      => 'Leuchtfeuer Digital Marketing GmbH',
     'routes'      => [
         'main' => [

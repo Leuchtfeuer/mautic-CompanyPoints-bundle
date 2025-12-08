@@ -9,10 +9,10 @@ use Mautic\LeadBundle\Entity\Company;
 use Mautic\LeadBundle\Model\LeadModel;
 use Mautic\PluginBundle\Entity\Integration;
 use Mautic\PluginBundle\Entity\Plugin;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\LeuchtfeuerCompanyPointsIntegration;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Fixtures\FunctionalFixtureHelper;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Entity\CompanyTags;
+use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Entity\CompanyTagsRepository;
 use PHPUnit\Framework\Assert;
 
 class PointTriggerFunctionalTest extends MauticMysqlTestCase
@@ -30,12 +30,10 @@ class PointTriggerFunctionalTest extends MauticMysqlTestCase
 
     public function testCompanyFulfillsCompanySegmentFilterForPointTrigger(): void
     {
-
         $this->activePlugin();
 
         /** @var LeadModel $model */
         $model = self::getContainer()->get('mautic.lead.model.lead');
-
 
         $segment = $this->fixtureHelper->createCompanySegment('abc');
         $company = $this->fixtureHelper->createCompany('Test1');
@@ -45,7 +43,7 @@ class PointTriggerFunctionalTest extends MauticMysqlTestCase
 
         $trigger = $this->fixtureHelper->createPointTrigger(
             'Tag company on contact click',
-            ["operator" => "in", "segments" => [$segment->getId()]]
+            ['operator' => 'in', 'segments' => [$segment->getId()]]
         );
 
         $this->fixtureHelper->createCompanyTagsAction(
@@ -68,7 +66,9 @@ class PointTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company);
 
         Assert::assertNotNull($updatedCompany);
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        /** @var CompanyTagsRepository $tagsRepository */
+        $tagsRepository = $this->em->getRepository(CompanyTags::class);
+        $tags           = $tagsRepository->getTagsByCompany($company);
 
         Assert::assertCount(1, $tags, 'Company should have one tag after the link click.');
         Assert::assertSame($companyTag->getId(), $tags[0]->getId(), 'The company was not tagged with the correct tag.');
@@ -77,12 +77,10 @@ class PointTriggerFunctionalTest extends MauticMysqlTestCase
 
     public function testCompanyDoesNotFulfillCompanySegmentFilterForPointTrigger(): void
     {
-
         $this->activePlugin();
 
         /** @var LeadModel $model */
         $model = self::getContainer()->get('mautic.lead.model.lead');
-
 
         $segment = $this->fixtureHelper->createCompanySegment('abc');
         $company = $this->fixtureHelper->createCompany('Test1');
@@ -91,7 +89,7 @@ class PointTriggerFunctionalTest extends MauticMysqlTestCase
 
         $trigger = $this->fixtureHelper->createPointTrigger(
             'Tag company on contact click',
-            ["operator" => "in", "segments" => [$segment->getId()]]
+            ['operator' => 'in', 'segments' => [$segment->getId()]]
         );
 
         $this->fixtureHelper->createCompanyTagsAction(
@@ -114,9 +112,11 @@ class PointTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company);
 
         Assert::assertNotNull($updatedCompany);
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        /** @var CompanyTagsRepository $tagsRepository */
+        $tagsRepository = $this->em->getRepository(CompanyTags::class);
+        $tags           = $tagsRepository->getTagsByCompany($company);
 
-        //No company tag added as company did not fulfill segment filter
+        // No company tag added as company did not fulfill segment filter
         Assert::assertCount(0, $tags);
     }
 
