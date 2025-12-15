@@ -46,7 +46,7 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
 
         $triggerEvent = $this->fixtureHelper->createModifyContactCampaignsAction(
             $trigger,
-            'This action should not run',
+            'This action should add contact to campaign',
             [$campaign],
             [],
             [],
@@ -55,11 +55,8 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
 
         $contactToEmulate = $this->em->getRepository(Lead::class)->find($contactIds['known-contact-with-most-recent-activity']);
         $this->assertInstanceOf(Lead::class, $contactToEmulate);
-
-        // 2. Action: Emulate an activity for this EXISTING contact
         $this->fixtureHelper->emulateEmailLinkClicked($contactToEmulate);
 
-        // 3. Assertion: Check that the company was NOT tagged
         $this->em->clear();
 
         $campaignId       = $campaign->getId();
@@ -172,7 +169,7 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
 
         $triggerEvent = $this->fixtureHelper->createModifyContactCampaignsAction(
             $trigger,
-            'This action should remove contacts from campaign',
+            'This action should add to or restart campaign',
             [],
             [],
             [$campaign],
