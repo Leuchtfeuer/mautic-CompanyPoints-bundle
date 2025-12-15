@@ -22,24 +22,25 @@ class ModifyCompanyContactsCampaignType extends AbstractType
                     'class'   => 'form-control',
                 ],
                 'choices' => [
-                    'mautic.companypoints.action.modifycampaigns.triggercontacts.youngest_contact' => CompanyTriggerEvent::COMPANY_YOUNGEST_CONTACT,
-                    'mautic.companypoints.action.modifycampaigns.triggercontacts.youngest_known_contact' => CompanyTriggerEvent::COMPANY_YOUNGEST_KNOWN_CONTACT,
-                    'mautic.companypoints.action.modifycampaigns.triggercontacts.oldest_contact' => CompanyTriggerEvent::COMPANY_OLDEST_CONTACT,
-                    'mautic.companypoints.action.modifycampaigns.triggercontacts.oldest_known_contact' => CompanyTriggerEvent::COMPANY_OLDEST_KNOWN_CONTACT,
-                    'mautic.companypoints.action.modifycampaigns.triggercontacts.contact_with_most_recent_activity' => CompanyTriggerEvent::COMPANY_MOST_RECENT_ACTIVITY_CONTACT,
+                    'mautic.companypoints.action.modifycampaigns.triggercontacts.youngest_contact'                        => CompanyTriggerEvent::COMPANY_YOUNGEST_CONTACT,
+                    'mautic.companypoints.action.modifycampaigns.triggercontacts.youngest_known_contact'                  => CompanyTriggerEvent::COMPANY_YOUNGEST_KNOWN_CONTACT,
+                    'mautic.companypoints.action.modifycampaigns.triggercontacts.oldest_contact'                          => CompanyTriggerEvent::COMPANY_OLDEST_CONTACT,
+                    'mautic.companypoints.action.modifycampaigns.triggercontacts.oldest_known_contact'                    => CompanyTriggerEvent::COMPANY_OLDEST_KNOWN_CONTACT,
+                    'mautic.companypoints.action.modifycampaigns.triggercontacts.contact_with_most_recent_activity'       => CompanyTriggerEvent::COMPANY_MOST_RECENT_ACTIVITY_CONTACT,
                     'mautic.companypoints.action.modifycampaigns.triggercontacts.known_contact_with_most_recent_activity' => CompanyTriggerEvent::COMPANY_MOST_RECENT_ACTIVITY_KNOWN_CONTACT,
-                    'mautic.companypoints.action.modifycampaigns.triggercontacts.all_contacts_with_recent_activity' => CompanyTriggerEvent::COMPANY_ALL_CONTACTS_WITH_RECENT_ACTIVITY,
+                    'mautic.companypoints.action.modifycampaigns.triggercontacts.all_contacts_with_recent_activity'       => CompanyTriggerEvent::COMPANY_ALL_CONTACTS_WITH_RECENT_ACTIVITY,
                     'mautic.companypoints.action.modifycampaigns.triggercontacts.all_known_contacts_with_recent_activity' => CompanyTriggerEvent::COMPANY_ALL_KNOWN_CONTACTS_WITH_RECENT_ACTIVITY,
-                    'mautic.companypoints.action.modifycampaigns.triggercontacts.all_contacts' => CompanyTriggerEvent::COMPANY_ALL_CONTACTS,
-                    'mautic.companypoints.action.modifycampaigns.triggercontacts.all_known_contacts' => CompanyTriggerEvent::COMPANY_ALL_KNOWN_CONTACTS,
+                    'mautic.companypoints.action.modifycampaigns.triggercontacts.all_contacts'                            => CompanyTriggerEvent::COMPANY_ALL_CONTACTS,
+                    'mautic.companypoints.action.modifycampaigns.triggercontacts.all_known_contacts'                      => CompanyTriggerEvent::COMPANY_ALL_KNOWN_CONTACTS,
                 ],
                 'required'    => true,
                 'placeholder' => 'mautic.core.form.chooseone',
             ]
         );
+
         $builder->add('addToCampaign', CampaignListType::class, [
             'label'      => 'mautic.companypoints.modifycampaigns.form.addtocampaigns',
-            'label_attr' => ['class' => 'control-label'],
+            'label_attr' => ['class' => 'control-label mt-32'],
             'attr'       => [
                 'class' => 'form-control',
             ],
