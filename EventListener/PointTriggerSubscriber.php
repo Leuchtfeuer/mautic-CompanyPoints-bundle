@@ -12,14 +12,16 @@ use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyPostRecalculateEven
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\Config;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\ModifyCampaignsActionHandler;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\ModifyTagsActionHandler;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\SendEmailActionHandler;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class PointTriggerSubscriber implements EventSubscriberInterface
 {
-    public const TRIGGER_KEY_MODIFY_TAGS = 'companytags.updatetags';
-    public const TRIGGER_KEY_SEND_EMAIL  = 'companytags.sendemails';
+    public const TRIGGER_KEY_MODIFY_TAGS       = 'companytags.updatetags';
+    public const TRIGGER_KEY_SEND_EMAIL        = 'companytags.sendemails';
+    public const TRIGGER_KEY_MODIFY_CAMPAIGNS  = 'companypoints.modifycampaigns';
 
     /**
      * @var array<string, object>
@@ -31,12 +33,14 @@ class PointTriggerSubscriber implements EventSubscriberInterface
         private CompanyTriggerEventRepository $companyTriggerEventRepository,
         private Config $pluginConfig,
         ModifyTagsActionHandler $modifyTagsActionHandler,
-        SendEmailActionHandler $sendEmailActionHandler
+        SendEmailActionHandler $sendEmailActionHandler,
+        ModifyCampaignsActionHandler $modifyCampaignsActionHandler
     ) {
         // Map the trigger keys to their corresponding handlers.
         $this->handlers = [
-            self::TRIGGER_KEY_MODIFY_TAGS => $modifyTagsActionHandler,
-            self::TRIGGER_KEY_SEND_EMAIL  => $sendEmailActionHandler,
+            self::TRIGGER_KEY_MODIFY_TAGS      => $modifyTagsActionHandler,
+            self::TRIGGER_KEY_SEND_EMAIL       => $sendEmailActionHandler,
+            self::TRIGGER_KEY_MODIFY_CAMPAIGNS => $modifyCampaignsActionHandler,
         ];
     }
 
@@ -94,12 +98,13 @@ class PointTriggerSubscriber implements EventSubscriberInterface
 
         $trigger = $eventTrigger->getTrigger();
         // Check if the trigger is a point-based trigger
-        if (null === $trigger || $trigger->getType() !== CompanyTrigger::TYPE_POINTS) {
+        if (null === $trigger || CompanyTrigger::TYPE_POINTS !== $trigger->getType()) {
             return false;
         }
 
         // Check if the company has reached the required score
         $companyScore = $company->getField('companyscore_calculated')['value'] ?? 0;
+
         return $companyScore >= $trigger->getPoints();
     }
 

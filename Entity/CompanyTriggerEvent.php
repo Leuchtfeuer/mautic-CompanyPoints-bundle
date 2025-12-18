@@ -9,6 +9,17 @@ use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 
 class CompanyTriggerEvent
 {
+    public const COMPANY_YOUNGEST_CONTACT          = 'youngest_contact';
+    public const COMPANY_YOUNGEST_KNOWN_CONTACT          = 'youngest_known_contact';
+    public const COMPANY_OLDEST_CONTACT          = 'oldest_contact';
+    public const COMPANY_OLDEST_KNOWN_CONTACT          = 'oldest_known_contact';
+    public const COMPANY_MOST_RECENT_ACTIVITY_CONTACT          = 'contact_with_most_recent_activity';
+    public const COMPANY_MOST_RECENT_ACTIVITY_KNOWN_CONTACT          = 'known_contact_with_most_recent_activity';
+    public const COMPANY_ALL_CONTACTS_WITH_RECENT_ACTIVITY          = 'all_contacts_with_recent_activity';
+    public const COMPANY_ALL_KNOWN_CONTACTS_WITH_RECENT_ACTIVITY          = 'all_known_contacts_with_recent_activity';
+    public const COMPANY_ALL_CONTACTS          = 'all_contacts';
+    public const COMPANY_ALL_KNOWN_CONTACTS          = 'all_known_contacts';
+
     /**
      * @var int
      */
