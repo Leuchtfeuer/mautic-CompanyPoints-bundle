@@ -46,8 +46,8 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         private Config $pluginConfig,
         private CompanySegmentHelper $companySegmentHelper,
         ModifyTagsActionHandler $modifyTagsActionHandler,
-        SendEmailActionHandler $sendEmailActionHandler
-        ModifyCampaignsActionHandler $modifyCampaignsActionHandler
+        SendEmailActionHandler $sendEmailActionHandler,
+        ModifyCampaignsActionHandler $modifyCampaignsActionHandler,
     ) {
         $this->handlers = [
             self::TRIGGER_KEY_MODIFY_TAGS       => $modifyTagsActionHandler,
