@@ -1,0 +1,39 @@
+parameters:
+    level: max
+    treatPhpDocTypesAsCertain: false
+    paths:
+        - .
+    excludePaths:
+        - vendor
+    ignoreErrors:
+        # Autowiring-Fehler wie schon vorher
+        -
+            message: '#Cannot autowire service.*argument.*references class.*but no such service exists#'
+            path: .
+            reportUnmatched: false
+        -
+            message: '#references class.*but no such service exists#'
+            path: .
+            reportUnmatched: false
+        -
+            message: '#references class "MauticPlugin\\LeuchtfeuerCompanySegmentsBundle\\Model\\CompanySegmentModel" but no such service exists#'
+            path: .
+            reportUnmatched: false
+
+        # Dynamic calls auf PHPUnit-Assert
+        -
+            message: '#Dynamic call to static method PHPUnit\\Framework\\Assert::#'
+            path: Tests
+            reportUnmatched: false
+
+        # Dynamic calls auf PHPUnit-once
+        -
+            message: '#Dynamic call to static method PHPUnit\\Framework\\TestCase::#'
+            path: Tests
+            reportUnmatched: false
+
+        # Construct empty() ist nicht erlaubt
+        -
+            message: '#Construct empty\(\) is not allowed\. Use more strict comparison\.#'
+            path: .
+            reportUnmatched: false

@@ -242,6 +242,41 @@ final class FunctionalFixtureHelper
         return $event;
     }
 
+    public function createModifyContactCampaignsAction(
+        CompanyTrigger $trigger,
+        string $name,
+        array $addToCampaign,
+        array $removefromCampaign,
+        array $addToOrRestartCampaign,
+        string $triggerContacts
+    ): CompanyTriggerEvent {
+        $event = new CompanyTriggerEvent();
+        $event->setTrigger($trigger);
+        $event->setName($name);
+        $event->setType('companypoints.modifycampaigns');
+        $addToCampaignIds = array_map(function ($campaign) {
+            return $campaign instanceof \Mautic\CampaignBundle\Entity\Campaign ? $campaign->getId() : $campaign;
+        }, $addToCampaign);
+
+        $removeFromCampaignIds = array_map(function ($campaign) {
+            return $campaign instanceof \Mautic\CampaignBundle\Entity\Campaign ? $campaign->getId() : $campaign;
+        }, $removefromCampaign);
+        $addToOrRestartCampaignIds = array_map(function ($campaign) {
+            return $campaign instanceof \Mautic\CampaignBundle\Entity\Campaign ? $campaign->getId() : $campaign;
+        }, $addToOrRestartCampaign);
+        $event->setProperties([
+            'triggerContacts'    => $triggerContacts,
+            'addToCampaign'      => $addToCampaignIds,
+            'removeFromCampaign' => $removeFromCampaignIds,
+            'restartOrAddToCampaign' => $addToOrRestartCampaignIds,
+        ]);
+        $event->setOrder(1);
+        $this->em->persist($event);
+        $this->em->flush();
+
+        return $event;
+    }
+
     public function createCompanyEmailAction(
         CompanyTrigger $trigger,
         Email $email,

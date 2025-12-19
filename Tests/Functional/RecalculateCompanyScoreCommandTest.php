@@ -309,15 +309,22 @@ class RecalculateCompanyScoreCommandTest extends MauticMysqlTestCase
         ];
     }
 
-    public function testBatchRecalculateCompanyScoreCommand(): void
+    public function testBatchAndMaxCompaniesRecalculateCompanyScoreCommand(): void
     {
         $this->createStructure();
         $commandTester = $this->testSymfonyCommand('leuchtfeuer:abm:points-update');
         $commandTester = $this->testSymfonyCommand('leuchtfeuer:abm:points-update', ['--batch-limit' => 3]);
-        $this->assertStringContainsString('3 company scores to be recalculated in batches of 3', $commandTester->getDisplay());
-        $commandTester = $this->testSymfonyCommand('leuchtfeuer:abm:points-update', ['--batch-limit' => 3]);
-        $this->assertStringContainsString('3 company scores to be recalculated in batches of 3', $commandTester->getDisplay());
-        $commandTester = $this->testSymfonyCommand('leuchtfeuer:abm:points-update', ['--batch-limit' => 3]);
-        $this->assertStringContainsString('1 company scores to be recalculated in batches of 3', $commandTester->getDisplay());
+        $this->assertStringContainsString('7 company scores to be recalculated in batches of 3', $commandTester->getDisplay());
+        $this->assertStringContainsString('Company scores recalculated. Total processed: 7', $commandTester->getDisplay());
+        $commandTester = $this->testSymfonyCommand('leuchtfeuer:abm:points-update', ['--batch-limit' => 3, '--max-companies' => 5]);
+        $this->assertStringContainsString('5 company scores to be recalculated in batches of 3', $commandTester->getDisplay());
+        $this->assertStringContainsString('Company scores recalculated. Total processed: 5', $commandTester->getDisplay());
+        // Processing missing two companies from last command
+        $commandTester = $this->testSymfonyCommand('leuchtfeuer:abm:points-update', ['--batch-limit' => 3, '--max-companies' => 5]);
+        $this->assertStringContainsString('2 company scores to be recalculated in batches of 3', $commandTester->getDisplay());
+        $this->assertStringContainsString('Company scores recalculated. Total processed: 2', $commandTester->getDisplay());
+        $commandTester = $this->testSymfonyCommand('leuchtfeuer:abm:points-update', ['--max-companies' => 6]);
+        $this->assertStringContainsString('6 company scores to be recalculated in batches of 300', $commandTester->getDisplay());
+        $this->assertStringContainsString('Company scores recalculated. Total processed: 6', $commandTester->getDisplay());
     }
 }
