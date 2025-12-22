@@ -34,6 +34,8 @@ final class FunctionalFixtureHelper
 
     public function createAndEnablePlugin(): void
     {
+        $this->createAndEnableCompanySegmentsPlugin();
+
         $plugin = new Plugin();
         $plugin->setName('Company Points by Leuchtfeuer');
         $plugin->setBundle('LeuchtfeuerCompanyPointsBundle');
@@ -386,7 +388,7 @@ final class FunctionalFixtureHelper
         $this->client->submit($formElement);
     }
 
-    public function createAndEnableCompanySegmentsPlugin(): void
+    private function createAndEnableCompanySegmentsPlugin(): void
     {
         $plugin = new Plugin();
         $plugin->setName('Company Segments by Leuchtfeuer');

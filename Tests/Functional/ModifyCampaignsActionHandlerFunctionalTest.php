@@ -203,8 +203,6 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
     public function testModifyCampaignActionForPlaceholderContact(): void
     {
         $this->fixtureHelper->createAndEnablePlugin();
-        // required for placeholder contacts to be created
-        $this->fixtureHelper->createAndEnableCompanySegmentsPlugin();
 
         $company      = $this->fixtureHelper->createCompany('abc', 'a@a.com');
         $companyModel = $this->getContainer()->get('mautic.lead.model.company');
