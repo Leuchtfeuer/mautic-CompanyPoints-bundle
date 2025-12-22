@@ -188,7 +188,7 @@ class TriggerController extends FormController
 
         $session      = $request->getSession();
         $pointTrigger = $request->request->get('companypointtrigger') ?? [];
-        $sessionId    = $pointTrigger['sessionId'] ?? 'mautic_'.sha1(uniqid((string) random_int(1, PHP_INT_MAX), true));
+        $sessionId    = $pointTrigger['sessionId'] ?? 'mautic_'.sha1(uniqid((string) random_int(1, PHP_INT_MAX), true)); // not the problem
 
         if (!$this->security->isGranted('companypoint:triggers:create')) {
             return $this->accessDenied();
@@ -494,7 +494,10 @@ class TriggerController extends FormController
                 $entity->addTriggerEvent($key, $action);
                 $actionArray = $action->convertToArray();
                 unset($actionArray['form']);
-                $triggerEvents[] = $actionArray;
+
+                $keyId                 = 'new'.hash('sha1', uniqid('', true));
+                $actionArray['id']     = $keyId;
+                $triggerEvents[$keyId] = $actionArray;
             }
         }
 
