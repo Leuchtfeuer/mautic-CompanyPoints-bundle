@@ -7,6 +7,7 @@ use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 class ModifyCompanyContactsCampaignType extends AbstractType
 {
@@ -35,6 +36,11 @@ class ModifyCompanyContactsCampaignType extends AbstractType
                 ],
                 'required'    => true,
                 'placeholder' => 'mautic.core.form.chooseone',
+                'constraints' => [
+                    new NotBlank(
+                        ['message' => 'mautic.core.value.required']
+                    ),
+                ],
             ]
         );
 

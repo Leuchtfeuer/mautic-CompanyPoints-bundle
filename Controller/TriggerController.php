@@ -494,7 +494,10 @@ class TriggerController extends FormController
                 $entity->addTriggerEvent($key, $action);
                 $actionArray = $action->convertToArray();
                 unset($actionArray['form']);
-                $triggerEvents[] = $actionArray;
+
+                $keyId                 = 'new'.hash('sha1', uniqid('', true));
+                $actionArray['id']     = $keyId;
+                $triggerEvents[$keyId] = $actionArray;
             }
         }
 
