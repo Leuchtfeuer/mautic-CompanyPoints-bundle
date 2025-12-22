@@ -10,20 +10,23 @@ use Mautic\CampaignBundle\Tests\Functional\Fixtures\FixtureHelper as CampaignFix
 use Mautic\CoreBundle\Test\MauticMysqlTestCase;
 use Mautic\LeadBundle\Entity\Company;
 use Mautic\LeadBundle\Entity\Lead;
+use Mautic\LeadBundle\Model\CompanyModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Fixtures\FunctionalFixtureHelper;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesPlaceholderLeads;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesPlaceholderLeadsRepository;
 
 class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
 {
     protected $useCleanupRollback = false;
     private FunctionalFixtureHelper $fixtureHelper;
-    private CampaignFixtureHelper $campaginFixtureHelper;
+    private CampaignFixtureHelper $campaignFixtureHelper;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->fixtureHelper         = new FunctionalFixtureHelper($this->em, $this->client);
-        $this->campaginFixtureHelper = new CampaignFixtureHelper($this->em);
+        $this->campaignFixtureHelper = new CampaignFixtureHelper($this->em);
     }
 
     /**
@@ -36,8 +39,8 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createAndEnablePlugin();
         $company    = $this->fixtureHelper->createCompany('abc');
         $contactIds = $this->createAllLeads($company);
-        $campaign   = $this->campaginFixtureHelper->createCampaign('Add Lead To Campaign Company Trigger Action');
-        $this->campaginFixtureHelper->createCampaignWithScheduledEvent($campaign, 0, 'i');
+        $campaign   = $this->campaignFixtureHelper->createCampaign('Add Lead To Campaign Company Trigger Action');
+        $this->campaignFixtureHelper->createCampaignWithScheduledEvent($campaign, 0, 'i');
 
         $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
             'Tag on new contact first activity',
@@ -88,13 +91,13 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createAndEnablePlugin();
         $company    = $this->fixtureHelper->createCompany('abc');
         $contactIds = $this->createAllLeads($company);
-        $campaign   = $this->campaginFixtureHelper->createCampaign('Remove Lead From Campaign Company Trigger Action');
-        $this->campaginFixtureHelper->createCampaignWithScheduledEvent($campaign, 0, 'i');
+        $campaign   = $this->campaignFixtureHelper->createCampaign('Remove Lead From Campaign Company Trigger Action');
+        $this->campaignFixtureHelper->createCampaignWithScheduledEvent($campaign, 0, 'i');
 
         foreach ($contactIds as $contactId) {
             $contact = $this->em->getRepository(Lead::class)->find($contactId);
             $this->assertInstanceOf(Lead::class, $contact);
-            $this->campaginFixtureHelper->addContactToCampaign($contact, $campaign);
+            $this->campaignFixtureHelper->addContactToCampaign($contact, $campaign);
         }
         $this->em->flush();
         $this->em->clear();
@@ -145,10 +148,10 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createAndEnablePlugin();
         $company    = $this->fixtureHelper->createCompany('abc');
         $contactIds = $this->createAllLeads($company);
-        $campaign   = $this->campaginFixtureHelper->createCampaign('Remove Lead From Campaign Company Trigger Action');
+        $campaign   = $this->campaignFixtureHelper->createCampaign('Remove Lead From Campaign Company Trigger Action');
         $campaign->setAllowRestart(true);
         $this->em->persist($campaign);
-        $this->campaginFixtureHelper->createCampaignWithScheduledEvent($campaign, 0, 'i');
+        $this->campaignFixtureHelper->createCampaignWithScheduledEvent($campaign, 0, 'i');
 
         $contactsToAdd = [
             $contactIds['known-contact-with-most-recent-activity'],
@@ -159,7 +162,7 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
         foreach ($contactsToAdd as $contactId) {
             $contact = $this->em->getRepository(Lead::class)->find($contactId);
             $this->assertInstanceOf(Lead::class, $contact);
-            $this->campaginFixtureHelper->addContactToCampaign($contact, $campaign);
+            $this->campaignFixtureHelper->addContactToCampaign($contact, $campaign);
         }
 
         $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
@@ -195,6 +198,57 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
                 $this->assertEquals(2, $campaignMember->getRotation());
             }
         }
+    }
+
+    public function testModifyCampaignActionForPlaceholderContact(): void
+    {
+        $this->fixtureHelper->createAndEnablePlugin();
+        // required for placeholder contacts to be created
+        $this->fixtureHelper->createAndEnableCompanySegmentsPlugin();
+
+        $company      = $this->fixtureHelper->createCompany('abc', 'a@a.com');
+        $companyModel = $this->getContainer()->get('mautic.lead.model.company');
+        $this->assertInstanceOf(CompanyModel::class, $companyModel);
+        $companyModel->saveEntity($company);
+
+        $contactIds = $this->createAllLeads($company);
+        $campaign   = $this->campaignFixtureHelper->createCampaign('Remove Lead From Campaign Company Trigger Action');
+        $campaign->setAllowRestart(true);
+        $this->em->persist($campaign);
+        $this->campaignFixtureHelper->createCampaignWithScheduledEvent($campaign, 0, 'i');
+        $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
+            'Remove contact from campaign trigger',
+            CompanyTrigger::ACTIVITY_EVERY_OF_A_CONTACT
+        );
+
+        $triggerEvent = $this->fixtureHelper->createModifyContactCampaignsAction(
+            $trigger,
+            'Add placeholder contact to campaign',
+            [$campaign],
+            [],
+            [],
+            'placeholder_contact',
+        );
+
+        $contactToEmulate = $this->em->getRepository(Lead::class)->find($contactIds['known-contact-with-most-recent-activity']);
+        $this->assertInstanceOf(Lead::class, $contactToEmulate);
+        $this->fixtureHelper->emulateEmailLinkClicked($contactToEmulate);
+        $this->em->clear();
+
+        $campaignId       = $campaign->getId();
+        $reloadedCampaign = $this->em->getRepository(Campaign::class)->find($campaignId);
+        $this->assertInstanceOf(Campaign::class, $reloadedCampaign);
+        /** @var CampaignLead[] $campaignLeads */
+        $campaignLeads = $reloadedCampaign->getLeads()->toArray();
+        $this->assertCount(1, $campaignLeads);
+        $campaignLead = $campaignLeads[0];
+        $this->assertInstanceOf(CampaignLead::class, $campaignLead);
+
+        $companyPlaceholderRepository = $this->em->getRepository(CompaniesPlaceholderLeads::class);
+        $this->assertInstanceOf(CompaniesPlaceholderLeadsRepository::class, $companyPlaceholderRepository);
+        $placeholderLead = $companyPlaceholderRepository->getPrimaryLeadOfCompany($company->getId());
+        $this->assertInstanceOf(Lead::class, $placeholderLead);
+        $this->assertEquals($placeholderLead->getId(), $campaignLead->getLead()->getId());
     }
 
     /**
