@@ -10,6 +10,7 @@ use Mautic\LeadBundle\Entity\Lead;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Fixtures\FunctionalFixtureHelper;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Entity\CompanyTags;
+use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Entity\CompanyTagsRepository;
 use PHPUnit\Framework\Assert;
 
 class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
@@ -27,9 +28,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
     public function activityEmulationDataProvider(): array
     {
         return [
-            'email link clicked' => ['email_link_clicked'],
-            'page visit'       => ['page_visit'],
-            'form submit'       => ['form_submit'],
+            'email link clicked'              => ['email_link_clicked'],
+            'page visit'                      => ['page_visit'],
+            'form submit'                     => ['form_submit'],
             'form submit with tracking'       => ['form_submit_with_tracking'],
         ];
     }
@@ -52,7 +53,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Add Test Tag action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         // Create a company
@@ -71,11 +72,11 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
 
         // 2. Emulate the activity using the method from the data provider
         match ($emulationMethod) {
-            'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($contact),
-            'page_visit' => $this->fixtureHelper->emulatePageVisit($contact),
-            'form_submit' => $this->fixtureHelper->emulateFormSubmit($contact),
+            'email_link_clicked'        => $this->fixtureHelper->emulateEmailLinkClicked($contact),
+            'page_visit'                => $this->fixtureHelper->emulatePageVisit($contact),
+            'form_submit'               => $this->fixtureHelper->emulateFormSubmit($contact),
             'form_submit_with_tracking' => $this->fixtureHelper->emulateFormSubmitWithTracking($contact),
-            default => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
+            default                     => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
         };
 
         // 3. Check if the company has the tag assigned
@@ -85,7 +86,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company);
 
         Assert::assertNotNull($updatedCompany);
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $tags = $tagsRepostory->getTagsByCompany($company);
 
         Assert::assertCount(1, $tags, 'Company should have one tag after the link click.');
         Assert::assertSame($companyTag->getId(), $tags[0]->getId(), 'The company was not tagged with the correct tag.');
@@ -110,7 +113,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Add First Ever tag action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         // Create a company
@@ -135,11 +138,11 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
 
         // 2. Emulate the activity using the method from the data provider
         match ($emulationMethod) {
-            'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
-            'page_visit' => $this->fixtureHelper->emulatePageVisit($newContact),
-            'form_submit' => $this->fixtureHelper->emulateFormSubmit($newContact),
+            'email_link_clicked'        => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
+            'page_visit'                => $this->fixtureHelper->emulatePageVisit($newContact),
+            'form_submit'               => $this->fixtureHelper->emulateFormSubmit($newContact),
             'form_submit_with_tracking' => $this->fixtureHelper->emulateFormSubmitWithTracking($newContact),
-            default => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
+            default                     => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
         };
 
         // 3. Check that the company was NOT tagged
@@ -149,7 +152,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
         Assert::assertNotNull($updatedCompany);
 
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $tags = $tagsRepostory->getTagsByCompany($company);
 
         Assert::assertCount(0, $tags, 'Company should NOT be tagged as there was already an active member.');
     }
@@ -172,7 +177,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Add First Ever tag action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         // Create a company
@@ -197,11 +202,11 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
 
         // 2. Emulate the activity using the method from the data provider
         match ($emulationMethod) {
-            'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
-            'page_visit'         => $this->fixtureHelper->emulatePageVisit($newContact),
-            'form_submit'        => $this->fixtureHelper->emulateFormSubmit($newContact),
+            'email_link_clicked'        => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
+            'page_visit'                => $this->fixtureHelper->emulatePageVisit($newContact),
+            'form_submit'               => $this->fixtureHelper->emulateFormSubmit($newContact),
             'form_submit_with_tracking' => $this->fixtureHelper->emulateFormSubmitWithTracking($newContact),
-            default              => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
+            default                     => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
         };
 
         // 3. Check that the company WAS tagged
@@ -211,7 +216,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
         Assert::assertNotNull($updatedCompany);
 
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $tags = $tagsRepostory->getTagsByCompany($company);
 
         Assert::assertCount(1, $tags, 'Company should be tagged as the other member was inactive.');
         Assert::assertSame($companyTag->getId(), $tags[0]->getId(), 'The company was not tagged with the correct "first ever" tag.');
@@ -236,7 +243,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Add First in 30 Days Tag action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         // Create a company
@@ -262,11 +269,11 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
 
         // 2. Emulate the activity which should trigger the action
         match ($emulationMethod) {
-            'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
-            'page_visit'         => $this->fixtureHelper->emulatePageVisit($newContact),
-            'form_submit'        => $this->fixtureHelper->emulateFormSubmit($newContact),
+            'email_link_clicked'        => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
+            'page_visit'                => $this->fixtureHelper->emulatePageVisit($newContact),
+            'form_submit'               => $this->fixtureHelper->emulateFormSubmit($newContact),
             'form_submit_with_tracking' => $this->fixtureHelper->emulateFormSubmitWithTracking($newContact),
-            default              => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
+            default                     => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
         };
 
         // 3. Check that the company WAS tagged
@@ -276,7 +283,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
         Assert::assertNotNull($updatedCompany);
 
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $tags = $tagsRepostory->getTagsByCompany($company);
 
         Assert::assertCount(1, $tags, 'Company should be tagged as this is the first activity in 30 days.');
         Assert::assertSame($companyTag->getId(), $tags[0]->getId(), 'The company was not tagged with the correct "first in 30 days" tag.');
@@ -301,7 +310,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Should not run action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         // Create a company
@@ -327,11 +336,11 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
 
         // 2. Emulate the activity, which should NOT trigger the action
         match ($emulationMethod) {
-            'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
-            'page_visit'         => $this->fixtureHelper->emulatePageVisit($newContact),
-            'form_submit'        => $this->fixtureHelper->emulateFormSubmit($newContact),
+            'email_link_clicked'        => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
+            'page_visit'                => $this->fixtureHelper->emulatePageVisit($newContact),
+            'form_submit'               => $this->fixtureHelper->emulateFormSubmit($newContact),
             'form_submit_with_tracking' => $this->fixtureHelper->emulateFormSubmitWithTracking($newContact),
-            default              => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
+            default                     => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
         };
 
         // 3. Check that the company was NOT tagged
@@ -341,7 +350,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
         Assert::assertNotNull($updatedCompany);
 
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $tags = $tagsRepostory->getTagsByCompany($company);
 
         Assert::assertCount(0, $tags, 'Company should NOT be tagged as there was recent activity within the last 30 days.');
     }
@@ -364,7 +375,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Add New Contact Activity Tag Action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         // Create a company
@@ -393,11 +404,11 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
 
         // 2. Action: Emulate the first activity for the new contact
         match ($emulationMethod) {
-            'email_link_clicked' => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
-            'page_visit'         => $this->fixtureHelper->emulatePageVisit($newContact),
-            'form_submit'        => $this->fixtureHelper->emulateFormSubmit($newContact),
+            'email_link_clicked'        => $this->fixtureHelper->emulateEmailLinkClicked($newContact),
+            'page_visit'                => $this->fixtureHelper->emulatePageVisit($newContact),
+            'form_submit'               => $this->fixtureHelper->emulateFormSubmit($newContact),
             'form_submit_with_tracking' => $this->fixtureHelper->emulateFormSubmitWithTracking($newContact),
-            default              => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
+            default                     => throw new \InvalidArgumentException("Unknown emulation type: $emulationMethod")
         };
 
         // 3. Assertion: Check that the company was tagged
@@ -407,7 +418,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
         Assert::assertNotNull($updatedCompany);
 
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $tags = $tagsRepostory->getTagsByCompany($company);
 
         Assert::assertCount(1, $tags, 'Company should be tagged on the first activity of a new contact.');
         Assert::assertSame($companyTag->getId(), $tags[0]->getId(), 'The company was not tagged with the correct "new contact activity" tag.');
@@ -429,7 +442,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'This action should not run',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         // Create a company
@@ -456,7 +469,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
         Assert::assertNotNull($updatedCompany);
 
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $tags = $tagsRepostory->getTagsByCompany($company);
 
         Assert::assertCount(0, $tags, 'Company should NOT be tagged as the activity was from an existing contact, not a new one.');
     }
@@ -527,7 +542,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Add First Ever tag action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         $form = $this->fixtureHelper->createFormWithCompanyViaApi('Test Form');
@@ -543,7 +558,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $company = $this->em->getRepository(Company::class)->findOneBy(['name' => 'Test Company']);
         Assert::assertNotNull($company);
 
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $tags = $tagsRepostory->getTagsByCompany($company);
         Assert::assertCount(1, $tags, 'Company should be tagged as this was the first ever member activity.');
         Assert::assertSame($companyTag->getId(), $tags[0]->getId(), 'The company was not tagged with the correct "first ever" tag.');
         Assert::assertSame($companyTag->getTag(), $tags[0]->getTag());
@@ -555,25 +572,25 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createAndEnablePlugin();
 
         $companyTag = $this->fixtureHelper->createCompanyTag('Test Tag To Add');
-        $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
+        $trigger    = $this->fixtureHelper->createMembershipActivityTrigger(
             'Tag company on contact click',
             CompanyTrigger::ACTIVITY_EVERY_OF_A_CONTACT
         );
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Add Test Tag action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         $companyTag2 = $this->fixtureHelper->createCompanyTag('This tag should not be added');
-        $trigger2 = $this->fixtureHelper->createMembershipActivityTrigger(
+        $trigger2    = $this->fixtureHelper->createMembershipActivityTrigger(
             'Tag company on contact click',
             CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT
         );
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger2,
             'Add Test Tag action',
-            [$companyTag2->getTag()]
+            [$companyTag2->getId()]
         );
 
         // Create a company
@@ -598,7 +615,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company);
 
         Assert::assertNotNull($updatedCompany);
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $tags = $tagsRepostory->getTagsByCompany($company);
 
         Assert::assertCount(1, $tags, 'Company should have one tag after the link click.');
         Assert::assertSame($companyTag->getId(), $tags[0]->getId(), 'The company was not tagged with the correct tag.');
@@ -619,7 +638,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Add Tag action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         $primaryCompany   = $this->fixtureHelper->createCompany('Primary Company Inc.');
@@ -647,7 +666,10 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         /** @var Company|null $reloadedPrimary */
         $reloadedPrimary = $this->em->getRepository(Company::class)->find($primaryCompany->getId());
         Assert::assertNotNull($reloadedPrimary);
-        $primaryTags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($reloadedPrimary);
+
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $primaryTags = $tagsRepostory->getTagsByCompany($reloadedPrimary);
 
         Assert::assertCount(1, $primaryTags, 'Primary company SHOULD be tagged.');
         Assert::assertSame($companyTag->getId(), $primaryTags[0]->getId());
@@ -656,9 +678,8 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         /** @var Company|null $reloadedSecondary */
         $reloadedSecondary = $this->em->getRepository(Company::class)->find($secondaryCompany->getId());
         Assert::assertNotNull($reloadedSecondary);
-        $secondaryTags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($reloadedSecondary);
+        $secondaryTags = $tagsRepostory->getTagsByCompany($reloadedSecondary);
 
         Assert::assertCount(0, $secondaryTags, 'Secondary company SHOULD NOT be tagged.');
     }
-
 }

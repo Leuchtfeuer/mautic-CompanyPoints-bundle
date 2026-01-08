@@ -17,8 +17,8 @@ class ModifyTagsActionHandler
     /**
      * Executes the action of adding and/or removing tags from a company.
      *
-     * @param Company              $company           The company to modify.
-     * @param array<string, mixed> $triggerProperties The properties from the trigger event, containing 'add_tags' and 'remove_tags'.
+     * @param Company              $company           the company to modify
+     * @param array<string, mixed> $triggerProperties the properties from the trigger event, containing 'add_tags' and 'remove_tags'
      */
     public function execute(Company $company, array $triggerProperties): void
     {
@@ -26,7 +26,7 @@ class ModifyTagsActionHandler
         $tagsToRemove = [];
 
         if (!empty($triggerProperties['add_tags'])) {
-            $tags = $this->companyTagModel->getRepository()->findBy(['tag' => $triggerProperties['add_tags']]);
+            $tags = $this->companyTagModel->getRepository()->findBy(['id' => $triggerProperties['add_tags']]);
 
             // Get tags the company already possesses to avoid adding duplicates.
             $tagsAlreadyExist = $this->companyTagModel->getTagsByCompany($company);
