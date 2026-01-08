@@ -2,13 +2,13 @@ name: ciUnitTests
 on:
   push:
     branches:
-      - main
+      - 'mautic[0-9]+'
       - '[0-9]+\-[0-9]+\-x'
       - 'MTC\-[0-9]+'
       - 'MTC\-[0-9]+-bugfix'
   pull_request:
     branches:
-      - 'main'
+      - 'mautic[0-9]+'
 
 jobs:
   integration:
