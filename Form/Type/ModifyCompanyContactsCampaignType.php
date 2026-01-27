@@ -33,6 +33,7 @@ class ModifyCompanyContactsCampaignType extends AbstractType
                     'mautic.companypoints.action.modifycampaigns.triggercontacts.all_known_contacts_with_recent_activity' => CompanyTriggerEvent::COMPANY_ALL_KNOWN_CONTACTS_WITH_RECENT_ACTIVITY,
                     'mautic.companypoints.action.modifycampaigns.triggercontacts.all_contacts'                            => CompanyTriggerEvent::COMPANY_ALL_CONTACTS,
                     'mautic.companypoints.action.modifycampaigns.triggercontacts.all_known_contacts'                      => CompanyTriggerEvent::COMPANY_ALL_KNOWN_CONTACTS,
+                    'mautic.companypoints.action.modifycampaigns.triggercontacts.placeholder_contact'                     => CompanyTriggerEvent::PLACEHOLDER_CONTACT,
                 ],
                 'required'    => true,
                 'placeholder' => 'mautic.core.form.chooseone',
