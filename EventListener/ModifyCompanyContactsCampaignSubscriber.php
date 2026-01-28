@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\EventListener;
 
-use Mautic\CampaignBundle\Form\Type\CampaignEventAddRemoveLeadType;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyTriggerBuilderEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Form\Type\ModifyCompanyContactsCampaignType;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents;
@@ -27,7 +26,7 @@ class ModifyCompanyContactsCampaignSubscriber implements EventSubscriberInterfac
             'group'              => 'mautic.companypoints.modifycampaigns.group.actions',
             'label'              => 'mautic.companypoints.modifycampaigns.group.actions.modifycampaigns',
             'formType'           => ModifyCompanyContactsCampaignType::class,
-            'eventName' => LeuchtfeuerCompanyPointsEvents::COMPANY_TRIGGER_ON_EVENT_EXECUTE,
+            'eventName'          => LeuchtfeuerCompanyPointsEvents::COMPANY_TRIGGER_ON_EVENT_EXECUTE,
         ];
 
         $event->addEvent(self::TRIGGER_KEY, $newEvent);

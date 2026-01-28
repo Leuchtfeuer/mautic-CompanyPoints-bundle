@@ -12,6 +12,7 @@ use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Model\CompanyModel;
 use Mautic\LeadBundle\Model\LeadModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesPlaceholderLeadsRepository;
 
 class ModifyCampaignsActionHandler
 {
@@ -19,7 +20,8 @@ class ModifyCampaignsActionHandler
         private MembershipManager $membershipManager,
         private CampaignModel $campaignModel,
         private LeadModel $leadModel,
-        private CompanyModel $companyModel
+        private CompanyModel $companyModel,
+        private CompaniesPlaceholderLeadsRepository $companiesPlaceholderLeadsRepository,
     ) {
     }
 
@@ -227,6 +229,11 @@ class ModifyCampaignsActionHandler
                 ]);
 
                 return (is_array($results) && !empty($results)) ? array_values($results) : [];
+
+            case CompanyTriggerEvent::PLACEHOLDER_CONTACT:
+                $placeholderLead = $this->companiesPlaceholderLeadsRepository->getPrimaryLeadOfCompany($company->getId()) ?? [];
+
+                return ($placeholderLead instanceof Lead) ? [$placeholderLead] : [];
 
             default:
                 return [];

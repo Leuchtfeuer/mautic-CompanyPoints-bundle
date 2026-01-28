@@ -53,7 +53,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Add Test Tag action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         // Create a company
@@ -86,7 +86,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company);
 
         Assert::assertNotNull($updatedCompany);
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $tags = $tagsRepostory->getTagsByCompany($company);
 
         Assert::assertCount(1, $tags, 'Company should have one tag after the link click.');
         Assert::assertSame($companyTag->getId(), $tags[0]->getId(), 'The company was not tagged with the correct tag.');
@@ -111,7 +113,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Add First Ever tag action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         // Create a company
@@ -150,7 +152,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
         Assert::assertNotNull($updatedCompany);
 
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $tags = $tagsRepostory->getTagsByCompany($company);
 
         Assert::assertCount(0, $tags, 'Company should NOT be tagged as there was already an active member.');
     }
@@ -173,7 +177,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Add First Ever tag action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         // Create a company
@@ -212,7 +216,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
         Assert::assertNotNull($updatedCompany);
 
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $tags = $tagsRepostory->getTagsByCompany($company);
 
         Assert::assertCount(1, $tags, 'Company should be tagged as the other member was inactive.');
         Assert::assertSame($companyTag->getId(), $tags[0]->getId(), 'The company was not tagged with the correct "first ever" tag.');
@@ -237,7 +243,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Add First in 30 Days Tag action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         // Create a company
@@ -277,7 +283,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
         Assert::assertNotNull($updatedCompany);
 
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $tags = $tagsRepostory->getTagsByCompany($company);
 
         Assert::assertCount(1, $tags, 'Company should be tagged as this is the first activity in 30 days.');
         Assert::assertSame($companyTag->getId(), $tags[0]->getId(), 'The company was not tagged with the correct "first in 30 days" tag.');
@@ -302,7 +310,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Should not run action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         // Create a company
@@ -342,7 +350,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
         Assert::assertNotNull($updatedCompany);
 
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $tags = $tagsRepostory->getTagsByCompany($company);
 
         Assert::assertCount(0, $tags, 'Company should NOT be tagged as there was recent activity within the last 30 days.');
     }
@@ -365,7 +375,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Add New Contact Activity Tag Action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         // Create a company
@@ -408,7 +418,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
         Assert::assertNotNull($updatedCompany);
 
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $tags = $tagsRepostory->getTagsByCompany($company);
 
         Assert::assertCount(1, $tags, 'Company should be tagged on the first activity of a new contact.');
         Assert::assertSame($companyTag->getId(), $tags[0]->getId(), 'The company was not tagged with the correct "new contact activity" tag.');
@@ -430,7 +442,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'This action should not run',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         // Create a company
@@ -457,7 +469,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
         Assert::assertNotNull($updatedCompany);
 
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $tags = $tagsRepostory->getTagsByCompany($company);
 
         Assert::assertCount(0, $tags, 'Company should NOT be tagged as the activity was from an existing contact, not a new one.');
     }
@@ -528,7 +542,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Add First Ever tag action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         $form = $this->fixtureHelper->createFormWithCompanyViaApi('Test Form');
@@ -544,7 +558,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $company = $this->em->getRepository(Company::class)->findOneBy(['name' => 'Test Company']);
         Assert::assertNotNull($company);
 
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $tags = $tagsRepostory->getTagsByCompany($company);
         Assert::assertCount(1, $tags, 'Company should be tagged as this was the first ever member activity.');
         Assert::assertSame($companyTag->getId(), $tags[0]->getId(), 'The company was not tagged with the correct "first ever" tag.');
         Assert::assertSame($companyTag->getTag(), $tags[0]->getTag());
@@ -563,7 +579,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Add Test Tag action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         $companyTag2 = $this->fixtureHelper->createCompanyTag('This tag should not be added');
@@ -574,7 +590,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger2,
             'Add Test Tag action',
-            [$companyTag2->getTag()]
+            [$companyTag2->getId()]
         );
 
         // Create a company
@@ -599,7 +615,9 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $updatedCompany = $this->em->getRepository(Company::class)->find($company);
 
         Assert::assertNotNull($updatedCompany);
-        $tags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($company);
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $tags = $tagsRepostory->getTagsByCompany($company);
 
         Assert::assertCount(1, $tags, 'Company should have one tag after the link click.');
         Assert::assertSame($companyTag->getId(), $tags[0]->getId(), 'The company was not tagged with the correct tag.');
@@ -620,7 +638,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Add Tag action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         $primaryCompany   = $this->fixtureHelper->createCompany('Primary Company Inc.');
@@ -648,7 +666,10 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         /** @var Company|null $reloadedPrimary */
         $reloadedPrimary = $this->em->getRepository(Company::class)->find($primaryCompany->getId());
         Assert::assertNotNull($reloadedPrimary);
-        $primaryTags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($reloadedPrimary);
+
+        $tagsRepostory = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepostory);
+        $primaryTags = $tagsRepostory->getTagsByCompany($reloadedPrimary);
 
         Assert::assertCount(1, $primaryTags, 'Primary company SHOULD be tagged.');
         Assert::assertSame($companyTag->getId(), $primaryTags[0]->getId());
@@ -657,7 +678,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         /** @var Company|null $reloadedSecondary */
         $reloadedSecondary = $this->em->getRepository(Company::class)->find($secondaryCompany->getId());
         Assert::assertNotNull($reloadedSecondary);
-        $secondaryTags = $this->em->getRepository(CompanyTags::class)->getTagsByCompany($reloadedSecondary);
+        $secondaryTags = $tagsRepostory->getTagsByCompany($reloadedSecondary);
 
         Assert::assertCount(0, $secondaryTags, 'Secondary company SHOULD NOT be tagged.');
     }
