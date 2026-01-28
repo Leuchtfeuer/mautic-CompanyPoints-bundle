@@ -19,6 +19,7 @@ use Mautic\PluginBundle\Entity\Integration;
 use Mautic\PluginBundle\Entity\Plugin;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Entity\CompanyTags;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -191,13 +192,34 @@ final class FunctionalFixtureHelper
         return $companyTag;
     }
 
-    public function createMembershipActivityTrigger(string $name, string $memberActivity): CompanyTrigger
+    /**
+     * @param array<string, mixed> $filter
+     */
+    public function createMembershipActivityTrigger(string $name, string $memberActivity, $filter = []): CompanyTrigger
     {
         $trigger = new CompanyTrigger();
         $trigger->setName($name);
         $trigger->setType(CompanyTrigger::TYPE_MEMBER_ACTIVITY);
+        $trigger->setCompanySegmentMembershipFilter($filter);
         $trigger->setIsPublished(true);
         $trigger->setMemberActivity($memberActivity);
+        $this->em->persist($trigger);
+        $this->em->flush();
+
+        return $trigger;
+    }
+
+    /**
+     * @param array<string, mixed> $filter
+     */
+    public function createPointTrigger(string $name, $filter = []): CompanyTrigger
+    {
+        $trigger = new CompanyTrigger();
+        $trigger->setName($name);
+        $trigger->setType(CompanyTrigger::TYPE_POINTS);
+        $trigger->setCompanySegmentMembershipFilter($filter);
+        $trigger->setIsPublished(true);
+        $trigger->setPoints(1);
         $this->em->persist($trigger);
         $this->em->flush();
 
@@ -388,6 +410,16 @@ final class FunctionalFixtureHelper
         $this->client->submit($formElement);
     }
 
+    public function addCompanyToSegment(Company $company, CompanySegment $companySegment): void
+    {
+        $companiesSegments = new CompaniesSegments();
+        $companiesSegments->setCompany($company);
+        $companiesSegments->setCompanySegment($companySegment);
+        $companiesSegments->setDateAdded(new \DateTime());
+        $this->em->persist($companiesSegments);
+        $this->em->flush();
+    }
+  
     private function createAndEnableCompanySegmentsPlugin(): void
     {
         $plugin = new Plugin();

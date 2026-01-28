@@ -682,4 +682,89 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
 
         Assert::assertCount(0, $secondaryTags, 'Secondary company SHOULD NOT be tagged.');
     }
+
+    public function testCompanyFulfillsCompanySegmentFilter(): void
+    {
+        $this->fixtureHelper->createAndEnablePlugin();
+        $segment = $this->fixtureHelper->createCompanySegment('abc');
+        $company = $this->fixtureHelper->createCompany('Test Inc.');
+        $this->em->flush();
+        $this->fixtureHelper->addCompanyToSegment($company, $segment);
+        $companyTag = $this->fixtureHelper->createCompanyTag('Test Tag To Add');
+
+        $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
+            'Tag company on contact click',
+            CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT,
+            ['operator' => 'in', 'segments' => [$segment->getId()]]
+        );
+
+        $this->fixtureHelper->createCompanyTagsAction(
+            $trigger,
+            'Add Test Tag action',
+            [$companyTag->getTag()]
+        );
+
+        $contact =$this->fixtureHelper->createContact('jj@example.com');
+        $contact->setCompany($company->getName());
+        $this->em->persist($contact);
+        $this->em->flush();
+        $this->fixtureHelper->addContactToCompany($contact, $company);
+        $this->em->flush();
+
+        $this->fixtureHelper->emulateEmailLinkClicked($contact);
+        $this->em->clear();
+
+        /** @var Company|null $updatedCompany */
+        $updatedCompany = $this->em->getRepository(Company::class)->find($company);
+
+        Assert::assertNotNull($updatedCompany);
+        /** @var CompanyTagsRepository $tagsRepository */
+        $tagsRepository = $this->em->getRepository(CompanyTags::class);
+        $tags           = $tagsRepository->getTagsByCompany($company);
+
+        Assert::assertCount(1, $tags, 'Company should have one tag after the link click.');
+        Assert::assertSame($companyTag->getId(), $tags[0]->getId(), 'The company was not tagged with the correct tag.');
+        Assert::assertSame($companyTag->getTag(), $tags[0]->getTag());
+    }
+
+    public function testCompanyDoesntFulfillsCompanySegmentFilter(): void
+    {
+        $this->fixtureHelper->createAndEnablePlugin();
+        $segment = $this->fixtureHelper->createCompanySegment('abc');
+        $company = $this->fixtureHelper->createCompany('Test Inc.');
+        $this->em->flush();
+        $companyTag = $this->fixtureHelper->createCompanyTag('Test Tag To Add');
+
+        $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
+            'Tag company on contact click',
+            CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT,
+            ['operator' => 'in', 'segments' => [$segment->getId()]]
+        );
+
+        $this->fixtureHelper->createCompanyTagsAction(
+            $trigger,
+            'Add Test Tag action',
+            [$companyTag->getTag()]
+        );
+
+        $contact =$this->fixtureHelper->createContact('jj@example.com');
+        $contact->setCompany($company->getName());
+        $this->em->persist($contact);
+        $this->em->flush();
+        $this->fixtureHelper->addContactToCompany($contact, $company);
+        $this->em->flush();
+
+        $this->fixtureHelper->emulateEmailLinkClicked($contact);
+        $this->em->clear();
+
+        /** @var Company|null $updatedCompany */
+        $updatedCompany = $this->em->getRepository(Company::class)->find($company);
+
+        Assert::assertNotNull($updatedCompany);
+        /** @var CompanyTagsRepository $tagsRepository */
+        $tagsRepository = $this->em->getRepository(CompanyTags::class);
+        $tags           = $tagsRepository->getTagsByCompany($company);
+
+        Assert::assertCount(0, $tags, 'Company should not have a tag after link click.');
+    }
 }

@@ -10,9 +10,7 @@ use Mautic\CoreBundle\Form\Type\PublishDownDateType;
 use Mautic\CoreBundle\Form\Type\PublishUpDateType;
 use Mautic\CoreBundle\Form\Type\YesNoButtonGroupType;
 use Mautic\CoreBundle\Security\Permissions\CorePermissions;
-// use Mautic\PointBundle\Entity\Trigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
-// use Mautic\PointBundle\Form\Type\GroupListType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
@@ -30,7 +28,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 class CompanyTriggerType extends AbstractType
 {
     public function __construct(
-        private CorePermissions $security
+        private CorePermissions $security,
     ) {
     }
 
@@ -78,7 +76,7 @@ class CompanyTriggerType extends AbstractType
                     'class'   => 'form-control',
                 ],
                 'choices' => [
-                    'mautic.companypoint.trigger.form.type.points' => CompanyTrigger::TYPE_POINTS,
+                    'mautic.companypoint.trigger.form.type.points'          => CompanyTrigger::TYPE_POINTS,
                     'mautic.companypoint.trigger.form.type.member_activity' => CompanyTrigger::TYPE_MEMBER_ACTIVITY,
                 ],
             ]
@@ -127,14 +125,22 @@ class CompanyTriggerType extends AbstractType
                     'class'   => 'form-control',
                 ],
                 'choices' => [
-                    'mautic.companypoint.trigger.form.member_activity.first_contact_ever' => CompanyTrigger::ACTIVITY_FIRST_EVER,
+                    'mautic.companypoint.trigger.form.member_activity.first_contact_ever'           => CompanyTrigger::ACTIVITY_FIRST_EVER,
                     'mautic.companypoint.trigger.form.member_activity.first_contact_within_30_days' => CompanyTrigger::ACTIVITY_FIRST_WITHIN_30_DAYS,
-                    'mautic.companypoint.trigger.form.member_activity.first_of_new_contact' => CompanyTrigger::ACTIVITY_FIRST_OF_NEW_CONTACT,
-                    'mautic.companypoint.trigger.form.member_activity.every_of_a_contact' => CompanyTrigger::ACTIVITY_EVERY_OF_A_CONTACT,
-                    'mautic.companypoint.trigger.form.member_activity.every_of_known_contact' => CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT,
+                    'mautic.companypoint.trigger.form.member_activity.first_of_new_contact'         => CompanyTrigger::ACTIVITY_FIRST_OF_NEW_CONTACT,
+                    'mautic.companypoint.trigger.form.member_activity.every_of_a_contact'           => CompanyTrigger::ACTIVITY_EVERY_OF_A_CONTACT,
+                    'mautic.companypoint.trigger.form.member_activity.every_of_known_contact'       => CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT,
                 ],
                 'required'    => false,
                 'placeholder' => 'mautic.core.form.chooseone',
+            ]
+        );
+
+        $builder->add(
+            'companySegmentMembershipFilter',
+            CompanySegmentMembershipFilterType::class,
+            [
+                'label' => false,
             ]
         );
 

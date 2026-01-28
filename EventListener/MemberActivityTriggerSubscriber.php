@@ -15,6 +15,7 @@ use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEventRepository;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\BeforeUpdateLeadActivityEvent;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Helper\CompanySegmentHelper;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\Config;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\CompanyMemberActivityService;
@@ -43,9 +44,10 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
         private CompanyMemberActivityService $companyMemberActivityService,
         private MergeActivityTracker $mergeActivityTracker,
         private Config $pluginConfig,
+        private CompanySegmentHelper $companySegmentHelper,
         ModifyTagsActionHandler $modifyTagsActionHandler,
         SendEmailActionHandler $sendEmailActionHandler,
-        ModifyCampaignsActionHandler $modifyCampaignsActionHandler
+        ModifyCampaignsActionHandler $modifyCampaignsActionHandler,
     ) {
         $this->handlers = [
             self::TRIGGER_KEY_MODIFY_TAGS       => $modifyTagsActionHandler,
@@ -170,6 +172,13 @@ class MemberActivityTriggerSubscriber implements EventSubscriberInterface
 
         $trigger = $eventTrigger->getTrigger();
         if (null === $trigger || CompanyTrigger::TYPE_MEMBER_ACTIVITY !== $trigger->getType()) {
+            return false;
+        }
+
+        $companySegmentMembershipFilter = $trigger->getCompanySegmentMembershipFilter();
+        $hasCorrectSegmentMembership    = $this->companySegmentHelper->companyHasCorrectSegmentMembership($company, $companySegmentMembershipFilter);
+
+        if (false === $hasCorrectSegmentMembership) {
             return false;
         }
 

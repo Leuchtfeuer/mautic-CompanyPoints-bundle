@@ -61,6 +61,11 @@ class CompanyTrigger extends FormEntity
     private ?string $memberActivity = null;
 
     /**
+     * @var array<string, mixed>
+     */
+    private ?array $companySegmentMembershipFilter = null;
+
+    /**
      * @var bool
      */
     //    private $triggerExistingLeads = false;
@@ -114,6 +119,10 @@ class CompanyTrigger extends FormEntity
             ->nullable()
             ->build();
 
+        $builder->createField('companySegmentMembershipFilter', 'json')
+            ->columnName('company_segment_membership_filter')
+            ->nullable()
+            ->build();
         //        $builder->createField('triggerExistingLeads', 'boolean')
         //            ->columnName('trigger_existing_leads')
         //            ->build();
@@ -379,6 +388,34 @@ class CompanyTrigger extends FormEntity
     {
         $this->isChanged('memberActivity', $memberActivity);
         $this->memberActivity = $memberActivity;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function getCompanySegmentMembershipFilter(): ?array
+    {
+        return $this->companySegmentMembershipFilter;
+    }
+
+    /**
+     * @param array<string, mixed> $companySegmentMembershipFilter
+     */
+    public function setCompanySegmentMembershipFilter(array $companySegmentMembershipFilter): void
+    {
+        if (!isset($companySegmentMembershipFilter['operator'])
+            || !in_array($companySegmentMembershipFilter['operator'], ['in', 'notIn'], true)) {
+            return;
+        }
+
+        if (!isset($companySegmentMembershipFilter['segments'])
+            || !is_array($companySegmentMembershipFilter['segments'])
+            || count($companySegmentMembershipFilter['segments']) < 1) {
+            return;
+        }
+
+        $this->isChanged('companySegmentMembershipFilter', $companySegmentMembershipFilter);
+        $this->companySegmentMembershipFilter = $companySegmentMembershipFilter;
     }
 
     //    /**

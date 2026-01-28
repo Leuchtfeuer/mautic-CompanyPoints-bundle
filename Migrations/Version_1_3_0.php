@@ -8,7 +8,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Mautic\CoreBundle\Exception\SchemaException;
 use Mautic\IntegrationsBundle\Migration\AbstractMigration;
 
-class Version_1_2_0 extends AbstractMigration
+class Version_1_3_0 extends AbstractMigration
 {
     private string $companyTriggersTable = 'company_point_triggers';
 
@@ -23,7 +23,7 @@ class Version_1_2_0 extends AbstractMigration
 
             $table = $schema->getTable($tableName);
 
-            return !$table->hasColumn('type') || !$table->hasColumn('member_activity');
+            return !$table->hasColumn('company_segment_membership_filter');
         } catch (SchemaException) {
             return false;
         }
@@ -31,10 +31,6 @@ class Version_1_2_0 extends AbstractMigration
 
     protected function up(): void
     {
-        $this->addSql("ALTER TABLE `{$this->concatPrefix($this->companyTriggersTable)}` ADD type VARCHAR(191) NOT NULL");
-        $this->addSql("ALTER TABLE `{$this->concatPrefix($this->companyTriggersTable)}` ADD member_activity VARCHAR(191) DEFAULT NULL;");
-
-        // Set the `type` for all existing records to 'points'
-        $this->addSql("UPDATE `{$this->concatPrefix($this->companyTriggersTable)}` SET type = 'points'");
+        $this->addSql("ALTER TABLE `{$this->concatPrefix($this->companyTriggersTable)}` ADD company_segment_membership_filter JSON DEFAULT NULL COMMENT '(DC2Type:json)'");
     }
 }

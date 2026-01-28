@@ -1,0 +1,21 @@
+{% block _companypointtrigger_companySegmentMembershipFilter_widget %}
+    <div class="form-group">
+        <label class="control-label">
+            {{ 'mautic.companypoint.trigger.form.limit_to_company_segments'|trans }}
+        </label>
+        <div class="row">
+            <div class="col-xs-6 col-sm-3 field-name text-secondary">
+                <span>{{ 'mautic.company_segments.filter.lists'|trans }}</span>
+            </div>
+            <div class="col-xs-6 col-sm-3 padding-none">
+                {{ form_widget(form.operator) }}
+            </div>
+            {% set hasErrors = (form.segments.vars.errors|length > 0) %}
+            <div class="col-xs-12 col-sm-6 padding-none {% if hasErrors %}has-error{% endif %}">
+                {{ form_widget(form.segments) }}
+                {{ form_errors(form.segments) }}
+            </div>
+        </div>
+        {{ form_errors(form) }}
+    </div>
+{% endblock %}
