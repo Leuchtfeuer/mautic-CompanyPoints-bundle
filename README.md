@@ -88,7 +88,7 @@ and
 `php bin/console mautic:assets:generate`
 
 ## Known Issues
-* Misplaced "edit" icons for Trigger events (this is a Mautic issue, cannot be fixed here)
+* In contact-related Triggered Actions ("change campaign"), options like "oldest" should exclude the "placeholder contact"
 
 ## Future Ideas
 * Choice of aggregation algorithms (including time)
@@ -97,9 +97,14 @@ and
 * Adding Company Points as a Triggered Action (would only make sense for non-point based Trigger types)
 
 ## Credits
-* @lenonleite
+* @biozshock
 * @ekkeguembel
+* @JonasLudwig1998
+* @lenonleite
+* @LeonOltmanns
+* @MadlenF
 * @PatrickJenkner
+* @patrykgruszka
 
 ## Author and Contact
 Leuchtfeuer Digital Marketing GmbH
