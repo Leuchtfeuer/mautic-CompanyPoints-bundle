@@ -1,14 +1,13 @@
-# Plugin: Company Points by Leuchtfeuer
+# Plugin: Company Points & Triggers by Leuchtfeuer
 
 ## Overview
 
-This plugin brings massively enhanced Company-based Scoring to Mautic, including events triggered by those Points.
+Massively enhanced Company-based Scoring. Point-based and even other (!) triggers and multiple triggered actions, all that for Companies.
 
-It is part of the "ABM" suite of plugins that extends Mautic capabilities for working with Companies.
+Company Points & Triggers is part of the "ABM" suite of plugins that extends Mautic capabilities for working with Companies.
 
 ## Requirements
-- Mautic 5.x (minimum 5.1)
-- PHP 8.1 or higher
+- Mautic 6
 - Company Tags and Company Segments Plugins
 
 ## Installation
@@ -36,17 +35,45 @@ OR
 3. ENABLE the plugin
 
 ## Usage
-The plugin brings a new menu item `Companies -> Company Point Triggers`. Here you can define what point limits you want, and what to do when a limit is reached.
+### Overview
+The plugin brings a new menu item `Companies -> Company Points & Triggers`.
+Here you can define point-based but also behavior-based triggered actions.
 
-There are currently no Point Action (i.e. points being automatically added to the Company when a certain condition is met).
+### Point types and calculation
+The traditional (static) "Company Points" are unchanged.
+There are currently no automated "Point Actions" (i.e. points being automatically added to the Company when a certain condition is met) but of course the traditional campaign actions for this.
 
-Instead, the aggregated score is calculated by a console command as cron job:
+On top of that, this plugin adds a "Score calculated", aggregated (across company members) by a console command:
 `php bin/console leuchtfeuer:abm:points-update`
 You should set up a cron entry accordingly.
 
-The only current algorithm for the aggregation is "static company points PLUS average among all contacts that currently have points)"
+The only current algorithm for the aggregation is "static company points PLUS average among all contacts that currently have points".
+* This also includes contacts who have this company as secondary.
+* This does not include contacts who have zero points.
+  
+Changes of "Score calculated" are reflected in the audit log and company timeline.
 
-Audit Log is created for each Company Point Trigger created, updated or deleted.
+### Triggers and Triggered Actions
+Under "Company Points & Triggers", you can define conditions ("Triggers") and assign actions to take ("Triggered Actions").
+(Note that for traditional contact Points, the wording is different: instead of "Triggered Actions", the term "events" is being used.)
+
+In the trigger, you can define
+* type of trigger (points or member contact behaviour)
+* details per trigger type
+* optional: Limitation to Company Segment
+
+The Trigger type "Points" allows to set the number of Points that it takes to invoke the trigger. This refers to "Points Calculated".
+
+The Trigger type "Company member activity" reacts to contact activity which matches the desired criteria (e.g. "First activity of every new contact"). Activity, in this context, is everything that changes the "last active" timestamp of a contact (e.g. page visit, email link click).
+
+Current choices of triggered actions:
+* Modify Company tags
+* Modify Contact campaigns (allows to choose WHICH contact to invoke, e.g. youngest / oldest / all / all known contacts or even the placeholder contact)
+* Send email to user
+
+An audit log entry is created for each Company Point Trigger created, updated or deleted.
+
+
 
 ## Troubleshooting
 Make sure you have not only installed but also enabled the Plugin.
@@ -60,15 +87,13 @@ and
 `php bin/console mautic:assets:generate`
 
 ## Known Issues
-* Console command only works ever second time
 * Misplaced "edit" icons for Trigger events (this is a Mautic issue, cannot be fixed here)
-* Error message when installing the plugin ( Mautic core was changed exactly in the place where the plugin extends it )
 
 ## Future Ideas
-* Additional Triggered Event `Send Email To User`
 * Choice of aggregation algorithms (including time)
-* Additional Triggered Events like `Send Print Mailing` and `Modify Company Segments`
+* Additional Triggered Actions like `Modify Company Segments`
 * Support for Point Groups
+* Adding Company Points as a Triggered Action (would only make sense for non-point based Trigger types)
 
 ## Credits
 * @lenonleite
