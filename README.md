@@ -2,7 +2,7 @@
 
 ## Overview
 
-Massively enhanced Company-based Scoring. Point-based and even other (!) triggers. Multiple triggered actions.
+Massively enhanced Company-based Scoring. Point-based and even other (!) triggers and multiple triggered actions, all that for Companies.
 
 Company Points & Triggers is part of the "ABM" suite of plugins that extends Mautic capabilities for working with Companies.
 
