@@ -701,7 +701,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Add Test Tag action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         $contact =$this->fixtureHelper->createContact('jj@example.com');
@@ -744,7 +744,7 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $this->fixtureHelper->createCompanyTagsAction(
             $trigger,
             'Add Test Tag action',
-            [$companyTag->getTag()]
+            [$companyTag->getId()]
         );
 
         $contact =$this->fixtureHelper->createContact('jj@example.com');

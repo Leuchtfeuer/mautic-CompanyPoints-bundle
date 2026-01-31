@@ -41,14 +41,18 @@ class CompanyScoreModel extends CompanyModel
 
     public function recalculateCompanyScores(Company $company): ?int
     {
+        $currentScore = (int) ($company->getField('companyscore_calculated')['value'] ?? 0);
         $companyScore = $company->getScore();
         $leads        = $this->getLeadsByCompany($company);
 
         if (empty($leads)) {
-            $this->setFieldValues($company, ['companyscore_calculated' => $companyScore]);
-            $this->saveEntity($company);
+            $resultScore = $companyScore;
+            if ((int) $resultScore !== $currentScore) {
+                $this->setFieldValues($company, ['companyscore_calculated' => $resultScore]);
+                $this->saveEntity($company);
+            }
 
-            return $companyScore;
+            return $resultScore;
         }
 
         $leadPoints      = 0;
@@ -72,8 +76,10 @@ class CompanyScoreModel extends CompanyModel
 
         $resultScore += $companyScore;
 
-        $this->setFieldValues($company, ['companyscore_calculated' => $resultScore]);
-        $this->saveEntity($company);
+        if ((int) $resultScore !== $currentScore) {
+            $this->setFieldValues($company, ['companyscore_calculated' => $resultScore]);
+            $this->saveEntity($company);
+        }
 
         return $resultScore;
     }
@@ -83,12 +89,12 @@ class CompanyScoreModel extends CompanyModel
      */
     public function getCompanies(int $limit = 0, int $offset = 0): array
     {
-        $qb = $this->getRepository()->createQueryBuilder('c');
-        $qb->select('c')
-            ->setFirstResult($offset)
-            ->setMaxResults($limit);
+        $result = $this->getEntities([
+            'limit' => $limit,
+            'start' => $offset,
+        ]);
 
-        return $qb->getQuery()->getResult();
+        return is_array($result) ? $result : iterator_to_array($result);
     }
 
     /**
