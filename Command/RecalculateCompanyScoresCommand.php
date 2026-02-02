@@ -109,6 +109,11 @@ class RecalculateCompanyScoresCommand extends ModeratedCommand
             $this->countQueueHelper->setOffset($offset);
         }
 
+        // Reset offset if all companies have been processed
+        if (0 === $this->getRemainingCompanyCount($offset)) {
+            $this->countQueueHelper->resetOffset();
+        }
+
         $progressBar->finish();
         $output->writeln('');
         $output->writeln('<info>Company scores recalculated. Total processed: '.$totalProcessed.'</info>');
