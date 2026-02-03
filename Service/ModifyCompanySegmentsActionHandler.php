@@ -12,10 +12,8 @@ class ModifyCompanySegmentsActionHandler
     ) {
     }
     /**
-     * Executes the action of adding and/or removing tags from a company.
-     *
-     * @param Company              $company           the company to modify
-     * @param array<string, mixed> $triggerProperties the properties from the trigger event
+     * @param Company              $company
+     * @param array<string, mixed> $triggerProperties
      */
     public function execute(Company $company, array $triggerProperties): void
     {
