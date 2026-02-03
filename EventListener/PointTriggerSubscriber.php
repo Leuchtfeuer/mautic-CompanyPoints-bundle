@@ -23,6 +23,8 @@ class PointTriggerSubscriber implements EventSubscriberInterface
     public const TRIGGER_KEY_MODIFY_TAGS       = 'companytags.updatetags';
     public const TRIGGER_KEY_SEND_EMAIL        = 'companytags.sendemails';
     public const TRIGGER_KEY_MODIFY_CAMPAIGNS  = 'companypoints.modifycampaigns';
+    public const TRIGGER_KEY_MODIFY_COMPANY_SEGMENTS  = 'companypoints.modifycompanysegments';
+
 
     /**
      * @var array<string, object>
