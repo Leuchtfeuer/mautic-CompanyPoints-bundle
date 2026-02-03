@@ -19,21 +19,26 @@ class ModifyCompanySegmentsActionHandler
      */
     public function execute(Company $company, array $triggerProperties): void
     {
-        $segmentIdsToAdd          = $triggerProperties['addToCompanySegments'] ?? [];
-        $segmentIdsToRemove       = $triggerProperties['removeFromCompanySegments'] ?? [];
+        $segmentIdsToAdd          = $triggerProperties['add_segments'] ?? [];
+        $segmentIdsToRemove       = $triggerProperties['remove_segments'] ?? [];
+
         if (is_array($segmentIdsToAdd) && !empty($segmentIdsToAdd)) {
-            $segmentsToAdd = $this->companySegmentModel->getRepository()->getSegmentObjectsViaListOfIDs($segmentIdsToAdd);
-            // Get segments the company already possesses and remove them from $segmentsToAdd to avoid adding duplicates. --> Even necessary?
+            /** @var array<int> $segmentIdsToAddTyped */
+            $segmentIdsToAddTyped = array_map('intval', $segmentIdsToAdd);
+            $segmentsToAdd = $this->companySegmentModel->getRepository()->getSegmentObjectsViaListOfIDs($segmentIdsToAddTyped);
         }
 
         if (is_array($segmentIdsToRemove) && !empty($segmentIdsToRemove)) {
-            $segmentsToRemove = $this->companySegmentModel->getRepository()->getSegmentObjectsViaListOfIDs($segmentIdsToRemove);
+            /** @var array<int> $segmentIdsToRemoveTyped */
+            $segmentIdsToRemoveTyped = array_map('intval', $segmentIdsToRemove);
+            $segmentsToRemove = $this->companySegmentModel->getRepository()->getSegmentObjectsViaListOfIDs($segmentIdsToRemoveTyped);
         }
 
-        // Execute the update only if there are tags to add or remove.
-        if (!empty($tagsToAdd) || !empty($tagsToRemove)) {
-            // Use array_values to re-index the array after potential `unset` operations.
+        if (!empty($segmentsToAdd)){
             $this->companySegmentModel->addCompany($company, $segmentsToAdd);
+        }
+
+        if(!empty($segmentsToRemove)) {
             $this->companySegmentModel->removeCompany($company, $segmentsToRemove);
         }
     }

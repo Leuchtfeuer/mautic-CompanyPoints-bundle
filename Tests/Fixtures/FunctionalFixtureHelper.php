@@ -282,6 +282,39 @@ final class FunctionalFixtureHelper
         return $event;
     }
 
+    /**
+     * @param array<CompanySegment|int> $addSegments
+     * @param array<CompanySegment|int> $removeSegments
+     */
+    public function createCompanySegmentsAction(
+        CompanyTrigger $trigger,
+        string $name,
+        array $addSegments = [],
+        array $removeSegments = []
+    ): CompanyTriggerEvent {
+        $event = new CompanyTriggerEvent();
+        $event->setTrigger($trigger);
+        $event->setName($name);
+        $event->setType('companypoints.modifycompanysegments');
+        $addSegmentIds = array_map(function ($segment) {
+            return $segment instanceof CompanySegment ? $segment->getId() : $segment;
+        }, $addSegments);
+
+        $removeSegmentIds = array_map(function ($segment) {
+            return $segment instanceof CompanySegment ? $segment->getId() : $segment;
+        }, $removeSegments);
+
+        $event->setProperties([
+            'add_segments'    => $addSegmentIds,
+            'remove_segments' => $removeSegmentIds,
+        ]);
+        $event->setOrder(1);
+        $this->em->persist($event);
+        $this->em->flush();
+
+        return $event;
+    }
+
     public function createCompanyEmailAction(
         CompanyTrigger $trigger,
         Email $email,
