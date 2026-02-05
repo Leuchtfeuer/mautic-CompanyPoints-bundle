@@ -6,7 +6,9 @@ Massively enhanced Company-based Scoring. Point-based and even other (!) trigger
 
 Company Points & Triggers is part of the "ABM" suite of plugins that extends Mautic capabilities for working with Companies.
 
-## Requirements for this release (other releases may cover different Mautic versions!)
+## Requirements for this release
+> [!TIP]
+> Other releases of this plugin may cover different Mautic versions!
 - Mautic 5.x (minimum 5.1) 
 - PHP 8.1 or higher
 - Company Tags and Company Segments Plugins
