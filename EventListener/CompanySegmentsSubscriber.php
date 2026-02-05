@@ -3,8 +3,8 @@
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\EventListener;
 
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Event\CompanyTriggerBuilderEvent;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Form\Type\ModifyCompanySegmentsType;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Form\Type\CompanySegmentActionType;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class CompanySegmentsSubscriber implements EventSubscriberInterface
@@ -23,11 +23,10 @@ class CompanySegmentsSubscriber implements EventSubscriberInterface
         $newEvent = [
             'group'              => 'mautic.companypoints.modifycompanysegment.group.actions',
             'label'              => 'mautic.companypoints.modifycompanysegment.group.actions.modifycompanysegment',
-            'formType'           => ModifyCompanySegmentsType::class,
-            'eventName' => LeuchtfeuerCompanyPointsEvents::COMPANY_TRIGGER_ON_EVENT_EXECUTE,
+            'formType'           => CompanySegmentActionType::class,
+            'eventName'          => LeuchtfeuerCompanyPointsEvents::COMPANY_TRIGGER_ON_EVENT_EXECUTE,
         ];
 
         $event->addEvent(self::TRIGGER_KEY, $newEvent);
     }
-
 }

@@ -21,8 +21,8 @@ class ModifyCompanySegmentsActionHandler
     {
         $segmentsToAdd            = [];
         $segmentsToRemove         = [];
-        $segmentIdsToAdd          = $triggerProperties['add_segments'] ?? [];
-        $segmentIdsToRemove       = $triggerProperties['remove_segments'] ?? [];
+        $segmentIdsToAdd          = $triggerProperties['addToLists'] ?? [];
+        $segmentIdsToRemove       = $triggerProperties['removeFromLists'] ?? [];
 
         if (is_array($segmentIdsToAdd) && !empty($segmentIdsToAdd)) {
             /** @var array<int> $segmentIdsToAddTyped */

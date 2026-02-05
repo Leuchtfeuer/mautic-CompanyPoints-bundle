@@ -305,8 +305,8 @@ final class FunctionalFixtureHelper
         }, $removeSegments);
 
         $event->setProperties([
-            'add_segments'    => $addSegmentIds,
-            'remove_segments' => $removeSegmentIds,
+            'addToLists'      => $addSegmentIds,
+            'removeFromLists' => $removeSegmentIds,
         ]);
         $event->setOrder(1);
         $this->em->persist($event);
@@ -452,7 +452,7 @@ final class FunctionalFixtureHelper
         $this->em->persist($companiesSegments);
         $this->em->flush();
     }
-  
+
     private function createAndEnableCompanySegmentsPlugin(): void
     {
         $plugin = new Plugin();
