@@ -6,8 +6,8 @@ Massively enhanced Company-based Scoring. Point-based and even other (!) trigger
 
 Company Points & Triggers is part of the "ABM" suite of plugins that extends Mautic capabilities for working with Companies.
 
-## Requirements
-- Mautic 5.x (minimum 5.1)
+## Requirements for this release (other releases may cover different Mautic versions!)
+- Mautic 5.x (minimum 5.1) 
 - PHP 8.1 or higher
 - Company Tags and Company Segments Plugins
 
@@ -89,6 +89,7 @@ and
 
 ## Known Issues
 * In contact-related Triggered Actions ("change campaign"), options like "oldest" should exclude the "placeholder contact"
+* If the placeholder contacts is disabled in the plugin, the option will not be offered when configuring a triggered action. Existing triggers, however, may still contain this setting.
 
 ## Future Ideas
 * Choice of aggregation algorithms (including time)
