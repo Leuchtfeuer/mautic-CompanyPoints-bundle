@@ -554,7 +554,6 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         // 3. Check that the company was NOT tagged
         $this->em->clear();
 
-        /** @var Company|null $updatedCompany */
         $company = $this->em->getRepository(Company::class)->findOneBy(['name' => 'Test Company']);
         Assert::assertNotNull($company);
 
@@ -766,5 +765,92 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
         $tags           = $tagsRepository->getTagsByCompany($company);
 
         Assert::assertCount(0, $tags, 'Company should not have a tag after link click.');
+    }
+
+    public function testModifyCompanySegmentsTriggerActionAdd(): void
+    {
+        $this->fixtureHelper->createAndEnablePlugin();
+
+        $targetSegment = $this->fixtureHelper->createCompanySegment('Target Segment', 'target-segment');
+        $company = $this->fixtureHelper->createCompany('Test Inc.');
+        $this->em->flush();
+
+        $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
+            'Modify segments on contact activity',
+            CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT
+        );
+
+        $this->fixtureHelper->createCompanySegmentsAction(
+            $trigger,
+            'Add to target segment',
+            [$targetSegment],
+            []
+        );
+
+        $contact = $this->fixtureHelper->createContact('test@example.com');
+        $contact->setLastActive((new \DateTime())->modify('-1 day'));
+        $contact->setCompany($company->getName());
+        $this->em->persist($contact);
+        $this->em->flush();
+        $this->fixtureHelper->addContactToCompany($contact, $company);
+        $this->em->flush();
+
+        $this->fixtureHelper->emulatePageVisit($contact);
+        $this->em->clear();
+
+        $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
+        Assert::assertNotNull($updatedCompany);
+
+        $companiesSegments = $this->em->getRepository(\MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments::class)
+            ->findBy(['company' => $updatedCompany, 'companySegment' => $targetSegment]);
+
+        Assert::assertCount(1, $companiesSegments);
+        Assert::assertSame($targetSegment->getId(), $companiesSegments[0]->getCompanySegment()->getId());
+    }
+
+    public function testModifyCompanySegmentsTriggerActionRemove(): void
+    {
+        $this->fixtureHelper->createAndEnablePlugin();
+
+        $segmentToRemove = $this->fixtureHelper->createCompanySegment('Segment to Remove', 'segment-to-remove');
+        $company = $this->fixtureHelper->createCompany('Test Inc.');
+        $this->em->flush();
+
+        $this->fixtureHelper->addCompanyToSegment($company, $segmentToRemove);
+
+        $initialSegments = $this->em->getRepository(\MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments::class)
+            ->findBy(['company' => $company, 'companySegment' => $segmentToRemove]);
+        Assert::assertCount(1, $initialSegments);
+
+        $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
+            'Remove segments on contact activity',
+            CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT
+        );
+
+        $this->fixtureHelper->createCompanySegmentsAction(
+            $trigger,
+            'Remove from segment',
+            [],
+            [$segmentToRemove]
+        );
+
+        $contact = $this->fixtureHelper->createContact('test@example.com');
+        $contact->setLastActive((new \DateTime())->modify('-1 day'));
+        $contact->setCompany($company->getName());
+        $this->em->persist($contact);
+        $this->em->flush();
+        $this->fixtureHelper->addContactToCompany($contact, $company);
+        $this->em->flush();
+
+        $this->fixtureHelper->emulatePageVisit($contact);
+        $this->em->clear();
+
+        $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
+        Assert::assertNotNull($updatedCompany);
+
+        $companiesSegments = $this->em->getRepository(\MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments::class)
+            ->findBy(['company' => $updatedCompany, 'companySegment' => $segmentToRemove]);
+
+        Assert::assertCount(0, $companiesSegments);
     }
 }

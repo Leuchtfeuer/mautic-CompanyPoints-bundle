@@ -11,6 +11,8 @@ use Mautic\PluginBundle\Entity\Integration;
 use Mautic\PluginBundle\Entity\Plugin;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\LeuchtfeuerCompanyPointsIntegration;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Fixtures\FunctionalFixtureHelper;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Entity\CompanyTags;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Entity\CompanyTagsRepository;
 use PHPUnit\Framework\Assert;
@@ -118,6 +120,87 @@ class PointTriggerFunctionalTest extends MauticMysqlTestCase
 
         // No company tag added as company did not fulfill segment filter
         Assert::assertCount(0, $tags);
+    }
+
+    public function testModifyCompanySegmentsTriggerActionAdd(): void
+    {
+        $this->activePlugin();
+
+        $targetSegment = $this->fixtureHelper->createCompanySegment('Target Segment', 'target-segment');
+        $company = $this->fixtureHelper->createCompany('Test Company Inc.');
+        $this->em->flush();
+
+        $trigger = $this->fixtureHelper->createPointTrigger('Add company to segment on points');
+
+        $this->fixtureHelper->createCompanySegmentsAction(
+            $trigger,
+            'Add to target segment',
+            [$targetSegment],
+            []
+        );
+
+        $contact = $this->fixtureHelper->createContact('test@example.com');
+        $contact->setCompany($company->getName());
+        $contact->setPoints(5);
+        $this->em->persist($contact);
+        $this->em->flush();
+        $this->fixtureHelper->addContactToCompany($contact, $company);
+        $this->em->flush();
+
+        $this->testSymfonyCommand('leuchtfeuer:abm:points-update');
+        $this->em->clear();
+
+        $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
+        Assert::assertNotNull($updatedCompany);
+
+        $companiesSegments = $this->em->getRepository(CompaniesSegments::class)
+            ->findBy(['company' => $updatedCompany, 'companySegment' => $targetSegment]);
+
+        Assert::assertCount(1, $companiesSegments);
+        Assert::assertSame($targetSegment->getId(), $companiesSegments[0]->getCompanySegment()->getId());
+    }
+
+    public function testModifyCompanySegmentsTriggerActionRemove(): void
+    {
+        $this->activePlugin();
+
+        $segmentToRemove = $this->fixtureHelper->createCompanySegment('Segment to Remove', 'segment-to-remove');
+        $company = $this->fixtureHelper->createCompany('Test Company Inc.');
+        $this->em->flush();
+
+        $this->fixtureHelper->addCompanyToSegment($company, $segmentToRemove);
+
+        $initialSegments = $this->em->getRepository(CompaniesSegments::class)
+            ->findBy(['company' => $company, 'companySegment' => $segmentToRemove]);
+        Assert::assertCount(1, $initialSegments);
+
+        $trigger = $this->fixtureHelper->createPointTrigger('Remove company from segment on points');
+
+        $this->fixtureHelper->createCompanySegmentsAction(
+            $trigger,
+            'Remove from segment',
+            [],
+            [$segmentToRemove]
+        );
+
+        $contact = $this->fixtureHelper->createContact('test@example.com');
+        $contact->setCompany($company->getName());
+        $contact->setPoints(5);
+        $this->em->persist($contact);
+        $this->em->flush();
+        $this->fixtureHelper->addContactToCompany($contact, $company);
+        $this->em->flush();
+
+        $this->testSymfonyCommand('leuchtfeuer:abm:points-update');
+        $this->em->clear();
+
+        $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
+        Assert::assertNotNull($updatedCompany);
+
+        $companiesSegmentsAfter = $this->em->getRepository(CompaniesSegments::class)
+            ->findBy(['company' => $updatedCompany, 'companySegment' => $segmentToRemove]);
+
+        Assert::assertCount(0, $companiesSegmentsAfter);
     }
 
     private function activePlugin(bool $isPublished = true): void

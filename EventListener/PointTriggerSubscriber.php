@@ -14,6 +14,7 @@ use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\Config;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\LeuchtfeuerCompanyPointsEvents;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\ModifyCampaignsActionHandler;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\ModifyCompanySegmentsActionHandler;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\ModifyTagsActionHandler;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Service\SendEmailActionHandler;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -23,6 +24,8 @@ class PointTriggerSubscriber implements EventSubscriberInterface
     public const TRIGGER_KEY_MODIFY_TAGS       = 'companytags.updatetags';
     public const TRIGGER_KEY_SEND_EMAIL        = 'companytags.sendemails';
     public const TRIGGER_KEY_MODIFY_CAMPAIGNS  = 'companypoints.modifycampaigns';
+    public const TRIGGER_KEY_MODIFY_COMPANY_SEGMENTS  = 'companypoints.modifycompanysegments';
+
 
     /**
      * @var array<string, object>
@@ -36,13 +39,15 @@ class PointTriggerSubscriber implements EventSubscriberInterface
         private CompanySegmentHelper $companySegmentHelper,
         ModifyTagsActionHandler $modifyTagsActionHandler,
         SendEmailActionHandler $sendEmailActionHandler,
-        ModifyCampaignsActionHandler $modifyCampaignsActionHandler
+        ModifyCampaignsActionHandler $modifyCampaignsActionHandler,
+        ModifyCompanySegmentsActionHandler $modifyCompanySegmentsActionHandler,
     ) {
         // Map the trigger keys to their corresponding handlers.
         $this->handlers = [
             self::TRIGGER_KEY_MODIFY_TAGS      => $modifyTagsActionHandler,
             self::TRIGGER_KEY_SEND_EMAIL       => $sendEmailActionHandler,
             self::TRIGGER_KEY_MODIFY_CAMPAIGNS => $modifyCampaignsActionHandler,
+            self::TRIGGER_KEY_MODIFY_COMPANY_SEGMENTS => $modifyCompanySegmentsActionHandler,
         ];
     }
 
