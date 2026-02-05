@@ -70,7 +70,8 @@ The Trigger type "Points" allows to set the number of Points that it takes to in
 The Trigger type "Company member activity" reacts to contact activity which matches the desired criteria (e.g. "First activity of every new contact"). Activity, in this context, is everything that changes the "last active" timestamp of a contact (e.g. page visit, email link click).
 
 Current choices of triggered actions:
-* Modify Company tags
+* Modify Company Segements
+* Modify Company Tags
 * Modify Contact campaigns (allows to choose WHICH contact to invoke, e.g. youngest / oldest / all / all known contacts or even the placeholder contact)
 * Send email to user
 
