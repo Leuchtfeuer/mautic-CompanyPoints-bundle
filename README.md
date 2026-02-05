@@ -91,7 +91,6 @@ and
 
 ## Future Ideas
 * Choice of aggregation algorithms (including time)
-* Additional Triggered Actions like `Modify Company Segments`
 * Support for Point Groups
 * Adding Company Points as a Triggered Action (would only make sense for non-point based Trigger types)
 
