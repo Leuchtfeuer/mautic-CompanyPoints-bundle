@@ -5,6 +5,7 @@ namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Functional;
 use Mautic\CoreBundle\Test\MauticMysqlTestCase;
 use Mautic\PluginBundle\Entity\Integration;
 use Mautic\PluginBundle\Entity\Plugin;
+use Mautic\UserBundle\Entity\User;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\LeuchtfeuerCompanyPointsIntegration;
 
 class MenuCompanyPointsTest extends MauticMysqlTestCase
@@ -15,6 +16,10 @@ class MenuCompanyPointsTest extends MauticMysqlTestCase
         $this->activePlugin();
         $this->useCleanupRollback = false;
         $this->setUpSymfony($this->configParams);
+
+        // Login user for M6 compatibility
+        $user = $this->em->getRepository(User::class)->findOneBy(['username' => 'admin']);
+        $this->loginUser($user);
     }
 
     public function testMenu(): void

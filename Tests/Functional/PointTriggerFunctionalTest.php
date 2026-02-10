@@ -9,6 +9,7 @@ use Mautic\LeadBundle\Entity\Company;
 use Mautic\LeadBundle\Model\LeadModel;
 use Mautic\PluginBundle\Entity\Integration;
 use Mautic\PluginBundle\Entity\Plugin;
+use Mautic\UserBundle\Entity\User;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\LeuchtfeuerCompanyPointsIntegration;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Fixtures\FunctionalFixtureHelper;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
@@ -24,6 +25,11 @@ class PointTriggerFunctionalTest extends MauticMysqlTestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Login user for M6 compatibility (before activePlugin which makes request)
+        $user = $this->em->getRepository(User::class)->findOneBy(['username' => 'admin']);
+        $this->loginUser($user);
+
         $this->activePlugin();
         $this->useCleanupRollback = false;
         $this->setUpSymfony($this->configParams);

@@ -6,6 +6,7 @@ use Mautic\CoreBundle\Test\MauticMysqlTestCase;
 use Mautic\EmailBundle\Entity\Email;
 use Mautic\PluginBundle\Entity\Integration;
 use Mautic\PluginBundle\Entity\Plugin;
+use Mautic\UserBundle\Entity\User;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\LeuchtfeuerCompanyPointsIntegration;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Entity\CompanyTags;
@@ -19,6 +20,10 @@ class AjaxControllerTest extends MauticMysqlTestCase
         $this->activePlugin();
         $this->useCleanupRollback = false;
         $this->setUpSymfony($this->configParams);
+
+        // Login user for M6 compatibility
+        $user = $this->em->getRepository(User::class)->findOneBy(['username' => 'admin']);
+        $this->loginUser($user);
     }
 
     private function activePlugin(bool $isPublished = true): void
@@ -54,7 +59,8 @@ class AjaxControllerTest extends MauticMysqlTestCase
     {
         $companyTrigger = $this->newCompanyTrigger('Test Trigger', 'Test Description', 10, 'aaaccc');
         $companyTags    = $this->createCompanyTags();
-        $this->client->request('GET', '/s/company/points/triggers/events/new?type=companytags.updatetags&tmpl=event&triggerId='.$companyTrigger->getId(), [], [], $this->createAjaxHeaders());
+        $this->setCsrfHeader();
+        $this->client->xmlHttpRequest('GET', '/s/company/points/triggers/events/new?type=companytags.updatetags&tmpl=event&triggerId='.$companyTrigger->getId());
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
         $this->assertStringContainsString('Modify Company Tags', $this->client->getResponse()->getContent());
         $this->assertStringContainsString('Add Company Tags', $this->client->getResponse()->getContent());
@@ -64,11 +70,15 @@ class AjaxControllerTest extends MauticMysqlTestCase
     {
         $companyTrigger = $this->newCompanyTrigger();
         $companyTags    = $this->createCompanyTags();
-        $crawler        = $this->client->request('GET', '/s/company/points/triggers/events/new?type=companytags.updatetags&tmpl=event&triggerId='.$companyTrigger->getId(), [], [], $this->createAjaxHeaders());
+        $this->setCsrfHeader();
+        $crawler        = $this->client->xmlHttpRequest('GET', '/s/company/points/triggers/events/new?type=companytags.updatetags&tmpl=event&triggerId='.$companyTrigger->getId());
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
         $this->assertStringContainsString('Modify Company Tags', $this->client->getResponse()->getContent());
         $this->assertStringContainsString('Add Company Tags', $this->client->getResponse()->getContent());
-        $headers = $this->createAjaxHeaders();
+
+        // Get CSRF token from session
+        $csrfToken = $this->client->getContainer()->get('security.csrf.token_manager')->getToken('mautic.ajax.post')->getValue();
+
         $values  = [
             'companypointtriggerevent' => [
                 'name'        => 'Event company tags one',
@@ -80,11 +90,12 @@ class AjaxControllerTest extends MauticMysqlTestCase
                 ],
                 'type'      => 'companytags.updatetags',
                 'triggerId' => $companyTrigger->getId(),
-                '_token'    => $headers['HTTP_X-CSRF-Token'],
+                '_token'    => $csrfToken,
             ],
         ];
 
-        $this->client->request('POST', '/s/company/points/triggers/events/new?type=companytags.updatetags&tmpl=event&triggerId='.$companyTrigger->getId(), $values, [], $headers);
+        $this->setCsrfHeader();
+        $this->client->xmlHttpRequest('POST', '/s/company/points/triggers/events/new?type=companytags.updatetags&tmpl=event&triggerId='.$companyTrigger->getId(), $values);
         $content = \json_decode($this->client->getResponse()->getContent(), true);
         $this->assertStringContainsString($companyTags[0]->getTag(), $content['newContent']);
         $this->assertStringContainsString($companyTags[1]->getTag(), $content['newContent']);
@@ -94,7 +105,8 @@ class AjaxControllerTest extends MauticMysqlTestCase
     {
         $companyTrigger = $this->newCompanyTrigger();
         $companyTags    = $this->createCompanyTags();
-        $this->client->request('GET', '/s/company/points/triggers/events/new?type=companytags.updatetags&tmpl=event&triggerId='.$companyTrigger->getId(), [], [], $this->createAjaxHeaders());
+        $this->setCsrfHeader();
+        $this->client->xmlHttpRequest('GET', '/s/company/points/triggers/events/new?type=companytags.updatetags&tmpl=event&triggerId='.$companyTrigger->getId());
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
         $content    = \json_decode($this->client->getResponse()->getContent(), true);
         $contentNew = $content['newContent'];
@@ -105,7 +117,7 @@ HTML;
         $token   = $crawler->filter('input[id=companypointtriggerevent__token]')->attr('value');
         $this->assertStringContainsString('Modify Company Tags', $this->client->getResponse()->getContent());
         $this->assertStringContainsString('Add Company Tags', $this->client->getResponse()->getContent());
-        $headers = $this->createAjaxHeaders();
+
         $name    = 'Event company tags one'.rand(1000, 99999);
         $values  = [
             'companypointtriggerevent' => [
@@ -121,7 +133,8 @@ HTML;
             ],
         ];
 
-        $this->client->request('POST', '/s/company/points/triggers/events/new?type=companytags.updatetags&tmpl=event&triggerId='.$companyTrigger->getId(), $values, [], $headers);
+        $this->setCsrfHeader();
+        $this->client->xmlHttpRequest('POST', '/s/company/points/triggers/events/new?type=companytags.updatetags&tmpl=event&triggerId='.$companyTrigger->getId(), $values);
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
         $content = \json_decode($this->client->getResponse()->getContent(), true);
         $this->assertEquals(1, $content['success']);
@@ -135,7 +148,8 @@ HTML;
         $deletelink = $crawler->filter('a[data-menu-link=mautic_company_points_index]')->attr('href');
         $editLink   = $crawler->filter('a[data-toggle=ajaxmodal]')->attr('href');
 
-        $this->client->request('GET', $editLink, [], [], $this->createAjaxHeaders());
+        $this->setCsrfHeader();
+        $this->client->xmlHttpRequest('GET', $editLink);
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
         $content    = \json_decode($this->client->getResponse()->getContent(), true);
         $newContent = $content['newContent'];
@@ -159,7 +173,8 @@ HTML;
             ],
         ];
         $link = $crawler->filter('form[name=companypointtriggerevent]')->attr('action');
-        $this->client->request('POST', $link, $values, [], $this->createAjaxHeaders());
+        $this->setCsrfHeader();
+        $this->client->xmlHttpRequest('POST', $link, $values);
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
         $content = \json_decode($this->client->getResponse()->getContent(), true);
         $this->assertEquals(1, $content['success']);
