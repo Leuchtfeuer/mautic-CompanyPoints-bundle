@@ -17,20 +17,42 @@ use Mautic\PageBundle\Entity\Page;
 use Mautic\PageBundle\Entity\Redirect;
 use Mautic\PluginBundle\Entity\Integration;
 use Mautic\PluginBundle\Entity\Plugin;
+use Mautic\UserBundle\Entity\User;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Entity\CompanyTags;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\HttpFoundation\Request;
 
 final class FunctionalFixtureHelper
 {
+    private ?User $adminUser = null;
+
     public function __construct(
         private EntityManagerInterface $em,
         private KernelBrowser $client
     ) {
+    }
+
+
+    public function loginAdmin(): void
+    {
+        if (null === $this->adminUser) {
+            $this->adminUser = $this->em->getRepository(User::class)->findOneBy(['username' => 'admin']);
+            if (null === $this->adminUser) {
+                return;
+            }
+        }
+
+        $this->client->loginUser($this->adminUser);
+    }
+
+    private function logout(): void
+    {
+        $this->client->request('GET', '/s/logout');
     }
 
     public function createAndEnablePlugin(): void
@@ -40,6 +62,7 @@ final class FunctionalFixtureHelper
         $plugin = new Plugin();
         $plugin->setName('Company Points by Leuchtfeuer');
         $plugin->setBundle('LeuchtfeuerCompanyPointsBundle');
+        $plugin->setVersion('6.0.0');
         $this->em->persist($plugin);
 
         $integration = new Integration();
@@ -122,8 +145,73 @@ final class FunctionalFixtureHelper
         return $form;
     }
 
+    /**
+     * Creates a form with email and company fields directly as entities (no API call, no admin login needed).
+     */
+    public function createFormWithCompany(string $name): Form
+    {
+        $alias = strtolower(str_replace(' ', '', $name));
+
+        // Create email field
+        $emailField = new \Mautic\FormBundle\Entity\Field();
+        $emailField->setLabel('Email');
+        $emailField->setAlias('email');
+        $emailField->setType('email');
+        $emailField->setMappedObject('contact');
+        $emailField->setMappedField('email');
+
+        // Create company field
+        $companyField = new \Mautic\FormBundle\Entity\Field();
+        $companyField->setLabel('Company');
+        $companyField->setAlias('company');
+        $companyField->setType('text');
+        $companyField->setMappedObject('company');
+        $companyField->setMappedField('companyname');
+
+        // Create submit button
+        $submitButton = new \Mautic\FormBundle\Entity\Field();
+        $submitButton->setLabel('Submit');
+        $submitButton->setAlias('submit');
+        $submitButton->setType('button');
+
+        // Create form
+        $form = new Form();
+        $form->setName($name);
+        $form->setAlias($alias);
+        $form->setFormType('standalone');
+        $form->setPostAction('return');
+        $form->setPostActionProperty('return');
+        $form->setIsPublished(true);
+
+        // Add fields to form
+        $form->addField(0, $emailField);
+        $form->addField(1, $companyField);
+        $form->addField(2, $submitButton);
+
+        // Set form reference on fields
+        $emailField->setForm($form);
+        $companyField->setForm($form);
+        $submitButton->setForm($form);
+
+        // Persist all
+        $this->em->persist($emailField);
+        $this->em->persist($companyField);
+        $this->em->persist($submitButton);
+        $this->em->persist($form);
+        $this->em->flush();
+
+        return $form;
+    }
+
+    /**
+     * Creates a form with email and company fields via API.
+     * Automatically handles admin login/logout.
+     */
     public function createFormWithCompanyViaApi(string $name): Form
     {
+        // Login admin for API access
+        $this->loginAdmin();
+
         $formPayload = [
             'name'        => $name,
             'description' => '',
@@ -157,10 +245,20 @@ final class FunctionalFixtureHelper
         $this->client->request(Request::METHOD_POST, '/api/forms/new', $formPayload);
         $clientResponse = $this->client->getResponse();
         $response       = json_decode($clientResponse->getContent(), true);
-        $formId         = $response['form']['id'];
-        $repository     = $this->em->getRepository(Form::class);
 
-        return $repository->find($formId);
+        if (!isset($response['form']['id'])) {
+            throw new \RuntimeException(
+                'Form creation via API failed. Response: ' . $clientResponse->getContent()
+            );
+        }
+
+        $formId = $response['form']['id'];
+
+        // Logout admin after API call
+        $this->logout();
+
+        $this->em->clear();
+        return $this->em->getRepository(Form::class)->find($formId);
     }
 
     public function createCompanySegment(string $name, ?string $alias = null): CompanySegment
@@ -402,12 +500,30 @@ final class FunctionalFixtureHelper
 
     public function emulateFormSubmit(Lead $contact, Company $company = null): void
     {
+        // Create tracking device for the contact
+        $device = new LeadDevice();
+        $device->setDateAdded(new \DateTime());
+        $device->setTrackingId(uniqid('device_', true));
+        $device->setLead($contact);
+        $this->em->persist($device);
+        $this->em->flush();
+
+        // Set tracking cookie
+        $this->client->getCookieJar()->set(
+            new Cookie(
+                'mautic_device_id',
+                $device->getTrackingId()
+            )
+        );
+
         $formData = [
             'mauticform[email]'   => $contact->getEmail(),
         ];
         if (null !== $company) {
             $formData['mauticform[company]'] = $company->getName();
         }
+
+        // Use API method (automatically handles admin login/logout)
         $form = $this->createFormWithCompanyViaApi('Test Form');
 
         $this->submitForm($form, $formData);
@@ -421,7 +537,7 @@ final class FunctionalFixtureHelper
         if (null !== $company) {
             $formData['mauticform[company]'] = $company->getName();
         }
-        $form  = $this->createFormWithCompanyViaApi('Test Form');
+        $form  = $this->createFormWithCompany('Test Form');
         $token = '{form='.$form->getId().'}';
         $this->createLandingPage(alias: 'test-lp', html: "<html><body>{$token}</body></html>");
         $this->client->request('GET', '/test-lp');
@@ -458,6 +574,7 @@ final class FunctionalFixtureHelper
         $plugin = new Plugin();
         $plugin->setName('Company Segments by Leuchtfeuer');
         $plugin->setBundle('LeuchtfeuerCompanySegmentsBundle');
+        $plugin->setVersion('6.0.0');
         $this->em->persist($plugin);
 
         $integration = new Integration();

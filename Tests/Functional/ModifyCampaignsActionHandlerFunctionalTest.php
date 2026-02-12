@@ -14,23 +14,26 @@ use Mautic\LeadBundle\Model\CompanyModel;
 use Mautic\UserBundle\Entity\User;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Fixtures\FunctionalFixtureHelper;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Support\ActivePluginTrait;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesPlaceholderLeads;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesPlaceholderLeadsRepository;
 
 class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
 {
-    protected $useCleanupRollback = false;
+    use ActivePluginTrait;
+
     private FunctionalFixtureHelper $fixtureHelper;
     private CampaignFixtureHelper $campaignFixtureHelper;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->fixtureHelper         = new FunctionalFixtureHelper($this->em, $this->client);
+        $this->activePlugin();
+        $this->useCleanupRollback = false;
+        $this->setUpSymfony($this->configParams);
+        $this->fixtureHelper= new FunctionalFixtureHelper($this->em, $this->client);
+        $this->fixtureHelper->loginAdmin();
         $this->campaignFixtureHelper = new CampaignFixtureHelper($this->em);
-        $user = $this->em->getRepository(User::class)->findOneBy(['username' => 'admin']);
-        $this->loginUser($user);
-        $this->fixtureHelper->createAndEnablePlugin();
     }
 
     /**

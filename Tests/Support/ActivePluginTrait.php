@@ -34,6 +34,18 @@ trait ActivePluginTrait
         $integration2->setIsPublished($isPublished);
         $this->em->persist($integration2);
 
+        $nameBundle3      = 'LeuchtfeuerCompanySegmentsBundle';
+        $nameIntegration3 = 'LeuchtfeuerCompanySegments';
+        $integration3     = $this->em->getRepository(Integration::class)->findOneBy(['name' => $nameIntegration3]);
+        if (empty($integration3)) {
+            $plugin3      = $this->em->getRepository(Plugin::class)->findOneBy(['bundle' => $nameBundle3]);
+            $integration3 = new Integration();
+            $integration3->setName(str_replace('Bundle', '', $nameBundle3));
+            $integration3->setPlugin($plugin3);
+        }
+        $integration3->setIsPublished($isPublished);
+        $this->em->persist($integration3);
+
         $this->em->flush();
     }
 }

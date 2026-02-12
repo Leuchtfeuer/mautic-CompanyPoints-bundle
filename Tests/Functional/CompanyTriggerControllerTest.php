@@ -16,13 +16,12 @@ class CompanyTriggerControllerTest extends MauticMysqlTestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->activePlugin();
         $this->useCleanupRollback = false;
         $this->setUpSymfony($this->configParams);
 
-        // Login user for M6 compatibility
         $user = $this->em->getRepository(User::class)->findOneBy(['username' => 'admin']);
         $this->loginUser($user);
+        $this->activePlugin();
     }
 
     public function testIndexAction(): void
