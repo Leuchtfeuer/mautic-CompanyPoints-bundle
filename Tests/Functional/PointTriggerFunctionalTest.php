@@ -12,6 +12,7 @@ use Mautic\PluginBundle\Entity\Plugin;
 use Mautic\UserBundle\Entity\User;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\LeuchtfeuerCompanyPointsIntegration;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Fixtures\FunctionalFixtureHelper;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Support\ActivePluginTrait;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Entity\CompanyTags;
@@ -20,20 +21,17 @@ use PHPUnit\Framework\Assert;
 
 class PointTriggerFunctionalTest extends MauticMysqlTestCase
 {
+    use ActivePluginTrait;
     private FunctionalFixtureHelper $fixtureHelper;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        // Login user for M6 compatibility (before activePlugin which makes request)
-        $user = $this->em->getRepository(User::class)->findOneBy(['username' => 'admin']);
-        $this->loginUser($user);
-
         $this->activePlugin();
         $this->useCleanupRollback = false;
         $this->setUpSymfony($this->configParams);
         $this->fixtureHelper = new FunctionalFixtureHelper($this->em, $this->client);
+        $this->fixtureHelper->loginAdmin();
     }
 
     public function testCompanyFulfillsCompanySegmentFilterForPointTrigger(): void
@@ -207,34 +205,5 @@ class PointTriggerFunctionalTest extends MauticMysqlTestCase
             ->findBy(['company' => $updatedCompany, 'companySegment' => $segmentToRemove]);
 
         Assert::assertCount(0, $companiesSegmentsAfter);
-    }
-
-    private function activePlugin(bool $isPublished = true): void
-    {
-        $this->client->request('GET', '/s/plugins/reload');
-        $nameBundle  = 'LeuchtfeuerCompanyPointsBundle';
-        $integration = $this->em->getRepository(Integration::class)->findOneBy(['name' => LeuchtfeuerCompanyPointsIntegration::INTEGRATION_NAME]);
-        if (empty($integration)) {
-            $plugin      = $this->em->getRepository(Plugin::class)->findOneBy(['bundle' => $nameBundle]);
-            $integration = new Integration();
-            $integration->setName(str_replace('Bundle', '', $nameBundle));
-            $integration->setPlugin($plugin);
-        }
-        $integration->setIsPublished($isPublished);
-        $this->em->persist($integration);
-
-        $nameBundle2      = 'LeuchtfeuerCompanyTagsBundle';
-        $nameIntegration2 = 'LeuchtfeuerCompanyTags';
-        $integration2     = $this->em->getRepository(Integration::class)->findOneBy(['name' => $nameIntegration2]);
-        if (empty($integration2)) {
-            $plugin2      = $this->em->getRepository(Plugin::class)->findOneBy(['bundle' => $nameBundle2]);
-            $integration2 = new Integration();
-            $integration2->setName(str_replace('Bundle', '', $nameBundle));
-            $integration2->setPlugin($plugin2);
-        }
-        $integration2->setIsPublished($isPublished);
-        $this->em->persist($integration2);
-
-        $this->em->flush();
     }
 }

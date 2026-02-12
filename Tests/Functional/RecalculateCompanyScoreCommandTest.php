@@ -16,6 +16,7 @@ use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Support\ActivePluginTrait;
 class RecalculateCompanyScoreCommandTest extends MauticMysqlTestCase
 {
     use ActivePluginTrait;
+    private FunctionalFixtureHelper $fixtureHelper;
 
     /**
      * @var array<string, mixed>
@@ -29,8 +30,8 @@ class RecalculateCompanyScoreCommandTest extends MauticMysqlTestCase
         $this->useCleanupRollback = false;
         $this->setUpSymfony($this->configParams);
 
-        $user = $this->em->getRepository(User::class)->findOneBy(['username' => 'admin']);
-        $this->loginUser($user);
+        $this->fixtureHelper = new FunctionalFixtureHelper($this->em, $this->client);
+        $this->fixtureHelper->loginAdmin();
     }
 
     public function testRecalculateCompanyScoreCommandNoCompanies(): void

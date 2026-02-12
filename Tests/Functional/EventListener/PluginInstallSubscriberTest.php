@@ -8,8 +8,6 @@ use Mautic\IntegrationsBundle\Integration\Interfaces\IntegrationInterface;
 use Mautic\PluginBundle\Entity\Plugin;
 use Mautic\PluginBundle\Facade\ReloadFacade;
 use Mautic\PluginBundle\Helper\IntegrationHelper;
-use Mautic\UserBundle\Entity\User;
-
 class PluginInstallSubscriberTest extends MauticMysqlTestCase
 {
     public function setUp(): void
@@ -22,7 +20,6 @@ class PluginInstallSubscriberTest extends MauticMysqlTestCase
         try {
             $this->connection->executeStatement('ALTER TABLE test_companies DROP COLUMN companyscore_calculated');
         } catch (\Exception $e) {
-            // Column doesn't exist, that's fine
         }
     }
 

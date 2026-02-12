@@ -7,6 +7,7 @@ namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Fixtures;
 use Doctrine\ORM\EntityManagerInterface;
 use Mautic\EmailBundle\Entity\Email;
 use Mautic\EmailBundle\Entity\Stat;
+use Mautic\FormBundle\Entity\Field;
 use Mautic\FormBundle\Entity\Form;
 use Mautic\LeadBundle\Entity\Company;
 use Mautic\LeadBundle\Entity\CompanyLead;
@@ -53,24 +54,6 @@ final class FunctionalFixtureHelper
     private function logout(): void
     {
         $this->client->request('GET', '/s/logout');
-    }
-
-    public function createAndEnablePlugin(): void
-    {
-        $this->createAndEnableCompanySegmentsPlugin();
-
-        $plugin = new Plugin();
-        $plugin->setName('Company Points by Leuchtfeuer');
-        $plugin->setBundle('LeuchtfeuerCompanyPointsBundle');
-        $plugin->setVersion('6.0.0');
-        $this->em->persist($plugin);
-
-        $integration = new Integration();
-        $integration->setPlugin($plugin);
-        $integration->setIsPublished(true);
-        $integration->setName('LeuchtfeuerCompanyPoints');
-        $this->em->persist($integration);
-        $this->em->flush();
     }
 
     public function createSegment(string $name, string $alias): LeadList
@@ -152,29 +135,25 @@ final class FunctionalFixtureHelper
     {
         $alias = strtolower(str_replace(' ', '', $name));
 
-        // Create email field
-        $emailField = new \Mautic\FormBundle\Entity\Field();
+        $emailField = new Field();
         $emailField->setLabel('Email');
         $emailField->setAlias('email');
         $emailField->setType('email');
         $emailField->setMappedObject('contact');
         $emailField->setMappedField('email');
 
-        // Create company field
-        $companyField = new \Mautic\FormBundle\Entity\Field();
+        $companyField = new Field();
         $companyField->setLabel('Company');
         $companyField->setAlias('company');
         $companyField->setType('text');
         $companyField->setMappedObject('company');
         $companyField->setMappedField('companyname');
 
-        // Create submit button
-        $submitButton = new \Mautic\FormBundle\Entity\Field();
+        $submitButton = new Field();
         $submitButton->setLabel('Submit');
         $submitButton->setAlias('submit');
         $submitButton->setType('button');
 
-        // Create form
         $form = new Form();
         $form->setName($name);
         $form->setAlias($alias);
@@ -183,17 +162,14 @@ final class FunctionalFixtureHelper
         $form->setPostActionProperty('return');
         $form->setIsPublished(true);
 
-        // Add fields to form
         $form->addField(0, $emailField);
         $form->addField(1, $companyField);
         $form->addField(2, $submitButton);
 
-        // Set form reference on fields
         $emailField->setForm($form);
         $companyField->setForm($form);
         $submitButton->setForm($form);
 
-        // Persist all
         $this->em->persist($emailField);
         $this->em->persist($companyField);
         $this->em->persist($submitButton);
@@ -203,13 +179,8 @@ final class FunctionalFixtureHelper
         return $form;
     }
 
-    /**
-     * Creates a form with email and company fields via API.
-     * Automatically handles admin login/logout.
-     */
     public function createFormWithCompanyViaApi(string $name): Form
     {
-        // Login admin for API access
         $this->loginAdmin();
 
         $formPayload = [
@@ -566,22 +537,6 @@ final class FunctionalFixtureHelper
         $companiesSegments->setCompanySegment($companySegment);
         $companiesSegments->setDateAdded(new \DateTime());
         $this->em->persist($companiesSegments);
-        $this->em->flush();
-    }
-
-    private function createAndEnableCompanySegmentsPlugin(): void
-    {
-        $plugin = new Plugin();
-        $plugin->setName('Company Segments by Leuchtfeuer');
-        $plugin->setBundle('LeuchtfeuerCompanySegmentsBundle');
-        $plugin->setVersion('6.0.0');
-        $this->em->persist($plugin);
-
-        $integration = new Integration();
-        $integration->setPlugin($plugin);
-        $integration->setIsPublished(true);
-        $integration->setName('LeuchtfeuerCompanySegments');
-        $this->em->persist($integration);
         $this->em->flush();
     }
 }
