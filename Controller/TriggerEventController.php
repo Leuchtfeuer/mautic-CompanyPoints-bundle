@@ -146,7 +146,9 @@ class TriggerEventController extends AbstractStandardFormController
     {
         $session      = $request->getSession();
         $method       = $request->getMethod();
-        $triggerEvent = $request->request->get('companypointtriggerevent') ?? [];
+        // Use all() instead of get() to avoid "non-scalar value" error with nested arrays
+        $allRequestData = $request->request->all();
+        $triggerEvent = $allRequestData['companypointtriggerevent'] ?? [];
         $triggerId    = 'POST' === $method ? ($triggerEvent['triggerId'] ?? '') : $request->query->get('triggerId');
         $events       = $session->get('mautic.companypoint.'.$triggerId.'.triggerevents.modified', []);
         $success      = 0;

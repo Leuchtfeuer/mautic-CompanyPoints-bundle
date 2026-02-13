@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Functional\Controller;
 
 use Mautic\CoreBundle\Test\MauticMysqlTestCase;
@@ -9,50 +11,23 @@ use Mautic\PluginBundle\Entity\Plugin;
 use Mautic\UserBundle\Entity\User;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\LeuchtfeuerCompanyPointsIntegration;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Support\ActivePluginTrait;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Entity\CompanyTags;
 use Symfony\Component\DomCrawler\Crawler;
 
 class AjaxControllerTest extends MauticMysqlTestCase
 {
-    public function setUp(): void
+    use ActivePluginTrait;
+
+    protected function setUp(): void
     {
         parent::setUp();
         $this->activePlugin();
         $this->useCleanupRollback = false;
         $this->setUpSymfony($this->configParams);
 
-        // Login user for M6 compatibility
         $user = $this->em->getRepository(User::class)->findOneBy(['username' => 'admin']);
         $this->loginUser($user);
-    }
-
-    private function activePlugin(bool $isPublished = true): void
-    {
-        $this->client->request('GET', '/s/plugins/reload');
-        $nameBundle  = 'LeuchtfeuerCompanyPointsBundle';
-        $integration = $this->em->getRepository(Integration::class)->findOneBy(['name' => LeuchtfeuerCompanyPointsIntegration::INTEGRATION_NAME]);
-        if (empty($integration)) {
-            $plugin      = $this->em->getRepository(Plugin::class)->findOneBy(['bundle' => $nameBundle]);
-            $integration = new Integration();
-            $integration->setName(str_replace('Bundle', '', $nameBundle));
-            $integration->setPlugin($plugin);
-        }
-        $integration->setIsPublished($isPublished);
-        $this->em->persist($integration);
-
-        $nameBundle2      = 'LeuchtfeuerCompanyTagsBundle';
-        $nameIntegration2 = 'LeuchtfeuerCompanyTags';
-        $integration2     = $this->em->getRepository(Integration::class)->findOneBy(['name' => $nameIntegration2]);
-        if (empty($integration2)) {
-            $plugin2      = $this->em->getRepository(Plugin::class)->findOneBy(['bundle' => $nameBundle2]);
-            $integration2 = new Integration();
-            $integration2->setName(str_replace('Bundle', '', $nameBundle));
-            $integration2->setPlugin($plugin2);
-        }
-        $integration2->setIsPublished($isPublished);
-        $this->em->persist($integration2);
-
-        $this->em->flush();
     }
 
     public function testViewEventAddCompanyTag(): void
@@ -66,7 +41,7 @@ class AjaxControllerTest extends MauticMysqlTestCase
         $this->assertStringContainsString('Add Company Tags', $this->client->getResponse()->getContent());
     }
 
-    public function testNewEventAddCompanyTag()
+    public function testNewEventAddCompanyTag(): void
     {
         $companyTrigger = $this->newCompanyTrigger();
         $companyTags    = $this->createCompanyTags();
@@ -83,7 +58,6 @@ class AjaxControllerTest extends MauticMysqlTestCase
             'companypointtriggerevent' => [
                 'name'        => 'Event company tags one',
                 'description' => 'Event company tags one',
-                'event'       => 'companytags.updatetags',
                 'properties'  => [
                     'add_tags'    => [$companyTags[0]->getId(), $companyTags[1]->getId()],
                     'remove_tags' => [],
@@ -101,7 +75,7 @@ class AjaxControllerTest extends MauticMysqlTestCase
         $this->assertStringContainsString($companyTags[1]->getTag(), $content['newContent']);
     }
 
-    public function testEditEventAddCompanyTag()
+    public function testEditEventAddCompanyTag(): void
     {
         $companyTrigger = $this->newCompanyTrigger();
         $companyTags    = $this->createCompanyTags();
@@ -181,7 +155,7 @@ HTML;
         $this->assertStringContainsString($name2, $content['eventHtml']);
     }
 
-    private function newCompanyTrigger($name='Test Trigger', $desc='Test Description', $points=10, $color='aaaccc')
+    private function newCompanyTrigger(string $name='Test Trigger', string $desc='Test Description', int $points=10, string $color='aaaccc'): CompanyTrigger
     {
         $email                    = $this->createEmail('Test Email', 'Test Email Description');
         $companyPointEventTrigger = $this->createCompanyPointTriggerEvent($email, 'Test Event Trigger', 'Test Event Trigger Description');
@@ -193,7 +167,7 @@ HTML;
         return $companyPointTrigger;
     }
 
-    private function createCompanyTags()
+    private function createCompanyTags(): array
     {
         $companyTag = new CompanyTags();
         $companyTag->setTag('Test Tag');
@@ -237,7 +211,6 @@ HTML;
         $companyTriggerEvent->setProperties($properties);
         $companyTriggerEvent->setType('companytags.sendemails');
 
-        //        $companyTriggerEventModel->saveEntity($companyTriggerEvent);
         return $companyTriggerEvent;
     }
 

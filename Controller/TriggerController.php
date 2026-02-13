@@ -148,7 +148,6 @@ class TriggerController extends AbstractStandardFormController
         ) {
             return $this->accessDenied();
         }
-        assert($entity instanceof CompanyTrigger);
 
         return $this->delegateView([
             'viewParameters' => [
