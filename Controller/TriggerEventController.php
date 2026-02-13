@@ -2,15 +2,16 @@
 
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Controller;
 
-use Mautic\CoreBundle\Controller\FormController as CommonFormController;
+use Mautic\CoreBundle\Controller\AbstractStandardFormController;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Form\Type\CompanyTriggerEventType;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerEventModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class TriggerEventController extends CommonFormController
+class TriggerEventController extends AbstractStandardFormController
 {
     /**
      * Generates new form and processes post data.
@@ -50,9 +51,7 @@ class TriggerEventController extends CommonFormController
         }
 
         // fire the builder event
-        /** @var CompanyTriggerModel $pointTriggerModel */
-        $pointTriggerModel = $this->getModel('companypoint.trigger');
-        \assert($pointTriggerModel instanceof CompanyTriggerModel);
+        $pointTriggerModel = $this->getTriggerModel();
         $events = $pointTriggerModel->getEvents();
         $form   = $this->formFactory->create(CompanyTriggerEventType::class, $triggerEvent, [
             'action'   => $this->generateUrl('mautic_company_pointtriggerevent_action', ['objectAction' => 'new']),
@@ -156,8 +155,7 @@ class TriggerEventController extends CommonFormController
 
         if (null !== $triggerEvent) {
             $eventType         = $triggerEvent['type'];
-            $pointTriggerModel = $this->getModel('companypoint.trigger');
-            \assert($pointTriggerModel instanceof CompanyTriggerModel);
+            $pointTriggerModel = $this->getTriggerModel();
             $events                   = $pointTriggerModel->getEvents();
             $triggerEvent['settings'] = $events[$eventType];
 
@@ -380,5 +378,26 @@ class TriggerEventController extends CommonFormController
         }
 
         return new JsonResponse($dataArray);
+    }
+
+    protected function getModelName(): string
+    {
+        return 'companypoint.triggerevent';
+    }
+
+    protected function getTriggerEventModel(): CompanyTriggerEventModel
+    {
+        $model = $this->getModel($this->getModelName());
+        \assert($model instanceof CompanyTriggerEventModel);
+
+        return $model;
+    }
+
+    protected function getTriggerModel(): CompanyTriggerModel
+    {
+        $model = $this->getModel('companypoint.trigger');
+        \assert($model instanceof CompanyTriggerModel);
+
+        return $model;
     }
 }
