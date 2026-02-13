@@ -23,8 +23,8 @@
   "require": {
     "php": "^8.0",
     "mautic/core-lib": "^6.0",
-    "leuchtfeuer/mautic-companysegments-bundle": "^1.0",
-    "leuchtfeuer/mautic-companytags-bundle": "^1.0"
+    "leuchtfeuer/mautic-companysegments-bundle": "^6.0",
+    "leuchtfeuer/mautic-companytags-bundle": "^6.0"
   },
   "require-dev": {
     "phpunit/phpunit": "^9.5"
