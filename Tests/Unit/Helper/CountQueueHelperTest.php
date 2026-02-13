@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Unit\Helper;
 
@@ -11,7 +13,6 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class CountQueueHelperTest extends TestCase
 {
-
     /**
      * @var MockObject&PathsHelper
      */
@@ -34,7 +35,7 @@ class CountQueueHelperTest extends TestCase
         }
 
         if (!is_file($tmp.'/app/config/paths.php')) {
-            file_put_contents($tmp.'/app/config/paths.php', '<?php' . PHP_EOL . '$parameters = [];');
+            file_put_contents($tmp.'/app/config/paths.php', '<?php'.PHP_EOL.'$parameters = [];');
         }
 
         $this->configFile = $tmp.'/config/local.php';
@@ -99,7 +100,7 @@ class CountQueueHelperTest extends TestCase
 
         // Construct new configurator.
         $configurator = new Configurator($this->pathsHelper);
-        $helper = new CountQueueHelper($configurator);
+        $helper       = new CountQueueHelper($configurator);
         $this->assertSame(2, $helper->getOffset());
     }
 }

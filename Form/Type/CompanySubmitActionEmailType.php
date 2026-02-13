@@ -27,7 +27,7 @@ class CompanySubmitActionEmailType extends AbstractType
     public function __construct(
         private TranslatorInterface $translator,
         protected CoreParametersHelper $coreParametersHelper,
-        private RouterInterface $router
+        private RouterInterface $router,
     ) {
     }
 

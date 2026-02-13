@@ -17,7 +17,7 @@ class CompanyTriggerEvent extends CommonEvent
      */
     public function __construct(
         Trigger &$trigger,
-        protected $isNew = false
+        protected $isNew = false,
     ) {
         $this->entity = &$trigger;
     }

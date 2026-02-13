@@ -24,7 +24,7 @@ class RecalculateCompanyScoresCommand extends ModeratedCommand
         protected CompanyScoreModel $companyScoreModel,
         protected CountQueueHelper $countQueueHelper,
         protected Config $config,
-        protected EventDispatcherInterface $dispatcher
+        protected EventDispatcherInterface $dispatcher,
     ) {
         parent::__construct($pathsHelper, $coreParametersHelper);
     }

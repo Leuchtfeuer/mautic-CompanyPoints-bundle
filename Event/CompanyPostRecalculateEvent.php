@@ -7,7 +7,7 @@ use Mautic\LeadBundle\Entity\Company;
 class CompanyPostRecalculateEvent
 {
     public function __construct(
-        private Company $company
+        private Company $company,
     ) {
     }
 

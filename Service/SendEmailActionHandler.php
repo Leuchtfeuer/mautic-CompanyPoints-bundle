@@ -18,15 +18,15 @@ class SendEmailActionHandler
         private UserModel $userModel,
         private EmailModel $emailModel,
         private CompanyTagModel $companyTagModel,
-        private CompanySegmentModel $companySegmentModel
+        private CompanySegmentModel $companySegmentModel,
     ) {
     }
 
     /**
      * Executes the action of sending an email based on trigger properties.
      *
-     * @param Company              $company    The company associated with the event.
-     * @param array<string, mixed> $properties The properties from the trigger, containing email settings.
+     * @param Company              $company    the company associated with the event
+     * @param array<string, mixed> $properties the properties from the trigger, containing email settings
      */
     public function execute(Company $company, array $properties): void
     {

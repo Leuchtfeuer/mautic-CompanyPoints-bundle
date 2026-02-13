@@ -76,7 +76,7 @@ class CompanyTrigger extends FormEntity
     private $category;
 
     /**
-     * @var ArrayCollection<int, \MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent>
+     * @var ArrayCollection<int, CompanyTriggerEvent>
      */
     private $events;
 

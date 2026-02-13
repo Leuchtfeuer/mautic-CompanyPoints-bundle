@@ -14,6 +14,7 @@ class CompanyTriggerControllerTest extends MauticMysqlTestCase
 {
     use ActivePluginTrait;
     private FunctionalFixtureHelper $fixtureHelper;
+
     public function setUp(): void
     {
         parent::setUp();

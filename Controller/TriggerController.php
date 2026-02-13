@@ -19,7 +19,7 @@ class TriggerController extends AbstractStandardFormController
     /**
      * @param int $page
      *
-     * @return array<mixed>|RedirectResponse|JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     * @return array<mixed>|RedirectResponse|JsonResponse|RedirectResponse|Response
      * */
     public function indexAction(Request $request, PageHelperFactoryInterface $pageHelperFactory, $page = 1)
     {
@@ -103,7 +103,7 @@ class TriggerController extends AbstractStandardFormController
      *
      * @param int $objectId
      *
-     * @return array<mixed>|RedirectResponse|JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     * @return array<mixed>|RedirectResponse|JsonResponse|RedirectResponse|Response
      */
     public function viewAction(Request $request, $objectId)
     {
@@ -173,7 +173,7 @@ class TriggerController extends AbstractStandardFormController
      * @param CompanyTrigger $entity
      * @param array<mixed>   $triggerEvents
      *
-     * @return array<mixed>|RedirectResponse|JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     * @return array<mixed>|RedirectResponse|JsonResponse|RedirectResponse|Response
      */
     public function newAction(Request $request, $entity = null, array $triggerEvents = [])
     {
@@ -521,7 +521,7 @@ class TriggerController extends AbstractStandardFormController
         ];
 
         if (Request::METHOD_POST === $request->getMethod()) {
-            $model = $this->getTriggerModel();
+            $model  = $this->getTriggerModel();
             $entity = $model->getEntity($objectId);
 
             if (null === $entity) {
@@ -578,7 +578,7 @@ class TriggerController extends AbstractStandardFormController
         ];
 
         if (Request::METHOD_POST === $request->getMethod()) {
-            $model = $this->getTriggerModel();
+            $model     = $this->getTriggerModel();
             $ids       = json_decode($request->query->get('ids', '{}'));
             $deleteIds = [];
 

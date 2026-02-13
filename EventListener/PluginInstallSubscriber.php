@@ -30,15 +30,16 @@ class PluginInstallSubscriber implements EventSubscriberInterface
 
     public function onPluginInstall(PluginInstallEvent $event): void
     {
-        $this->logger->info('PluginInstallSubscriber::onPluginInstall called for: ' . $event->getPlugin()->getName());
+        $this->logger->info('PluginInstallSubscriber::onPluginInstall called for: '.$event->getPlugin()->getName());
 
         $context = $event->getPlugin()->getName();
         if (!$event->checkContext('Company Points by Leuchtfeuer')) {
-            $this->logger->info('Context check failed. Expected "Company Points by Leuchtfeuer", got: ' . $event->getPlugin()->getName());
+            $this->logger->info('Context check failed. Expected "Company Points by Leuchtfeuer", got: '.$event->getPlugin()->getName());
+
             return;
         }
 
-        $this->logger->info('Creating field: ' . self::FIELD_DATA['alias']);
+        $this->logger->info('Creating field: '.self::FIELD_DATA['alias']);
 
         $this->createField(
             self::FIELD_DATA['alias'],
@@ -46,7 +47,7 @@ class PluginInstallSubscriber implements EventSubscriberInterface
             self::FIELD_DATA['type']
         );
 
-        $this->logger->info('Field created successfully: ' . self::FIELD_DATA['alias']);
+        $this->logger->info('Field created successfully: '.self::FIELD_DATA['alias']);
     }
 
     /**

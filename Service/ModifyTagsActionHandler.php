@@ -10,7 +10,7 @@ use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Model\CompanyTagModel;
 class ModifyTagsActionHandler
 {
     public function __construct(
-        private CompanyTagModel $companyTagModel
+        private CompanyTagModel $companyTagModel,
     ) {
     }
 

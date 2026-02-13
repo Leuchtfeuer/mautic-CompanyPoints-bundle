@@ -10,7 +10,7 @@ class BeforeUpdateLeadActivityEvent
 {
     public function __construct(
         public Lead $lead,
-        public \DateTimeInterface $activityDate
-    )
-    {}
+        public \DateTimeInterface $activityDate,
+    ) {
+    }
 }

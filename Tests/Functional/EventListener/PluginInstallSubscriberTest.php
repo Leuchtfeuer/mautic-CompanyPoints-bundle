@@ -8,6 +8,7 @@ use Mautic\IntegrationsBundle\Integration\Interfaces\IntegrationInterface;
 use Mautic\PluginBundle\Entity\Plugin;
 use Mautic\PluginBundle\Facade\ReloadFacade;
 use Mautic\PluginBundle\Helper\IntegrationHelper;
+
 class PluginInstallSubscriberTest extends MauticMysqlTestCase
 {
     public function setUp(): void
@@ -26,10 +27,10 @@ class PluginInstallSubscriberTest extends MauticMysqlTestCase
     public function testPluginInstallSubscriber(): void
     {
         $this->enablePlugin(true);
-        $plugin = $this->em->getRepository(Plugin::class)->findOneBy(['bundle' => 'LeuchtfeuerCompanyPointsBundle']);
+        $plugin         = $this->em->getRepository(Plugin::class)->findOneBy(['bundle' => 'LeuchtfeuerCompanyPointsBundle']);
         $leadFieldModel = $this->getContainer()->get('mautic.lead.model.field');
         assert($leadFieldModel instanceof \Mautic\LeadBundle\Model\FieldModel);
-        $allFields = $leadFieldModel->getRepository()->findBy(['object' => 'company']);
+        $allFields            = $leadFieldModel->getRepository()->findBy(['object' => 'company']);
         $scoreCalculatedField = $leadFieldModel->getRepository()->findOneBy(['alias' => 'companyscore_calculated']);
         self::assertNotNull($scoreCalculatedField, 'Field should be created by ON_PLUGIN_INSTALL event');
         self::assertSame('core', $scoreCalculatedField->getGroup());

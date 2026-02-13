@@ -7,14 +7,9 @@ namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Functional;
 use Mautic\CoreBundle\Test\MauticMysqlTestCase;
 use Mautic\LeadBundle\Entity\Company;
 use Mautic\LeadBundle\Model\LeadModel;
-use Mautic\PluginBundle\Entity\Integration;
-use Mautic\PluginBundle\Entity\Plugin;
-use Mautic\UserBundle\Entity\User;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Integration\LeuchtfeuerCompanyPointsIntegration;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Fixtures\FunctionalFixtureHelper;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Support\ActivePluginTrait;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Entity\CompanyTags;
 use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Entity\CompanyTagsRepository;
 use PHPUnit\Framework\Assert;
@@ -131,7 +126,7 @@ class PointTriggerFunctionalTest extends MauticMysqlTestCase
         $this->activePlugin();
 
         $targetSegment = $this->fixtureHelper->createCompanySegment('Target Segment', 'target-segment');
-        $company = $this->fixtureHelper->createCompany('Test Company Inc.');
+        $company       = $this->fixtureHelper->createCompany('Test Company Inc.');
         $this->em->flush();
 
         $trigger = $this->fixtureHelper->createPointTrigger('Add company to segment on points');
@@ -169,7 +164,7 @@ class PointTriggerFunctionalTest extends MauticMysqlTestCase
         $this->activePlugin();
 
         $segmentToRemove = $this->fixtureHelper->createCompanySegment('Segment to Remove', 'segment-to-remove');
-        $company = $this->fixtureHelper->createCompany('Test Company Inc.');
+        $company         = $this->fixtureHelper->createCompany('Test Company Inc.');
         $this->em->flush();
 
         $this->fixtureHelper->addCompanyToSegment($company, $segmentToRemove);

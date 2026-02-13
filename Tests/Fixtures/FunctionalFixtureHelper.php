@@ -16,8 +16,6 @@ use Mautic\LeadBundle\Entity\LeadDevice;
 use Mautic\LeadBundle\Entity\LeadList;
 use Mautic\PageBundle\Entity\Page;
 use Mautic\PageBundle\Entity\Redirect;
-use Mautic\PluginBundle\Entity\Integration;
-use Mautic\PluginBundle\Entity\Plugin;
 use Mautic\UserBundle\Entity\User;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
@@ -34,10 +32,9 @@ final class FunctionalFixtureHelper
 
     public function __construct(
         private EntityManagerInterface $em,
-        private KernelBrowser $client
+        private KernelBrowser $client,
     ) {
     }
-
 
     public function loginAdmin(): void
     {
@@ -218,9 +215,7 @@ final class FunctionalFixtureHelper
         $response       = json_decode($clientResponse->getContent(), true);
 
         if (!isset($response['form']['id'])) {
-            throw new \RuntimeException(
-                'Form creation via API failed. Response: ' . $clientResponse->getContent()
-            );
+            throw new \RuntimeException('Form creation via API failed. Response: '.$clientResponse->getContent());
         }
 
         $formId = $response['form']['id'];
@@ -229,6 +224,7 @@ final class FunctionalFixtureHelper
         $this->logout();
 
         $this->em->clear();
+
         return $this->em->getRepository(Form::class)->find($formId);
     }
 
@@ -322,7 +318,7 @@ final class FunctionalFixtureHelper
         array $addToCampaign,
         array $removefromCampaign,
         array $addToOrRestartCampaign,
-        string $triggerContacts
+        string $triggerContacts,
     ): CompanyTriggerEvent {
         $event = new CompanyTriggerEvent();
         $event->setTrigger($trigger);
@@ -359,7 +355,7 @@ final class FunctionalFixtureHelper
         CompanyTrigger $trigger,
         string $name,
         array $addSegments = [],
-        array $removeSegments = []
+        array $removeSegments = [],
     ): CompanyTriggerEvent {
         $event = new CompanyTriggerEvent();
         $event->setTrigger($trigger);
@@ -388,7 +384,7 @@ final class FunctionalFixtureHelper
         CompanyTrigger $trigger,
         Email $email,
         string $name,
-        string $recipient
+        string $recipient,
     ): CompanyTriggerEvent {
         $event = new CompanyTriggerEvent();
         $event->setTrigger($trigger);

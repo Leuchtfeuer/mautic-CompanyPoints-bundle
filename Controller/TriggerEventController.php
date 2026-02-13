@@ -52,8 +52,8 @@ class TriggerEventController extends AbstractStandardFormController
 
         // fire the builder event
         $pointTriggerModel = $this->getTriggerModel();
-        $events = $pointTriggerModel->getEvents();
-        $form   = $this->formFactory->create(CompanyTriggerEventType::class, $triggerEvent, [
+        $events            = $pointTriggerModel->getEvents();
+        $form              = $this->formFactory->create(CompanyTriggerEventType::class, $triggerEvent, [
             'action'   => $this->generateUrl('mautic_company_pointtriggerevent_action', ['objectAction' => 'new']),
             'settings' => $events[$eventType],
         ]);
@@ -148,16 +148,16 @@ class TriggerEventController extends AbstractStandardFormController
         $method       = $request->getMethod();
         // Use all() instead of get() to avoid "non-scalar value" error with nested arrays
         $allRequestData = $request->request->all();
-        $triggerEvent = $allRequestData['companypointtriggerevent'] ?? [];
-        $triggerId    = 'POST' === $method ? ($triggerEvent['triggerId'] ?? '') : $request->query->get('triggerId');
-        $events       = $session->get('mautic.companypoint.'.$triggerId.'.triggerevents.modified', []);
-        $success      = 0;
-        $valid        = $cancelled = false;
-        $triggerEvent = array_key_exists($objectId, $events) ? $events[$objectId] : null;
+        $triggerEvent   = $allRequestData['companypointtriggerevent'] ?? [];
+        $triggerId      = 'POST' === $method ? ($triggerEvent['triggerId'] ?? '') : $request->query->get('triggerId');
+        $events         = $session->get('mautic.companypoint.'.$triggerId.'.triggerevents.modified', []);
+        $success        = 0;
+        $valid          = $cancelled = false;
+        $triggerEvent   = array_key_exists($objectId, $events) ? $events[$objectId] : null;
 
         if (null !== $triggerEvent) {
-            $eventType         = $triggerEvent['type'];
-            $pointTriggerModel = $this->getTriggerModel();
+            $eventType                = $triggerEvent['type'];
+            $pointTriggerModel        = $this->getTriggerModel();
             $events                   = $pointTriggerModel->getEvents();
             $triggerEvent['settings'] = $events[$eventType];
 
