@@ -18,11 +18,8 @@ class CountQueueHelper
 
     private const CONFIGURATION_KEY = 'company_points_count_queue';
 
-    private Configurator $configurator;
-
-    public function __construct(Configurator $configurator)
+    public function __construct(private Configurator $configurator)
     {
-        $this->configurator = $configurator;
     }
 
     /**

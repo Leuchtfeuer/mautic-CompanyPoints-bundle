@@ -84,7 +84,6 @@ class RecalculateCompanyScoresCommand extends ModeratedCommand
             ? min($maxCompanies, $remainingCompanies)
             : $remainingCompanies;
 
-        $batchMessage =
         $output->writeln('<info>'.$companiesToProcess.' company scores to be recalculated in batches of '.$batch.'</info>');
 
         $progressBar = new ProgressBar($output, $companiesToProcess);

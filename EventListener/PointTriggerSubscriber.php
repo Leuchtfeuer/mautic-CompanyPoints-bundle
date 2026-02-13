@@ -116,9 +116,8 @@ class PointTriggerSubscriber implements EventSubscriberInterface
         }
 
         $companySegmentMembershipFilter = $trigger->getCompanySegmentMembershipFilter();
-        $hasCorrectSegmentMembership    = $this->companySegmentHelper->companyHasCorrectSegmentMembership($company, $companySegmentMembershipFilter);
 
-        return $hasCorrectSegmentMembership;
+        return $this->companySegmentHelper->companyHasCorrectSegmentMembership($company, $companySegmentMembershipFilter);
     }
 
     /**

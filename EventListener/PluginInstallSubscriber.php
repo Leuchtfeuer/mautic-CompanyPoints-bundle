@@ -32,7 +32,6 @@ class PluginInstallSubscriber implements EventSubscriberInterface
     {
         $this->logger->info('PluginInstallSubscriber::onPluginInstall called for: '.$event->getPlugin()->getName());
 
-        $context = $event->getPlugin()->getName();
         if (!$event->checkContext('Company Points by Leuchtfeuer')) {
             $this->logger->info('Context check failed. Expected "Company Points by Leuchtfeuer", got: '.$event->getPlugin()->getName());
 
