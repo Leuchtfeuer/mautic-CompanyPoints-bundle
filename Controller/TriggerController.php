@@ -2,7 +2,7 @@
 
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Controller;
 
-use Mautic\CoreBundle\Controller\FormController;
+use Mautic\CoreBundle\Controller\AbstractStandardFormController;
 use Mautic\CoreBundle\Factory\PageHelperFactoryInterface;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class TriggerController extends FormController
+class TriggerController extends AbstractStandardFormController
 {
     /**
      * @param int $page
@@ -50,7 +50,7 @@ class TriggerController extends FormController
         $filter     = ['string' => $search, 'force' => []];
         $orderBy    = $request->getSession()->get('mautic.companypoint.trigger.orderby', 't.name');
         $orderByDir = $request->getSession()->get('mautic.companypoint.trigger.orderbydir', 'ASC');
-        $triggers   = $this->getModel('companypoint.trigger')->getEntities(
+        $triggers   = $this->getTriggerModel()->getEntities(
             [
                 'start'      => $start,
                 'limit'      => $limit,
@@ -118,7 +118,7 @@ class TriggerController extends FormController
             'companypoint:triggers:publish',
         ], 'RETURN_ARRAY');
 
-        $entity = $this->getModel('companypoint.trigger')->getEntity($objectId);
+        $entity = $this->getTriggerModel()->getEntity($objectId);
 
         if (null === $entity) {
             // set the return URL
@@ -178,8 +178,7 @@ class TriggerController extends FormController
      */
     public function newAction(Request $request, $entity = null, array $triggerEvents = [])
     {
-        /** @var CompanyTriggerModel $model */
-        $model = $this->getModel('companypoint.trigger');
+        $model = $this->getTriggerModel();
 
         if (!($entity instanceof CompanyTrigger)) {
             /** @var CompanyTrigger $entity */
@@ -311,9 +310,7 @@ class TriggerController extends FormController
      */
     public function editAction(Request $request, $objectId, $ignorePost = false)
     {
-        /** @var CompanyTriggerModel $model */
-        $model      = $this->getModel('companypoint.trigger');
-        assert($model instanceof CompanyTriggerModel);
+        $model      = $this->getTriggerModel();
         $entity     = $model->getEntity($objectId);
         $session    = $request->getSession();
         $cleanSlate = true;
@@ -383,8 +380,7 @@ class TriggerController extends FormController
 
                         // delete entities
                         if (count($deletedEvents)) {
-                            $triggerEventModel = $this->getModel('companypoint.triggerevent');
-                            \assert($triggerEventModel instanceof CompanyTriggerEventModel);
+                            $triggerEventModel = $this->getTriggerEventModel();
                             $triggerEventModel->deleteEntities($deletedEvents);
                         }
 
@@ -473,7 +469,7 @@ class TriggerController extends FormController
      */
     public function cloneAction(Request $request, $objectId)
     {
-        $model  = $this->getModel('companypoint.trigger');
+        $model  = $this->getTriggerModel();
         $entity = $model->getEntity($objectId);
         \assert($entity instanceof CompanyTrigger);
         $existingActions = $entity->getEvents()->toArray();
@@ -526,8 +522,7 @@ class TriggerController extends FormController
         ];
 
         if (Request::METHOD_POST === $request->getMethod()) {
-            $model = $this->getModel('companypoint.trigger');
-            \assert($model instanceof CompanyTriggerModel);
+            $model = $this->getTriggerModel();
             $entity = $model->getEntity($objectId);
 
             if (null === $entity) {
@@ -584,8 +579,7 @@ class TriggerController extends FormController
         ];
 
         if (Request::METHOD_POST === $request->getMethod()) {
-            $model = $this->getModel('companypoint.trigger');
-            \assert($model instanceof CompanyTriggerModel);
+            $model = $this->getTriggerModel();
             $ids       = json_decode($request->query->get('ids', '{}'));
             $deleteIds = [];
 
@@ -637,5 +631,26 @@ class TriggerController extends FormController
         $session = $request->getSession();
         $session->remove('mautic.companypoint.'.$sessionId.'.triggerevents.modified');
         $session->remove('mautic.companypoint.'.$sessionId.'.triggerevents.deleted');
+    }
+
+    protected function getTriggerModel(): CompanyTriggerModel
+    {
+        $model = $this->getModel($this->getModelName());
+        \assert($model instanceof CompanyTriggerModel);
+
+        return $model;
+    }
+
+    protected function getTriggerEventModel(): CompanyTriggerEventModel
+    {
+        $model = $this->getModel('companypoint.triggerevent');
+        \assert($model instanceof CompanyTriggerEventModel);
+
+        return $model;
+    }
+
+    protected function getModelName(): string
+    {
+        return 'companypoint.trigger';
     }
 }
