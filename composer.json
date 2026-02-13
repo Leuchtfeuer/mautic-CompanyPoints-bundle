@@ -22,7 +22,7 @@
   "minimum-stability": "dev",
   "require": {
     "php": "^8.0",
-    "mautic/core-lib": "^5.0",
+    "mautic/core-lib": "^6.0",
     "leuchtfeuer/mautic-companysegments-bundle": "^1.0",
     "leuchtfeuer/mautic-companytags-bundle": "^1.0"
   },
