@@ -184,9 +184,10 @@ class TriggerController extends AbstractStandardFormController
             $entity = $model->getEntity();
         }
 
-        $session      = $request->getSession();
-        $pointTrigger = $request->request->get('companypointtrigger') ?? [];
-        $sessionId    = $pointTrigger['sessionId'] ?? 'mautic_'.sha1(uniqid((string) random_int(1, PHP_INT_MAX), true));
+        $session        = $request->getSession();
+        $allRequestData = $request->request->all();
+        $pointTrigger   = $allRequestData['companypointtrigger'] ?? [];
+        $sessionId      = $pointTrigger['sessionId'] ?? 'mautic_'.sha1(uniqid((string) random_int(1, PHP_INT_MAX), true));
 
         if (!$this->security->isGranted('companypoint:triggers:create')) {
             return $this->accessDenied();
