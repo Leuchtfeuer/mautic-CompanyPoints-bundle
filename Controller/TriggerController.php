@@ -2,20 +2,36 @@
 
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Controller;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Mautic\CoreBundle\Controller\AbstractStandardFormController;
+use Mautic\CoreBundle\Factory\ModelFactory;
 use Mautic\CoreBundle\Factory\PageHelperFactoryInterface;
+use Mautic\CoreBundle\Helper\CoreParametersHelper;
+use Mautic\CoreBundle\Helper\UserHelper;
+use Mautic\CoreBundle\Security\Permissions\CorePermissions;
+use Mautic\CoreBundle\Service\FlashBag;
+use Mautic\CoreBundle\Translation\Translator;
+use Mautic\FormBundle\Helper\FormFieldHelper;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerEventModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 
 class TriggerController extends AbstractStandardFormController
 {
+    public function __construct(private CompanyTriggerModel $triggerModel, private CompanyTriggerEventModel $triggerEventModel, FormFactoryInterface $formFactory, FormFieldHelper $fieldHelper, ManagerRegistry $managerRegistry, ModelFactory $modelFactory, UserHelper $userHelper, CoreParametersHelper $coreParametersHelper, EventDispatcherInterface $dispatcher, Translator $translator, FlashBag $flashBag, RequestStack $requestStack, CorePermissions $security)
+    {
+        parent::__construct($formFactory, $fieldHelper, $managerRegistry, $modelFactory, $userHelper, $coreParametersHelper, $dispatcher, $translator, $flashBag, $requestStack, $security);
+    }
+
     /**
      * @param int $page
      *
@@ -50,7 +66,7 @@ class TriggerController extends AbstractStandardFormController
         $filter     = ['string' => $search, 'force' => []];
         $orderBy    = $request->getSession()->get('mautic.companypoint.trigger.orderby', 't.name');
         $orderByDir = $request->getSession()->get('mautic.companypoint.trigger.orderbydir', 'ASC');
-        $triggers   = $this->getTriggerModel()->getEntities(
+        $triggers   = $this->triggerModel->getEntities(
             [
                 'start'      => $start,
                 'limit'      => $limit,
@@ -118,7 +134,7 @@ class TriggerController extends AbstractStandardFormController
             'companypoint:triggers:publish',
         ], 'RETURN_ARRAY');
 
-        $entity = $this->getTriggerModel()->getEntity($objectId);
+        $entity = $this->triggerModel->getEntity($objectId);
 
         if (null === $entity) {
             // set the return URL
@@ -177,8 +193,7 @@ class TriggerController extends AbstractStandardFormController
      */
     public function newAction(Request $request, $entity = null, array $triggerEvents = [])
     {
-        $model = $this->getTriggerModel();
-
+        $model = $this->triggerModel;
         if (!($entity instanceof CompanyTrigger)) {
             /** @var CompanyTrigger $entity */
             $entity = $model->getEntity();
@@ -310,7 +325,7 @@ class TriggerController extends AbstractStandardFormController
      */
     public function editAction(Request $request, $objectId, $ignorePost = false)
     {
-        $model      = $this->getTriggerModel();
+        $model      = $this->triggerModel;
         $entity     = $model->getEntity($objectId);
         $session    = $request->getSession();
         $cleanSlate = true;
@@ -380,7 +395,7 @@ class TriggerController extends AbstractStandardFormController
 
                         // delete entities
                         if (count($deletedEvents)) {
-                            $triggerEventModel = $this->getTriggerEventModel();
+                            $triggerEventModel = $this->triggerEventModel;
                             $triggerEventModel->deleteEntities($deletedEvents);
                         }
 
@@ -469,7 +484,7 @@ class TriggerController extends AbstractStandardFormController
      */
     public function cloneAction(Request $request, $objectId)
     {
-        $model  = $this->getTriggerModel();
+        $model  = $this->triggerModel;
         $entity = $model->getEntity($objectId);
         \assert($entity instanceof CompanyTrigger);
         $existingActions = $entity->getEvents()->toArray();
@@ -522,7 +537,7 @@ class TriggerController extends AbstractStandardFormController
         ];
 
         if (Request::METHOD_POST === $request->getMethod()) {
-            $model  = $this->getTriggerModel();
+            $model  = $this->triggerModel;
             $entity = $model->getEntity($objectId);
 
             if (null === $entity) {
@@ -577,7 +592,7 @@ class TriggerController extends AbstractStandardFormController
         ];
 
         if (Request::METHOD_POST === $request->getMethod()) {
-            $model     = $this->getTriggerModel();
+            $model     = $this->triggerModel;
             $ids       = json_decode($request->query->get('ids', '{}'));
             $deleteIds = [];
 
@@ -629,22 +644,6 @@ class TriggerController extends AbstractStandardFormController
         $session = $request->getSession();
         $session->remove('mautic.companypoint.'.$sessionId.'.triggerevents.modified');
         $session->remove('mautic.companypoint.'.$sessionId.'.triggerevents.deleted');
-    }
-
-    protected function getTriggerModel(): CompanyTriggerModel
-    {
-        $model = $this->getModel($this->getModelName());
-        \assert($model instanceof CompanyTriggerModel);
-
-        return $model;
-    }
-
-    protected function getTriggerEventModel(): CompanyTriggerEventModel
-    {
-        $model = $this->getModel('companypoint.triggerevent');
-        \assert($model instanceof CompanyTriggerEventModel);
-
-        return $model;
     }
 
     protected function getModelName(): string

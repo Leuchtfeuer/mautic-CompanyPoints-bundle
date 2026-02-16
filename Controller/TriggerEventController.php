@@ -2,17 +2,32 @@
 
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Controller;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Mautic\CoreBundle\Controller\AbstractStandardFormController;
+use Mautic\CoreBundle\Factory\ModelFactory;
+use Mautic\CoreBundle\Helper\CoreParametersHelper;
+use Mautic\CoreBundle\Helper\UserHelper;
+use Mautic\CoreBundle\Security\Permissions\CorePermissions;
+use Mautic\CoreBundle\Service\FlashBag;
+use Mautic\CoreBundle\Translation\Translator;
+use Mautic\FormBundle\Helper\FormFieldHelper;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Form\Type\CompanyTriggerEventType;
-use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerEventModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 
 class TriggerEventController extends AbstractStandardFormController
 {
+    public function __construct(private CompanyTriggerModel $triggerModel, FormFactoryInterface $formFactory, FormFieldHelper $fieldHelper, ManagerRegistry $managerRegistry, ModelFactory $modelFactory, UserHelper $userHelper, CoreParametersHelper $coreParametersHelper, EventDispatcherInterface $dispatcher, Translator $translator, FlashBag $flashBag, RequestStack $requestStack, CorePermissions $security)
+    {
+        parent::__construct($formFactory, $fieldHelper, $managerRegistry, $modelFactory, $userHelper, $coreParametersHelper, $dispatcher, $translator, $flashBag, $requestStack, $security);
+    }
+
     /**
      * Generates new form and processes post data.
      *
@@ -51,7 +66,7 @@ class TriggerEventController extends AbstractStandardFormController
         }
 
         // fire the builder event
-        $pointTriggerModel = $this->getTriggerModel();
+        $pointTriggerModel = $this->triggerModel;
         $events            = $pointTriggerModel->getEvents();
         $form              = $this->formFactory->create(CompanyTriggerEventType::class, $triggerEvent, [
             'action'   => $this->generateUrl('mautic_company_pointtriggerevent_action', ['objectAction' => 'new']),
@@ -157,7 +172,7 @@ class TriggerEventController extends AbstractStandardFormController
 
         if (null !== $triggerEvent) {
             $eventType                = $triggerEvent['type'];
-            $pointTriggerModel        = $this->getTriggerModel();
+            $pointTriggerModel        = $this->triggerModel;
             $events                   = $pointTriggerModel->getEvents();
             $triggerEvent['settings'] = $events[$eventType];
 
@@ -385,21 +400,5 @@ class TriggerEventController extends AbstractStandardFormController
     protected function getModelName(): string
     {
         return 'companypoint.triggerevent';
-    }
-
-    protected function getTriggerEventModel(): CompanyTriggerEventModel
-    {
-        $model = $this->getModel($this->getModelName());
-        \assert($model instanceof CompanyTriggerEventModel);
-
-        return $model;
-    }
-
-    protected function getTriggerModel(): CompanyTriggerModel
-    {
-        $model = $this->getModel('companypoint.trigger');
-        \assert($model instanceof CompanyTriggerModel);
-
-        return $model;
     }
 }
