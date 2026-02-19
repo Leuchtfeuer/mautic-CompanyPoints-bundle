@@ -3,7 +3,7 @@
 return [
     'name'        => 'Company Points by Leuchtfeuer',
     'description' => 'Massively enhanced Company-based Scoring. Point-based and even other (!) triggers and multiple triggered actions, all that for Companies.',
-    'version'     => '5.0.0',
+    'version'     => '6.0.0',
     'author'      => 'Leuchtfeuer Digital Marketing GmbH',
     'routes'      => [
         'main' => [
