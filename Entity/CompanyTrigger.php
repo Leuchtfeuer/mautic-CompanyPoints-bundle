@@ -409,8 +409,7 @@ class CompanyTrigger extends FormEntity
         }
 
         if (!isset($companySegmentMembershipFilter['segments'])
-            || !is_array($companySegmentMembershipFilter['segments'])
-            || count($companySegmentMembershipFilter['segments']) < 1) {
+            || !is_array($companySegmentMembershipFilter['segments'])) {
             return;
         }
 
