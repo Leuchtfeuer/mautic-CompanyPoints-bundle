@@ -853,4 +853,61 @@ class MembershipActivityTriggerFunctionalTest extends MauticMysqlTestCase
 
         Assert::assertCount(0, $companiesSegments);
     }
+
+    public function testRemoveCompanyTagsTriggerAction(): void
+    {
+        $this->fixtureHelper->createAndEnablePlugin();
+
+        $company = $this->fixtureHelper->createCompany('Test Company Inc.');
+        $this->em->flush();
+
+        $tagToKeep = $this->fixtureHelper->createCompanyTag('Tag To Keep');
+        $tagToKeep->addCompany($company);
+        $this->em->persist($tagToKeep);
+
+        $tagToRemove1 = $this->fixtureHelper->createCompanyTag('Tag To Remove');
+        $tagToRemove1->addCompany($company);
+        $this->em->persist($tagToRemove1);
+
+        $this->em->flush();
+
+        $tagsRepository = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepository);
+        $initialTags = $tagsRepository->getTagsByCompany($company);
+        Assert::assertCount(2, $initialTags);
+
+        $trigger = $this->fixtureHelper->createMembershipActivityTrigger(
+            'Remove tag',
+            CompanyTrigger::ACTIVITY_EVERY_OF_KNOWN_CONTACT
+        );
+
+        $this->fixtureHelper->createCompanyTagsAction(
+            $trigger,
+            'Remove one tag',
+            [],
+            [$tagToRemove1->getId()]
+        );
+
+        $contact = $this->fixtureHelper->createContact('test@example.com');
+        $contact->setLastActive((new \DateTime())->modify('-1 day'));
+        $contact->setCompany($company->getName());
+        $this->em->persist($contact);
+        $this->em->flush();
+        $this->fixtureHelper->addContactToCompany($contact, $company);
+        $this->em->flush();
+
+        $this->fixtureHelper->emulatePageVisit($contact);
+        $this->em->clear();
+
+        $updatedCompany = $this->em->getRepository(Company::class)->find($company->getId());
+        Assert::assertNotNull($updatedCompany);
+
+        $tagsRepository = $this->em->getRepository(CompanyTags::class);
+        $this->assertInstanceOf(CompanyTagsRepository::class, $tagsRepository);
+        $remainingTags = $tagsRepository->getTagsByCompany($updatedCompany);
+
+        Assert::assertCount(1, $remainingTags, 'Company should have 1 tag remaining after removal.');
+        Assert::assertSame($tagToKeep->getId(), $remainingTags[0]->getId(), 'The wrong tag was kept.');
+        Assert::assertSame($tagToKeep->getTag(), $remainingTags[0]->getTag(), 'The tag name should match.');
+    }
 }
