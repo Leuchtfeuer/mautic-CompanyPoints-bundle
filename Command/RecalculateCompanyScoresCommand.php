@@ -24,7 +24,7 @@ class RecalculateCompanyScoresCommand extends ModeratedCommand
         protected CompanyScoreModel $companyScoreModel,
         protected CountQueueHelper $countQueueHelper,
         protected Config $config,
-        protected EventDispatcherInterface $dispatcher
+        protected EventDispatcherInterface $dispatcher,
     ) {
         parent::__construct($pathsHelper, $coreParametersHelper);
     }
@@ -84,7 +84,6 @@ class RecalculateCompanyScoresCommand extends ModeratedCommand
             ? min($maxCompanies, $remainingCompanies)
             : $remainingCompanies;
 
-        $batchMessage =
         $output->writeln('<info>'.$companiesToProcess.' company scores to be recalculated in batches of '.$batch.'</info>');
 
         $progressBar = new ProgressBar($output, $companiesToProcess);

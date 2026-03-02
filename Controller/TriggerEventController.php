@@ -2,16 +2,25 @@
 
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Controller;
 
-use Mautic\CoreBundle\Controller\FormController as CommonFormController;
+use Mautic\CoreBundle\Controller\AbstractStandardFormController;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Form\Type\CompanyTriggerEventType;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\Service\Attribute\Required;
 
-class TriggerEventController extends CommonFormController
+class TriggerEventController extends AbstractStandardFormController
 {
+    private CompanyTriggerModel $triggerModel;
+
+    #[Required]
+    public function setTriggerModel(CompanyTriggerModel $triggerModel): void
+    {
+        $this->triggerModel = $triggerModel;
+    }
+
     /**
      * Generates new form and processes post data.
      *
@@ -50,11 +59,9 @@ class TriggerEventController extends CommonFormController
         }
 
         // fire the builder event
-        /** @var CompanyTriggerModel $pointTriggerModel */
-        $pointTriggerModel = $this->getModel('companypoint.trigger');
-        \assert($pointTriggerModel instanceof CompanyTriggerModel);
-        $events = $pointTriggerModel->getEvents();
-        $form   = $this->formFactory->create(CompanyTriggerEventType::class, $triggerEvent, [
+        $pointTriggerModel = $this->triggerModel;
+        $events            = $pointTriggerModel->getEvents();
+        $form              = $this->formFactory->create(CompanyTriggerEventType::class, $triggerEvent, [
             'action'   => $this->generateUrl('mautic_company_pointtriggerevent_action', ['objectAction' => 'new']),
             'settings' => $events[$eventType],
         ]);
@@ -147,17 +154,18 @@ class TriggerEventController extends CommonFormController
     {
         $session      = $request->getSession();
         $method       = $request->getMethod();
-        $triggerEvent = $request->request->get('companypointtriggerevent') ?? [];
-        $triggerId    = 'POST' === $method ? ($triggerEvent['triggerId'] ?? '') : $request->query->get('triggerId');
-        $events       = $session->get('mautic.companypoint.'.$triggerId.'.triggerevents.modified', []);
-        $success      = 0;
-        $valid        = $cancelled = false;
-        $triggerEvent = array_key_exists($objectId, $events) ? $events[$objectId] : null;
+        // Use all() instead of get() to avoid "non-scalar value" error with nested arrays
+        $allRequestData = $request->request->all();
+        $triggerEvent   = $allRequestData['companypointtriggerevent'] ?? [];
+        $triggerId      = 'POST' === $method ? ($triggerEvent['triggerId'] ?? '') : $request->query->get('triggerId');
+        $events         = $session->get('mautic.companypoint.'.$triggerId.'.triggerevents.modified', []);
+        $success        = 0;
+        $valid          = $cancelled = false;
+        $triggerEvent   = array_key_exists($objectId, $events) ? $events[$objectId] : null;
 
         if (null !== $triggerEvent) {
-            $eventType         = $triggerEvent['type'];
-            $pointTriggerModel = $this->getModel('companypoint.trigger');
-            \assert($pointTriggerModel instanceof CompanyTriggerModel);
+            $eventType                = $triggerEvent['type'];
+            $pointTriggerModel        = $this->triggerModel;
             $events                   = $pointTriggerModel->getEvents();
             $triggerEvent['settings'] = $events[$eventType];
 
@@ -380,5 +388,10 @@ class TriggerEventController extends CommonFormController
         }
 
         return new JsonResponse($dataArray);
+    }
+
+    protected function getModelName(): string
+    {
+        return 'companypoint.triggerevent';
     }
 }

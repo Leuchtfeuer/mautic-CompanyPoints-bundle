@@ -76,7 +76,7 @@ class CompanyTrigger extends FormEntity
     private $category;
 
     /**
-     * @var ArrayCollection<int, \MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTriggerEvent>
+     * @var ArrayCollection<int, CompanyTriggerEvent>
      */
     private $events;
 
@@ -409,8 +409,7 @@ class CompanyTrigger extends FormEntity
         }
 
         if (!isset($companySegmentMembershipFilter['segments'])
-            || !is_array($companySegmentMembershipFilter['segments'])
-            || count($companySegmentMembershipFilter['segments']) < 1) {
+            || !is_array($companySegmentMembershipFilter['segments'])) {
             return;
         }
 

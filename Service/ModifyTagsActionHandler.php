@@ -10,7 +10,7 @@ use MauticPlugin\LeuchtfeuerCompanyTagsBundle\Model\CompanyTagModel;
 class ModifyTagsActionHandler
 {
     public function __construct(
-        private CompanyTagModel $companyTagModel
+        private CompanyTagModel $companyTagModel,
     ) {
     }
 
@@ -42,7 +42,7 @@ class ModifyTagsActionHandler
 
         if (!empty($triggerProperties['remove_tags'])) {
             // Find tag entities to remove based on the trigger configuration.
-            $tagsToRemove = $this->companyTagModel->getRepository()->findBy(['tag' => $triggerProperties['remove_tags']]);
+            $tagsToRemove = $this->companyTagModel->getRepository()->findBy(['id' => $triggerProperties['remove_tags']]);
         }
 
         // Execute the update only if there are tags to add or remove.

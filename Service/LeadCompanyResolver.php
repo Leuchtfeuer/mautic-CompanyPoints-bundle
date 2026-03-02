@@ -13,8 +13,9 @@ class LeadCompanyResolver
 {
     public function __construct(
         private Connection $db,
-        private CompanyRepository $companyRepository
-    ) {}
+        private CompanyRepository $companyRepository,
+    ) {
+    }
 
     public function getPrimaryCompanyByLead(Lead $lead): ?Company
     {
@@ -25,7 +26,7 @@ class LeadCompanyResolver
 
         $qb = $this->db->createQueryBuilder();
         $qb->select('cl.company_id')
-            ->from(MAUTIC_TABLE_PREFIX . 'companies_leads', 'cl')
+            ->from(MAUTIC_TABLE_PREFIX.'companies_leads', 'cl')
             ->where('cl.lead_id = :lead')
             ->andWhere('cl.is_primary = 1')
             ->setParameter('lead', $leadId)

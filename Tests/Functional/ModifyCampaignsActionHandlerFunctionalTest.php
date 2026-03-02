@@ -13,19 +13,25 @@ use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Model\CompanyModel;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Entity\CompanyTrigger;
 use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Fixtures\FunctionalFixtureHelper;
+use MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Support\ActivePluginTrait;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesPlaceholderLeads;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesPlaceholderLeadsRepository;
 
 class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
 {
-    protected $useCleanupRollback = false;
+    use ActivePluginTrait;
+
     private FunctionalFixtureHelper $fixtureHelper;
     private CampaignFixtureHelper $campaignFixtureHelper;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->fixtureHelper         = new FunctionalFixtureHelper($this->em, $this->client);
+        $this->activePlugin();
+        $this->useCleanupRollback = false;
+        $this->setUpSymfony($this->configParams);
+        $this->fixtureHelper= new FunctionalFixtureHelper($this->em, $this->client);
+        $this->fixtureHelper->loginAdmin();
         $this->campaignFixtureHelper = new CampaignFixtureHelper($this->em);
     }
 
@@ -36,7 +42,6 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
      */
     public function testAddLeadToCampaignTriggerAction(string $triggerContacts, array $leadsToEndUpInCampaign): void
     {
-        $this->fixtureHelper->createAndEnablePlugin();
         $company    = $this->fixtureHelper->createCompany('abc');
         $contactIds = $this->createAllLeads($company);
         $campaign   = $this->campaignFixtureHelper->createCampaign('Add Lead To Campaign Company Trigger Action');
@@ -88,7 +93,6 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
      */
     public function testRemoveLeadFromCampaignTriggerAction(string $triggerContacts, array $leadsToBeRemovedFromCampaign): void
     {
-        $this->fixtureHelper->createAndEnablePlugin();
         $company    = $this->fixtureHelper->createCompany('abc');
         $contactIds = $this->createAllLeads($company);
         $campaign   = $this->campaignFixtureHelper->createCampaign('Remove Lead From Campaign Company Trigger Action');
@@ -145,7 +149,6 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
 
     public function testAddToOrRestartCampaignTriggerAction(): void
     {
-        $this->fixtureHelper->createAndEnablePlugin();
         $company    = $this->fixtureHelper->createCompany('abc');
         $contactIds = $this->createAllLeads($company);
         $campaign   = $this->campaignFixtureHelper->createCampaign('Remove Lead From Campaign Company Trigger Action');
@@ -202,8 +205,6 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
 
     public function testModifyCampaignActionForPlaceholderContact(): void
     {
-        $this->fixtureHelper->createAndEnablePlugin();
-
         $company      = $this->fixtureHelper->createCompany('abc', 'a@a.com');
         $companyModel = $this->getContainer()->get('mautic.lead.model.company');
         $this->assertInstanceOf(CompanyModel::class, $companyModel);
@@ -230,6 +231,7 @@ class ModifyCampaignsActionHandlerFunctionalTest extends MauticMysqlTestCase
 
         $contactToEmulate = $this->em->getRepository(Lead::class)->find($contactIds['known-contact-with-most-recent-activity']);
         $this->assertInstanceOf(Lead::class, $contactToEmulate);
+        $this->logoutUser();
         $this->fixtureHelper->emulateEmailLinkClicked($contactToEmulate);
         $this->em->clear();
 

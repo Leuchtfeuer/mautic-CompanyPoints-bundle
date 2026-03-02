@@ -12,7 +12,7 @@ class CompanyTriggerExecutedEvent extends Event
 
     public function __construct(
         private CompanyTriggerEventEntity $triggerEvent,
-        private Lead $lead
+        private Lead $lead,
     ) {
     }
 

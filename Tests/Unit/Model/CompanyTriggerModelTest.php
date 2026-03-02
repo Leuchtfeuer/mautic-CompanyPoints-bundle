@@ -3,7 +3,6 @@
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Tests\Unit\Model;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\IpLookupHelper;
 use Mautic\CoreBundle\Helper\UserHelper;
@@ -46,7 +45,6 @@ class CompanyTriggerModelTest extends TestCase
             $this->createMock(IpLookupHelper::class),
             $this->createMock(LeadModel::class),
             $this->createMock(CompanyTriggerEventModel::class),
-            $this->createMock(MauticFactory::class),
             $this->createMock(ContactTracker::class),
             $em,
             $this->createMock(CorePermissions::class),
@@ -186,7 +184,6 @@ class CompanyTriggerModelTest extends TestCase
                 $this->createMock(IpLookupHelper::class),
                 $this->createMock(LeadModel::class),
                 $this->createMock(CompanyTriggerEventModel::class),
-                $this->createMock(MauticFactory::class),
                 $this->createMock(ContactTracker::class),
                 $this->createMock(EntityManagerInterface::class),
                 $this->createMock(CorePermissions::class),
@@ -237,7 +234,6 @@ class CompanyTriggerModelTest extends TestCase
                 $this->createMock(IpLookupHelper::class),
                 $this->createMock(LeadModel::class),
                 $this->createMock(CompanyTriggerEventModel::class),
-                $this->createMock(MauticFactory::class),
                 $this->createMock(ContactTracker::class),
                 $this->createMock(EntityManagerInterface::class),
                 $this->createMock(CorePermissions::class),
@@ -336,7 +332,6 @@ class CompanyTriggerModelTest extends TestCase
             $this->createMock(IpLookupHelper::class),
             $this->createMock(LeadModel::class),
             $this->createMock(CompanyTriggerEventModel::class),
-            $this->createMock(MauticFactory::class),
             $this->createMock(ContactTracker::class),
             $this->createMock(EntityManagerInterface::class),
             $this->createMock(CorePermissions::class),

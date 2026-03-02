@@ -9,7 +9,7 @@ Company Points & Triggers is part of the "ABM" suite of plugins that extends Mau
 ## Requirements for this release
 > [!TIP]
 > Other releases of this plugin may cover different Mautic versions!
-- Mautic 5.x (minimum 5.1) 
+- Mautic 6.0
 - PHP 8.1 or higher
 - Company Tags and Company Segments Plugins
 
@@ -22,7 +22,7 @@ Alternatively, it can be installed manually, following the usual steps:
 
 * Download the plugin
 * Unzip to the Mautic `plugins` directory
-* Rename folder to `LeuchtfeuerCompanyPointsBundle` 
+* Rename folder to `LeuchtfeuerCompanyPointsBundle`
 
 -
 * In the Mautic backend, go to the `Plugins` page as an administrator
@@ -53,7 +53,7 @@ You should set up a cron entry accordingly.
 The only current algorithm for the aggregation is "static company points PLUS average among all contacts that currently have points".
 * This also includes contacts who have this company as secondary.
 * This does not include contacts who have zero points.
-  
+
 Changes of "Score calculated" are reflected in the audit log and company timeline.
 
 ### Triggers and Triggered Actions
@@ -86,7 +86,7 @@ If things are still funny, please try
 
 `php bin/console cache:clear`
 
-and 
+and
 
 `php bin/console mautic:assets:generate`
 

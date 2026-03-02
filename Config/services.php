@@ -26,7 +26,6 @@ return function (ContainerConfigurator $configurator): void {
     $services->set(CoreLeadRepository::class, PluginLeadRepository::class)
         ->tag(Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\ServiceRepositoryCompilerPass::REPOSITORY_SERVICE_TAG);
 
-
     $services->alias('mautic.companypoint.model.trigger', MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerModel::class);
     $services->alias('mautic.companypoint.model.triggerevent', MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model\CompanyTriggerEventModel::class);
 };

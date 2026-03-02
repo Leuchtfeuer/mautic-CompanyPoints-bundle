@@ -34,7 +34,7 @@ class CompanyScoreModel extends CompanyModel
         LoggerInterface $mauticLogger,
         CoreParametersHelper $coreParametersHelper,
         FieldList $fieldList,
-        protected LeadModel $leadModel
+        protected LeadModel $leadModel,
     ) {
         parent::__construct($leadFieldModel, $emailValidator, $companyDeduper, $em, $security, $dispatcher, $router, $translator, $userHelper, $mauticLogger, $coreParametersHelper, $fieldList);
     }
@@ -85,7 +85,7 @@ class CompanyScoreModel extends CompanyModel
     }
 
     /**
-     * @return array<\Mautic\LeadBundle\Entity\Company>
+     * @return array<Company>
      */
     public function getCompanies(int $limit = 0, int $offset = 0): array
     {

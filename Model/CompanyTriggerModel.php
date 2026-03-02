@@ -3,7 +3,6 @@
 namespace MauticPlugin\LeuchtfeuerCompanyPointsBundle\Model;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\DateTimeHelper;
 use Mautic\CoreBundle\Helper\IpLookupHelper;
@@ -48,10 +47,6 @@ class CompanyTriggerModel extends CommonFormModel
         protected IpLookupHelper $ipLookupHelper,
         protected LeadModel $leadModel,
         protected CompanyTriggerEventModel $pointTriggerEventModel,
-        /**
-         * @deprecated https://github.com/mautic/mautic/issues/8229
-         */
-        protected MauticFactory $mauticFactory,
         private ContactTracker $contactTracker,
         EntityManagerInterface $em,
         CorePermissions $security,
@@ -339,51 +334,14 @@ class CompanyTriggerModel extends CommonFormModel
 
         $settings = $availableEvents[$eventType];
 
-        if (isset($settings['callback']) && is_callable($settings['callback'])) {
-            return $this->invokeCallback($event, $lead, $settings);
-        } else {
-            /** @var CompanyTriggerEvent $triggerEvent */
-            $triggerEvent = $this->getEventRepository()->find($event['id']);
+        /** @var CompanyTriggerEvent $triggerEvent */
+        $triggerEvent = $this->getEventRepository()->find($event['id']);
 
-            $triggerExecutedEvent = new Events\CompanyTriggerExecutedEvent($triggerEvent, $lead);
+        $triggerExecutedEvent = new Events\CompanyTriggerExecutedEvent($triggerEvent, $lead);
 
-            $this->dispatcher->dispatch($triggerExecutedEvent, $settings['eventName']);
+        $this->dispatcher->dispatch($triggerExecutedEvent, $settings['eventName']);
 
-            return $triggerExecutedEvent->getResult();
-        }
-    }
-
-    /**
-     * @return bool
-     */
-    private function invokeCallback($event, Lead $lead, array $settings)
-    {
-        $args = [
-            'event'   => $event,
-            'lead'    => $lead,
-            'factory' => $this->mauticFactory,
-            'config'  => $event['properties'],
-        ];
-
-        if (is_array($settings['callback'])) {
-            $reflection = new \ReflectionMethod($settings['callback'][0], $settings['callback'][1]);
-        } elseif (str_contains($settings['callback'], '::')) {
-            $parts      = explode('::', $settings['callback']);
-            $reflection = new \ReflectionMethod($parts[0], $parts[1]);
-        } else {
-            $reflection = new \ReflectionMethod(null, $settings['callback']);
-        }
-
-        $pass = [];
-        foreach ($reflection->getParameters() as $param) {
-            if (isset($args[$param->getName()])) {
-                $pass[] = $args[$param->getName()];
-            } else {
-                $pass[] = null;
-            }
-        }
-
-        return $reflection->invokeArgs($this, $pass);
+        return $triggerExecutedEvent->getResult();
     }
 
     /**

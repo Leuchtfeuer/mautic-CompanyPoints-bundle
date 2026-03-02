@@ -27,20 +27,20 @@ class CompanyMemberActivityService
             return true;
         }
 
-        if ($lead->getLastActive() === null) {
+        if (null === $lead->getLastActive()) {
             return true;
         }
 
         $changes = $lead->getChanges(true);
-        if (array_key_exists('dateLastActive', $changes) && $changes['dateLastActive'][0] === null) {
+        if (array_key_exists('dateLastActive', $changes) && null === $changes['dateLastActive'][0]) {
             return true;
         }
 
         // sometimes mautic writes the dateLastActive many times in one request,
         // so we want to check also the past changes
-        $leadArray = $lead->convertToArray();
+        $leadArray   = $lead->convertToArray();
         $pastChanges = $leadArray['pastChanges'] ?? null;
-        if ((array_key_exists('dateLastActive', $pastChanges) && $pastChanges['dateLastActive'][0] === null)) {
+        if (array_key_exists('dateLastActive', $pastChanges) && null === $pastChanges['dateLastActive'][0]) {
             return true;
         }
 
@@ -102,7 +102,7 @@ class CompanyMemberActivityService
 
     /**
      * This is different from `Lead::isAnonymous`
-     * We do not consider contact with a company field as non-anonymous
+     * We do not consider contact with a company field as non-anonymous.
      */
     public function isAnonymousLead(Lead $lead): bool
     {
