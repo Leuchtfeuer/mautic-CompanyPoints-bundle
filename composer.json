@@ -2,7 +2,7 @@
   "name": "leuchtfeuer/mautic-companypoints-bundle",
   "description": "Massively enhanced Company-based Scoring. Point-based and even other (!) triggers and multiple triggered actions, all that for Companies.",
   "type": "mautic-plugin",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0",
   "authors": [
       {
           "name": "Leuchtfeuer Digital Marketing GmbH",
