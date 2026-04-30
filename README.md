@@ -114,3 +114,6 @@ Leuchtfeuer Digital Marketing GmbH
 Please raise any issues in GitHub.
 
 For all other things, please email mautic-plugins@Leuchtfeuer.com
+
+## License
+This plugin is licensed under the GPL v3 License.
